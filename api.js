@@ -1,5 +1,5 @@
 // API конфигурация
-const API_URL = 'https://street-racing-backend-wnse.onrender.com'; // Измените на ваш сервер
+const API_URL = 'https://street-racing-backend-xxx.onrender.com/api'; // Измените на ваш сервер
 let authToken = localStorage.getItem('authToken');
 
 // Базовая функция для API запросов
@@ -18,6 +18,13 @@ async function apiRequest(endpoint, options = {}) {
     
     try {
         const response = await fetch(`${API_URL}${endpoint}`, config);
+        
+        // Проверяем, что получили JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Сервер вернул не JSON ответ");
+        }
+        
         const data = await response.json();
         
         if (!response.ok) {
