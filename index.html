@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Street Racing</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Экран авторизации -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-box">
+            <h1>STREET RACING</h1>
+            
+            <div id="login-form" class="auth-form active">
+                <h2>Вход в игру</h2>
+                <input type="text" id="login-username" placeholder="Логин" maxlength="20">
+                <input type="password" id="login-password" placeholder="Пароль" maxlength="30">
+                <button onclick="handleLogin()">Войти</button>
+                <p>Нет аккаунта? <a href="#" onclick="showRegisterForm()">Регистрация</a></p>
+            </div>
+            
+            <div id="register-form" class="auth-form">
+                <h2>Регистрация</h2>
+                <input type="text" id="register-username" placeholder="Придумайте логин" maxlength="20">
+                <input type="password" id="register-password" placeholder="Придумайте пароль" maxlength="30">
+                <input type="password" id="register-password-confirm" placeholder="Повторите пароль" maxlength="30">
+                <button onclick="handleRegister()">Создать аккаунт</button>
+                <p>Уже есть аккаунт? <a href="#" onclick="showLoginForm()">Войти</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Игровой контейнер -->
+    <div class="game-container" style="display: none;">
+        <header>
+            <div class="header-top">
+                <h1>STREET RACING</h1>
+                <div class="player-info">
+                    <span>Игрок: <span id="username"></span></span>
+                    <span>Деньги: $<span id="money">1000</span></span>
+                    <span>Уровень: <span id="level">1</span></span>
+                    <button class="logout-btn" onclick="logout()">Выход</button>
+                </div>
+            </div>
+            <div class="navigation-buttons">
+                <button class="nav-btn" onclick="goToMainMenu()">🏠 Главное меню</button>
+                <button class="nav-btn" onclick="goBack()">← Назад</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Главная страница -->
+            <div id="main-menu" class="game-screen active">
+                <h2>Главное меню</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="showRaceMenu()">
+                        <div class="menu-icon">🏁</div>
+                        <h3>Гонки</h3>
+                        <p>Участвуйте в уличных гонках</p>
+                    </div>
+                    
+                    <div class="menu-item" onclick="showGarageScreen()">
+                        <div class="menu-icon">🚗</div>
+                        <h3>Гараж</h3>
+                        <p>Выберите машину для гонок</p>
+                    </div>
+                    
+                    <div class="menu-item" onclick="showProfileScreen()">
+                        <div class="menu-icon">👤</div>
+                        <h3>Профиль</h3>
+                        <p>Информация о персонаже</p>
+                    </div>
+                    
+                    <div class="menu-item" onclick="showShopScreen()">
+                        <div class="menu-icon">🛒</div>
+                        <h3>Магазин</h3>
+                        <p>Покупка и продажа машин</p>
+                    </div>
+                    
+                    <div class="menu-item" onclick="showLeaderboardScreen()">
+                        <div class="menu-icon">🏆</div>
+                        <h3>Рейтинг</h3>
+                        <p>Таблица лидеров</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран гаража -->
+            <div id="garage-screen" class="game-screen">
+                <div class="screen-header">
+                    <h2>Гараж</h2>
+                </div>
+                
+                <div class="garage-content">
+                    <div class="cars-list">
+                        <h3>Ваши машины</h3>
+                        <div id="owned-cars-list">
+                            <!-- Список машин игрока -->
+                        </div>
+                    </div>
+                    
+                    <div class="selected-car-info">
+                        <h3>Выбранная машина</h3>
+                        <div id="selected-car-display">
+                            <!-- Информация о выбранной машине -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран гонок -->
+            <div id="race-menu-screen" class="game-screen">
+                <div class="screen-header">
+                    <h2>Выбор гонки</h2>
+                </div>
+                <div id="opponents-list">
+                    <!-- Список соперников -->
+                </div>
+            </div>
+
+            <!-- Экран результата гонки -->
+            <div id="race-result-screen" class="game-screen">
+                <h2>Результат гонки</h2>
+                <div id="race-result">
+                    <!-- Результаты гонки -->
+                </div>
+                <button onclick="showRaceMenu()">Новая гонка</button>
+                <button onclick="showMainMenu()">В главное меню</button>
+            </div>
+
+            <!-- Экран профиля -->
+            <div id="profile-screen" class="game-screen">
+                <div class="screen-header">
+                    <h2>Профиль игрока</h2>
+                </div>
+                
+                <div class="profile-content">
+                    <div class="profile-stats">
+                        <h3>Основная информация</h3>
+                        <div id="profile-info">
+                            <!-- Информация профиля -->
+                        </div>
+                    </div>
+                    
+                    <div class="profile-skills">
+                        <h3>Навыки пилота</h3>
+                        <div id="profile-skills-display">
+                            <!-- Навыки -->
+                        </div>
+                    </div>
+                    
+                    <div class="profile-achievements">
+                        <h3>Статистика</h3>
+                        <div id="profile-stats">
+                            <!-- Статистика гонок -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран магазина -->
+            <div id="shop-screen" class="game-screen">
+                <div class="screen-header">
+                    <h2>Магазин автомобилей</h2>
+                </div>
+                
+                <div class="shop-tabs">
+                    <button class="tab-btn active" onclick="showShopTab('buy')">Покупка</button>
+                    <button class="tab-btn" onclick="showShopTab('sell')">Продажа</button>
+                </div>
+                
+                <div id="shop-buy" class="shop-content active">
+                    <h3>Доступные для покупки</h3>
+                    <div id="cars-for-sale">
+                        <!-- Машины для покупки -->
+                    </div>
+                </div>
+                
+                <div id="shop-sell" class="shop-content">
+                    <h3>Ваши машины</h3>
+                    <div id="cars-to-sell">
+                        <!-- Машины для продажи -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран таблицы лидеров -->
+            <div id="leaderboard-screen" class="game-screen">
+                <div class="screen-header">
+                    <h2>Таблица лидеров</h2>
+                </div>
+                
+                <div class="leaderboard-content">
+                    <div class="leaderboard-info">
+                        <p>ТОП-50 лучших гонщиков</p>
+                    </div>
+                    
+                    <div class="leaderboard-table">
+                        <div class="leaderboard-header">
+                            <span class="lb-position">#</span>
+                            <span class="lb-name">Игрок</span>
+                            <span class="lb-level">Уровень</span>
+                            <span class="lb-money">Деньги</span>
+                            <span class="lb-wins">Победы</span>
+                            <span class="lb-races">Гонки</span>
+                            <span class="lb-winrate">% побед</span>
+                        </div>
+                        <div id="leaderboard-list">
+                            <!-- Список лидеров -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
