@@ -715,7 +715,7 @@ function displayOpponents() {
                     </span>
                 </div>
             </div>
-            <button class="btn-primary race-btn" onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
+            <button class="btn-primary race-btn" onclick="showRacePreview(${index}); return false;" ${!canAfford ? 'disabled' : ''}>
                 ${canAfford ? 'Вызвать на гонку' : `Нужно $${betAmount}`}
             </button>
         `;
@@ -797,8 +797,8 @@ function showRacePreview(opponentIndex) {
             </div>
             
             <div class="modal-buttons">
-                <button class="btn-primary race-start-btn" onclick="confirmRace(${opponentIndex})">Начать гонку!</button>
-                <button class="btn-secondary" onclick="closeRacePreview()">Отмена</button>
+                <button class="btn-primary race-start-btn" onclick="confirmRace(${opponentIndex}); return false;">Начать гонку!</button>
+                <button class="btn-secondary" onclick="closeRacePreview(); return false;">Отмена</button>
             </div>
         </div>
     `;
@@ -817,7 +817,9 @@ function closeRacePreview() {
 // Подтвердить и начать гонку
 function confirmRace(opponentIndex) {
     closeRacePreview();
-    startRace(opponentIndex);
+    setTimeout(() => {
+        startRace(opponentIndex);
+    }, 100);
 }
 
 // Проверка повышения уровня
@@ -875,6 +877,9 @@ async function startRace(opponentIndex) {
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
     
+    // Инициализируем улучшения если их нет
+    initializeCarUpgrades(currentCar);
+    
     const betAmount = opponent.reward / 2;
     if (gameData.money < betAmount) {
         alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
@@ -899,10 +904,20 @@ async function startRace(opponentIndex) {
     let playerEfficiency = carPower * skillMultiplier;
     
     // Проверяем нитро
-    if (currentCar.specialParts.nitro && Math.random() < 0.3) {
+    if (currentCar.specialParts && currentCar.specialParts.nitro && Math.random() < 0.3) {
         playerEfficiency *= 1.2;
         showError("🚀 Нитро активировано!");
     }
+    
+    // Расчет эффективности соперника (базовая 60 * сложность)
+    const opponentEfficiency = 60 * opponent.difficulty;
+    
+    // Базовое время трассы 60 секунд
+    const trackBaseTime = 60;
+    
+    // Добавляем элемент случайности (±5% от результата)
+    const playerRandomFactor = 0.95 + Math.random() * 0.1;
+    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
     
     // Расчет финального времени
     const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
@@ -1190,7 +1205,9 @@ window.onload = async function() {
     setTimeout(() => {
         document.getElementById('loading-screen').style.display = 'none';
     }, 500);
-};// Конфигурация системы улучшений
+};
+
+// Конфигурация системы улучшений
 const upgradeConfig = {
     engine: {
         name: "Двигатель",
@@ -1288,26 +1305,32 @@ function calculateTotalStats(car) {
     };
     
     // Применяем улучшения
-    Object.keys(car.upgrades).forEach(upgradeType => {
-        const level = car.upgrades[upgradeType];
-        const config = upgradeConfig[upgradeType];
-        
-        Object.keys(config.affects).forEach(stat => {
-            totalStats[stat] += config.affects[stat] * level;
-        });
-    });
-    
-    // Применяем специальные детали
-    if (car.specialParts.bodyKit) {
-        Object.keys(totalStats).forEach(stat => {
-            totalStats[stat] += 10;
+    if (car.upgrades) {
+        Object.keys(car.upgrades).forEach(upgradeType => {
+            const level = car.upgrades[upgradeType];
+            const config = upgradeConfig[upgradeType];
+            
+            if (config && config.affects) {
+                Object.keys(config.affects).forEach(stat => {
+                    totalStats[stat] += config.affects[stat] * level;
+                });
+            }
         });
     }
     
-    if (car.specialParts.ecuTune) {
-        Object.keys(totalStats).forEach(stat => {
-            totalStats[stat] = Math.floor(totalStats[stat] * 1.15);
-        });
+    // Применяем специальные детали
+    if (car.specialParts) {
+        if (car.specialParts.bodyKit) {
+            Object.keys(totalStats).forEach(stat => {
+                totalStats[stat] += 10;
+            });
+        }
+        
+        if (car.specialParts.ecuTune) {
+            Object.keys(totalStats).forEach(stat => {
+                totalStats[stat] = Math.floor(totalStats[stat] * 1.15);
+            });
+        }
     }
     
     return totalStats;
@@ -1571,6 +1594,8 @@ function checkUpgradeAchievements() {
         showError("🏆 Достижение: Инженер! Машина полностью прокачана!");
     }
 }
+
+// Предотвращение обновления страницы при клике на кнопки
 document.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' && !e.target.type) {
         e.preventDefault();
