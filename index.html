@@ -1,4 +1,58 @@
-<!-- Игровой контейнер -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Street Racing - Уличные гонки</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Экран загрузки -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <h1 class="loading-title">STREET RACING</h1>
+            <p>Загрузка...</p>
+        </div>
+    </div>
+
+    <!-- Экран авторизации -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-box">
+            <div class="logo-container">
+                <h1 class="game-logo">STREET RACING</h1>
+                <p>Стань легендой улиц</p>
+            </div>
+            
+            <div id="login-form" class="auth-form active">
+                <h2>Вход в игру</h2>
+                <div class="input-group">
+                    <input type="text" id="login-username" placeholder="Логин" maxlength="20" autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" placeholder="Пароль" maxlength="30" autocomplete="current-password">
+                </div>
+                <button class="btn-primary" onclick="handleLogin()">Войти в игру</button>
+                <p class="auth-switch">Нет аккаунта? <a href="#" onclick="showRegisterForm()">Регистрация</a></p>
+            </div>
+            
+            <div id="register-form" class="auth-form">
+                <h2>Регистрация</h2>
+                <div class="input-group">
+                    <input type="text" id="register-username" placeholder="Придумайте логин" maxlength="20">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="register-password" placeholder="Придумайте пароль" maxlength="30">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="register-password-confirm" placeholder="Повторите пароль" maxlength="30">
+                </div>
+                <button class="btn-primary" onclick="handleRegister()">Создать аккаунт</button>
+                <p class="auth-switch">Уже есть аккаунт? <a href="#" onclick="showLoginForm()">Войти</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Игровой контейнер -->
     <div class="game-container" style="display: none;">
         <!-- Header с статистикой -->
         <header class="game-header">
@@ -134,9 +188,86 @@
                         <span class="menu-icon">📰</span>
                         <span>События</span>
                     </a>
+                    <a href="#" class="menu-item" onclick="logout()">
+                        <span class="menu-icon">🚪</span>
+                        <span>Выход</span>
+                    </a>
                 </div>
             </nav>
         </aside>
 
         <!-- Кнопка меню для мобильных -->
         <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">☰</button>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Главная страница -->
+            <div id="main-menu" class="game-screen active">
+                <div class="main-menu-content">
+                    <div class="car-display-main">
+                        <div class="car-emoji-large">🚗</div>
+                        <h2 id="current-car-name">ВАЗ 2102</h2>
+                        <div class="car-stats-main">
+                            <div class="car-stat-main">
+                                <div class="car-stat-value">7500</div>
+                                <div class="car-stat-label">об</div>
+                            </div>
+                            <div class="car-stat-main">
+                                <div class="car-stat-value">58</div>
+                                <div class="car-stat-label">л.с.</div>
+                            </div>
+                            <div class="car-stat-main">
+                                <div class="car-stat-value">20.59</div>
+                                <div class="car-stat-label">сек.</div>
+                            </div>
+                            <div class="car-stat-main">
+                                <div class="car-stat-value">1</div>
+                                <div class="car-stat-label">уровень</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран выбора соперника -->
+            <div id="race-menu-screen" class="game-screen">
+                <div class="race-preview-simple">
+                    <div class="race-title">Трасса</div>
+                    <div id="opponents-list">
+                        <!-- Список соперников будет здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран результата гонки -->
+            <div id="race-result-screen" class="game-screen">
+                <div class="race-result-content">
+                    <div class="result-title">Детали заезда</div>
+                    <div id="race-result">
+                        <!-- Результаты будут здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран гаража -->
+            <div id="garage-screen" class="game-screen">
+                <h2>Мой гараж</h2>
+                <div id="garage-content">
+                    <!-- Контент гаража -->
+                </div>
+            </div>
+
+            <!-- Экран магазина -->
+            <div id="shop-screen" class="game-screen">
+                <h2>Авто-салон</h2>
+                <div id="shop-content">
+                    <!-- Контент магазина -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
