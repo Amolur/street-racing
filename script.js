@@ -531,8 +531,8 @@ function updateProfileDisplay() {
             <p><strong>Побед:</strong> ${gameData.stats.wins}</p>
             <p><strong>Поражений:</strong> ${gameData.stats.losses}</p>
             <p><strong>Процент побед:</strong> ${winRate}%</p>
-            <p><strong>Заработано:</strong> $${gameData.stats.moneyEarned}</p>
-            <p><strong>Потрачено:</strong> $${gameData.stats.moneySpent}</p>
+            <p><strong>Заработано:</strong> ${gameData.stats.moneyEarned}</p>
+            <p><strong>Потрачено:</strong> ${gameData.stats.moneySpent}</p>
         `;
     }
 }
@@ -558,7 +558,7 @@ function updateShopDisplay() {
                             <span>Управление: ${car.handling}</span>
                             <span>Разгон: ${car.acceleration}</span>
                         </div>
-                        <p class="price">$${car.price}</p>
+                        <p class="price">${car.price}</p>
                     </div>
                     <button class="btn-primary" onclick="buyCar(${car.id})" ${gameData.money < car.price ? 'disabled' : ''}>
                         ${gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
@@ -586,7 +586,7 @@ function updateShopDisplay() {
                             <span>Мощность: ${car.power}</span>
                             <span>Скорость: ${car.speed}</span>
                         </div>
-                        <p class="price">Продать за: $${sellPrice}</p>
+                        <p class="price">Продать за: ${sellPrice}</p>
                     </div>
                     <button class="btn-primary" onclick="sellCar(${index})">Продать</button>
                 `;
@@ -622,7 +622,7 @@ async function sellCar(index) {
     const car = gameData.cars[index];
     const sellPrice = Math.floor(car.price * 0.7);
     
-    if (confirm(`Продать ${car.name} за $${sellPrice}?`)) {
+    if (confirm(`Продать ${car.name} за ${sellPrice}?`)) {
         gameData.money += sellPrice;
         gameData.stats.moneyEarned += sellPrice;
         gameData.cars.splice(index, 1);
@@ -709,10 +709,10 @@ function displayOpponents() {
             <div class="opponent-info">
                 <strong>${opponent.name}</strong>
                 <small>Машина: ${opponent.car}</small>
-                <small>Выигрыш: $${opponent.reward} / Ставка: $${betAmount}</small>
+                <small>Выигрыш: ${opponent.reward} / Ставка: ${betAmount}</small>
             </div>
             <button class="btn-primary" onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
-                ${canAfford ? 'Вызвать' : `Нужно $${betAmount}`}
+                ${canAfford ? 'Вызвать' : `Нужно ${betAmount}`}
             </button>
         `;
         opponentsList.appendChild(opponentCard);
@@ -725,158 +725,236 @@ function showRacePreview(opponentIndex) {
     const currentCar = gameData.cars[gameData.currentCar];
     const betAmount = opponent.reward / 2;
     
+    // Генерируем характеристики соперника
+    const opponentStats = {
+        power: Math.floor(50 * opponent.difficulty + Math.random() * 20),
+        speed: Math.floor(55 * opponent.difficulty + Math.random() * 20),
+        handling: Math.floor(60 * opponent.difficulty + Math.random() * 20),
+        acceleration: Math.floor(50 * opponent.difficulty + Math.random() * 20)
+    };
+    
+    const opponentSkills = {
+        driving: Math.floor(5 * opponent.difficulty + Math.random() * 10),
+        speed: Math.floor(5 * opponent.difficulty + Math.random() * 10),
+        reaction: Math.floor(5 * opponent.difficulty + Math.random() * 10),
+        technique: Math.floor(5 * opponent.difficulty + Math.random() * 10)
+    };
+    
     const modal = document.createElement('div');
     modal.className = 'race-preview-modal';
     modal.innerHTML = `
         <div class="race-preview-content">
-            <h2>Вызов на гонку</h2>
+            <button class="modal-close-btn" onclick="closeRacePreview()">×</button>
             
-            <div class="race-comparison">
-                <div class="racer-info player">
-                    <h3>${currentUser.username}</h3>
-                    <div class="car-info">
-                        <h4>${currentCar.name}</h4>
-                        <div class="car-image">🚗</div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Характеристики машины</h5>
-                        <div class="stat-comparison">
-                            <span>Мощность</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.power}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.power}</span>
-                        </div>
-                        <div class="stat-comparison">
-                            <span>Скорость</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.speed}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.speed}</span>
-                        </div>
-                        <div class="stat-comparison">
-                            <span>Управление</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.handling}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.handling}</span>
-                        </div>
-                        <div class="stat-comparison">
-                            <span>Разгон</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.acceleration}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.acceleration}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Навыки пилота</h5>
-                        <div class="skill-comparison">
-                            <span>Вождение: ${gameData.skills.driving}</span>
-                            <span>Скорость: ${gameData.skills.speed}</span>
-                            <span>Реакция: ${gameData.skills.reaction}</span>
-                            <span>Навык: ${gameData.skills.technique}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="vs-divider">
-                    <div class="vs-circle">VS</div>
-                    <div class="race-info">
-                        <p>Ставка: <strong>$${betAmount}</strong></p>
-                        <p>Выигрыш: <strong>$${opponent.reward}</strong></p>
-                    </div>
-                </div>
-                
-                <div class="racer-info opponent">
-                    <h3>${opponent.name}</h3>
-                    <div class="car-info">
-                        <h4>${opponent.car}</h4>
-                        <div class="car-image">🏎️</div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Характеристики машины</h5>
-                        ${generateOpponentStats(opponent.difficulty)}
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Навыки пилота</h5>
-                        <div class="skill-comparison">
-                            ${generateOpponentSkills(opponent.difficulty)}
-                        </div>
-                    </div>
-                </div>
+            <div class="race-preview-header">
+                <h2>RACE CHALLENGE</h2>
             </div>
             
-            <div class="modal-buttons">
-                <button class="btn-primary race-btn" onclick="confirmRace(${opponentIndex})">Начать гонку!</button>
-                <button class="btn-secondary cancel-btn" onclick="closeRacePreview()">Отмена</button>
+            <div class="race-comparison">
+                <!-- Игрок -->
+                <div class="racer-side player">
+                    <div class="racer-header">
+                        <h3 class="racer-name">${currentUser.username}</h3>
+                        <div class="racer-avatar">
+                            <img src="https://ui-avatars.com/api/?name=${currentUser.username}&background=00D9FF&color=000&size=120" alt="Player">
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <div class="stats-title">Навыки пилота</div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Вождение</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${gameData.skills.driving * 5}%">
+                                    <span class="stat-value">${gameData.skills.driving}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Скорость</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${gameData.skills.speed * 5}%">
+                                    <span class="stat-value">${gameData.skills.speed}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Реакция</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${gameData.skills.reaction * 5}%">
+                                    <span class="stat-value">${gameData.skills.reaction}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Техника</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${gameData.skills.technique * 5}%">
+                                    <span class="stat-value">${gameData.skills.technique}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="car-display">
+                        <div class="car-name">${currentCar.name}</div>
+                        <div class="car-model">🚗</div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <div class="stats-title">Характеристики машины</div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Мощность</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${currentCar.power}%">
+                                    <span class="stat-value">${currentCar.power}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Скорость</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${currentCar.speed}%">
+                                    <span class="stat-value">${currentCar.speed}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Управление</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${currentCar.handling}%">
+                                    <span class="stat-value">${currentCar.handling}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Разгон</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${currentCar.acceleration}%">
+                                    <span class="stat-value">${currentCar.acceleration}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Разделитель VS -->
+                <div class="vs-divider">
+                    <div class="vs-badge">VS</div>
+                    <div class="race-stakes">
+                        <div class="stake-info">
+                            <span class="stake-label">Ставка</span>
+                            <span class="stake-amount">${betAmount}</span>
+                        </div>
+                        <div class="stake-info">
+                            <span class="stake-label">Выигрыш</span>
+                            <span class="stake-amount">${opponent.reward}</span>
+                        </div>
+                        <button class="race-start-btn" onclick="confirmRace(${opponentIndex})">
+                            НАЧАТЬ ГОНКУ
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Соперник -->
+                <div class="racer-side opponent">
+                    <div class="racer-header">
+                        <h3 class="racer-name">${opponent.name}</h3>
+                        <div class="racer-avatar">
+                            <span>🏁</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <div class="stats-title">Навыки пилота</div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Вождение</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentSkills.driving * 5}%">
+                                    <span class="stat-value">${opponentSkills.driving}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Скорость</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentSkills.speed * 5}%">
+                                    <span class="stat-value">${opponentSkills.speed}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Реакция</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentSkills.reaction * 5}%">
+                                    <span class="stat-value">${opponentSkills.reaction}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Техника</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentSkills.technique * 5}%">
+                                    <span class="stat-value">${opponentSkills.technique}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="car-display">
+                        <div class="car-name">${opponent.car}</div>
+                        <div class="car-model">🏎️</div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <div class="stats-title">Характеристики машины</div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Мощность</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentStats.power}%">
+                                    <span class="stat-value">${opponentStats.power}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Скорость</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentStats.speed}%">
+                                    <span class="stat-value">${opponentStats.speed}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Управление</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentStats.handling}%">
+                                    <span class="stat-value">${opponentStats.handling}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-comparison">
+                            <span class="stat-label">Разгон</span>
+                            <div class="stat-bar-wrapper">
+                                <div class="stat-bar-fill" style="width: ${opponentStats.acceleration}%">
+                                    <span class="stat-value">${opponentStats.acceleration}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
-}
-
-// Генерация характеристик машины соперника
-function generateOpponentStats(difficulty) {
-    const baseStats = {
-        power: Math.floor(50 * difficulty + Math.random() * 20),
-        speed: Math.floor(55 * difficulty + Math.random() * 20),
-        handling: Math.floor(60 * difficulty + Math.random() * 20),
-        acceleration: Math.floor(50 * difficulty + Math.random() * 20)
-    };
     
-    return `
-        <div class="stat-comparison">
-            <span class="stat-number">${baseStats.power}</span>
-            <div class="stat-bar-comparison opponent-bar">
-                <div class="stat-fill" style="width: ${baseStats.power}%"></div>
-            </div>
-            <span>Мощность</span>
-        </div>
-        <div class="stat-comparison">
-            <span class="stat-number">${baseStats.speed}</span>
-            <div class="stat-bar-comparison opponent-bar">
-                <div class="stat-fill" style="width: ${baseStats.speed}%"></div>
-            </div>
-            <span>Скорость</span>
-        </div>
-        <div class="stat-comparison">
-            <span class="stat-number">${baseStats.handling}</span>
-            <div class="stat-bar-comparison opponent-bar">
-                <div class="stat-fill" style="width: ${baseStats.handling}%"></div>
-            </div>
-            <span>Управление</span>
-        </div>
-        <div class="stat-comparison">
-            <span class="stat-number">${baseStats.acceleration}</span>
-            <div class="stat-bar-comparison opponent-bar">
-                <div class="stat-fill" style="width: ${baseStats.acceleration}%"></div>
-            </div>
-            <span>Разгон</span>
-        </div>
-    `;
-}
-
-// Генерация навыков соперника
-function generateOpponentSkills(difficulty) {
-    const skills = {
-        driving: Math.floor(5 * difficulty + Math.random() * 10),
-        speed: Math.floor(5 * difficulty + Math.random() * 10),
-        reaction: Math.floor(5 * difficulty + Math.random() * 10),
-        technique: Math.floor(5 * difficulty + Math.random() * 10)
-    };
-    
-    return `
-        <span>Вождение: ${skills.driving}</span>
-        <span>Скорость: ${skills.speed}</span>
-        <span>Реакция: ${skills.reaction}</span>
-        <span>Навык: ${skills.technique}</span>
-    `;
+    // Анимация появления статистик
+    setTimeout(() => {
+        const statBars = modal.querySelectorAll('.stat-bar-fill');
+        statBars.forEach(bar => {
+            bar.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    }, 100);
 }
 
 // Закрыть превью гонки
@@ -900,7 +978,7 @@ async function startRace(opponentIndex) {
     
     const betAmount = opponent.reward / 2;
     if (gameData.money < betAmount) {
-        alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
+        alert(`Недостаточно денег для участия! Нужно минимум ${betAmount}`);
         return;
     }
     
@@ -968,11 +1046,11 @@ async function startRace(opponentIndex) {
         resultDiv.innerHTML = `
             <h3 style="color: #4ecdc4;">ПОБЕДА!</h3>
             <p>Вы обогнали ${opponent.name}!</p>
-            <p>Выигрыш: +$${opponent.reward}</p>
+            <p>Выигрыш: +${opponent.reward}</p>
             <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
             <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
             <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
-            <p>Баланс: $${gameData.money}</p>
+            <p>Баланс: ${gameData.money}</p>
             ${skillsHTML}
             <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
             <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
@@ -981,11 +1059,11 @@ async function startRace(opponentIndex) {
         resultDiv.innerHTML = `
             <h3 style="color: #ff6b6b;">ПОРАЖЕНИЕ</h3>
             <p>${opponent.name} оказался быстрее!</p>
-            <p>Проигрыш: -$${betAmount}</p>
+            <p>Проигрыш: -${betAmount}</p>
             <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
             <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
             <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
-            <p>Баланс: $${gameData.money}</p>
+            <p>Баланс: ${gameData.money}</p>
             ${skillsHTML}
             <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
             <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
