@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Street Racing - Уличные гонки</title>
+    <title>Street Racing - Киберпанк гонки</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <div id="loading-screen" class="loading-screen">
         <div class="loading-content">
             <h1 class="loading-title">STREET RACING</h1>
-            <p>Загрузка...</p>
+            <p style="color: var(--neon-cyan); margin-top: 1rem;">Инициализация системы...</p>
         </div>
     </div>
 
@@ -19,35 +19,41 @@
     <div id="auth-container" class="auth-container">
         <div class="auth-box">
             <div class="logo-container">
-                <h1 class="game-logo">STREET RACING</h1>
-                <p>Стань легендой улиц</p>
+                <h1 class="game-logo">STREET<span>RACING</span></h1>
+                <p style="color: var(--neon-cyan); letter-spacing: 2px;">КИБЕРПАНК ГОНКИ 2077</p>
             </div>
             
             <div id="login-form" class="auth-form active">
-                <h2>Вход в игру</h2>
+                <h2>[ ВХОД В СИСТЕМУ ]</h2>
                 <div class="input-group">
-                    <input type="text" id="login-username" placeholder="Логин" maxlength="20" autocomplete="username">
+                    <input type="text" id="login-username" placeholder="ИМЯ ПОЛЬЗОВАТЕЛЯ" maxlength="20" autocomplete="username">
                 </div>
                 <div class="input-group">
-                    <input type="password" id="login-password" placeholder="Пароль" maxlength="30" autocomplete="current-password">
+                    <input type="password" id="login-password" placeholder="ПАРОЛЬ" maxlength="30" autocomplete="current-password">
                 </div>
-                <button class="btn-primary" onclick="handleLogin()">Войти в игру</button>
-                <p class="auth-switch">Нет аккаунта? <a href="#" onclick="showRegisterForm()">Регистрация</a></p>
+                <button class="btn-primary" onclick="handleLogin()">[ ПОДКЛЮЧИТЬСЯ ]</button>
+                <p class="auth-switch">
+                    Новый пользователь? 
+                    <a href="#" onclick="showRegisterForm()">[ РЕГИСТРАЦИЯ ]</a>
+                </p>
             </div>
             
             <div id="register-form" class="auth-form">
-                <h2>Регистрация</h2>
+                <h2>[ СОЗДАНИЕ АККАУНТА ]</h2>
                 <div class="input-group">
-                    <input type="text" id="register-username" placeholder="Придумайте логин" maxlength="20">
+                    <input type="text" id="register-username" placeholder="ВЫБЕРИТЕ ИМЯ" maxlength="20">
                 </div>
                 <div class="input-group">
-                    <input type="password" id="register-password" placeholder="Придумайте пароль" maxlength="30">
+                    <input type="password" id="register-password" placeholder="СОЗДАЙТЕ ПАРОЛЬ" maxlength="30">
                 </div>
                 <div class="input-group">
-                    <input type="password" id="register-password-confirm" placeholder="Повторите пароль" maxlength="30">
+                    <input type="password" id="register-password-confirm" placeholder="ПОДТВЕРДИТЕ ПАРОЛЬ" maxlength="30">
                 </div>
-                <button class="btn-primary" onclick="handleRegister()">Создать аккаунт</button>
-                <p class="auth-switch">Уже есть аккаунт? <a href="#" onclick="showLoginForm()">Войти</a></p>
+                <button class="btn-primary" onclick="handleRegister()">[ СОЗДАТЬ АККАУНТ ]</button>
+                <p class="auth-switch">
+                    Уже есть аккаунт? 
+                    <a href="#" onclick="showLoginForm()">[ ВОЙТИ ]</a>
+                </p>
             </div>
         </div>
     </div>
@@ -56,125 +62,144 @@
     <div class="game-container" style="display: none;">
         <!-- Header с статистикой -->
         <header class="game-header">
-            <div class="header-top">STREET RACING</div>
+            <div class="header-top">
+                <h1 class="header-logo">STREET RACING</h1>
+            </div>
             <div class="header-stats">
-                <div class="stats-group">
-                    <span class="stat-label">Игрок:</span>
-                    <span id="username" class="stat-value">test</span>
+                <div class="stat-item">
+                    <span class="stat-label">Пилот</span>
+                    <span id="username" class="stat-value">USER</span>
                 </div>
-                <div class="stats-group">
-                    <span class="stat-label">Деньги:</span>
+                <div class="stat-item">
+                    <span class="stat-label">Баланс</span>
                     <span id="money" class="stat-value money">$4800</span>
                 </div>
-                <div class="stats-group">
-                    <span class="stat-label">Побед:</span>
+                <div class="stat-item">
+                    <span class="stat-label">Побед</span>
                     <span id="wins" class="stat-value">0</span>
                 </div>
-                <div class="stats-group">
-                    <span class="stat-label">Поражений:</span>
-                    <span id="losses" class="stat-value">0</span>
+                <div class="stat-item">
+                    <span class="stat-label">Поражений</span>
+                    <span id="losses" class="stat-value danger">0</span>
                 </div>
-                <div class="stats-group">
-                    <span class="stat-label">Уровень:</span>
-                    <span id="level" class="stat-value">1</span>
+                <div class="stat-item">
+                    <span class="stat-label">Уровень</span>
+                    <span id="level" class="stat-value">01</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Рейтинг</span>
+                    <span id="rating" class="stat-value">#---</span>
                 </div>
             </div>
         </header>
 
         <!-- Основной контент -->
         <main class="main-content">
-            <!-- Главная страница -->
-            <div id="main-menu" class="game-screen active">
-                <div class="text-menu">
-                    <h1>ГЛАВНОЕ МЕНЮ</h1>
-                    <div class="car-info-section">
-                        <h2>Текущая машина: <span id="current-car-name">ВАЗ 2102</span></h2>
-                        <div class="car-quick-stats">
-                            <span>Мощность: <strong id="car-power">58</strong> л.с.</span>
-                            <span>Скорость: <strong id="car-speed">137</strong> км/ч</span>
-                            <span>Управление: <strong id="car-handling">25</strong></span>
-                            <span>Разгон: <strong id="car-acceleration">1010</strong></span>
+            <div class="container">
+                <!-- Главная страница -->
+                <div id="main-menu" class="game-screen active">
+                    <div class="main-menu">
+                        <h1 class="main-title">[ ГЛАВНОЕ МЕНЮ ]</h1>
+                        
+                        <div class="car-showcase">
+                            <h2 class="car-name" id="current-car-name">ВАЗ 2102</h2>
+                            <div class="car-visual">🚗</div>
+                            <div class="car-stats">
+                                <div class="stat-box">
+                                    <div class="stat-name">Мощность</div>
+                                    <div class="stat-value-large" id="car-power">58</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-name">Скорость</div>
+                                    <div class="stat-value-large" id="car-speed">137</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-name">Управление</div>
+                                    <div class="stat-value-large" id="car-handling">25</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-name">Разгон</div>
+                                    <div class="stat-value-large" id="car-acceleration">1010</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="menu-links">
-                        <a href="#" onclick="showRaceMenu()" class="menu-link">
-                            <span class="link-number">[1]</span> ГОНКИ
-                        </a>
-                        <a href="#" onclick="showGarageScreen()" class="menu-link">
-                            <span class="link-number">[2]</span> ГАРАЖ
-                        </a>
-                        <a href="#" onclick="showShopScreen()" class="menu-link">
-                            <span class="link-number">[3]</span> АВТО-МАГАЗИН
-                        </a>
-                        <a href="#" onclick="showLeaderboardScreen()" class="menu-link">
-                            <span class="link-number">[4]</span> РЕЙТИНГ
-                        </a>
-                        <a href="#" onclick="logout()" class="menu-link logout">
-                            <span class="link-number">[0]</span> ВЫХОД
-                        </a>
+                        
+                        <nav class="menu-grid">
+                            <a href="#" onclick="showRaceMenu()" class="menu-item">
+                                <span class="menu-icon">🏁</span>
+                                <span class="menu-title">ГОНКИ</span>
+                            </a>
+                            <a href="#" onclick="showGarageScreen()" class="menu-item">
+                                <span class="menu-icon">🚗</span>
+                                <span class="menu-title">ГАРАЖ</span>
+                            </a>
+                            <a href="#" onclick="showShopScreen()" class="menu-item">
+                                <span class="menu-icon">🛒</span>
+                                <span class="menu-title">МАГАЗИН</span>
+                            </a>
+                            <a href="#" onclick="showLeaderboardScreen()" class="menu-item">
+                                <span class="menu-icon">🏆</span>
+                                <span class="menu-title">РЕЙТИНГ</span>
+                            </a>
+                            <a href="#" onclick="logout()" class="menu-item logout">
+                                <span class="menu-icon">⚡</span>
+                                <span class="menu-title">ВЫХОД</span>
+                            </a>
+                        </nav>
                     </div>
                 </div>
-            </div>
 
-            <!-- Экран выбора соперника -->
-            <div id="race-menu-screen" class="game-screen">
-                <div class="screen-content">
-                    <h1>ВЫБОР СОПЕРНИКА</h1>
-                    <div class="back-link">
-                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                <!-- Экран выбора соперника -->
+                <div id="race-menu-screen" class="game-screen">
+                    <div class="screen-header">
+                        <h1 class="screen-title">[ ВЫБОР СОПЕРНИКА ]</h1>
+                        <a href="#" onclick="showMainMenu()" class="back-button">← Вернуться в главное меню</a>
                     </div>
-                    <div id="opponents-list" class="opponents-list-simple">
+                    <div id="opponents-list" class="opponents-grid">
                         <!-- Список соперников будет здесь -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Экран результата гонки -->
-            <div id="race-result-screen" class="game-screen">
-                <div class="screen-content">
-                    <h1>РЕЗУЛЬТАТ ГОНКИ</h1>
-                    <div id="race-result">
+                <!-- Экран результата гонки -->
+                <div id="race-result-screen" class="game-screen">
+                    <div class="screen-header">
+                        <h1 class="screen-title">[ РЕЗУЛЬТАТ ЗАЕЗДА ]</h1>
+                    </div>
+                    <div id="race-result" class="result-container">
                         <!-- Результаты будут здесь -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Экран гаража -->
-            <div id="garage-screen" class="game-screen">
-                <div class="screen-content">
-                    <h1>МОЙ ГАРАЖ</h1>
-                    <div class="back-link">
-                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                <!-- Экран гаража -->
+                <div id="garage-screen" class="game-screen">
+                    <div class="screen-header">
+                        <h1 class="screen-title">[ МОЙ ГАРАЖ ]</h1>
+                        <a href="#" onclick="showMainMenu()" class="back-button">← Вернуться в главное меню</a>
                     </div>
-                    <div id="garage-content">
+                    <div id="garage-content" class="cars-grid">
                         <!-- Контент гаража -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Экран магазина -->
-            <div id="shop-screen" class="game-screen">
-                <div class="screen-content">
-                    <h1>АВТО-МАГАЗИН</h1>
-                    <div class="back-link">
-                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                <!-- Экран магазина -->
+                <div id="shop-screen" class="game-screen">
+                    <div class="screen-header">
+                        <h1 class="screen-title">[ АВТО-МАГАЗИН ]</h1>
+                        <a href="#" onclick="showMainMenu()" class="back-button">← Вернуться в главное меню</a>
                     </div>
-                    <div id="shop-content">
+                    <div id="shop-content" class="cars-grid">
                         <!-- Контент магазина -->
                     </div>
                 </div>
-            </div>
 
-            <!-- Экран рейтинга -->
-            <div id="leaderboard-screen" class="game-screen">
-                <div class="screen-content">
-                    <h1>ТАБЛИЦА ЛИДЕРОВ</h1>
-                    <div class="back-link">
-                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                <!-- Экран рейтинга -->
+                <div id="leaderboard-screen" class="game-screen">
+                    <div class="screen-header">
+                        <h1 class="screen-title">[ ТАБЛИЦА ЛИДЕРОВ ]</h1>
+                        <a href="#" onclick="showMainMenu()" class="back-button">← Вернуться в главное меню</a>
                     </div>
-                    <div id="leaderboard-content">
-                        <div class="loading">Загрузка рейтинга...</div>
+                    <div id="leaderboard-content" class="leaderboard-container">
+                        <div class="loading">Подключение к базе данных...</div>
                     </div>
                 </div>
             </div>
