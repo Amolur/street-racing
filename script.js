@@ -57,7 +57,7 @@ const opponents = [
     { name: "Новичок Вася", car: "Lada 2107", difficulty: 0.8, reward: 200 },
     { name: "Уличный гонщик Макс", car: "BMW E36", difficulty: 1.0, reward: 500 },
     { name: "Профи Алекс", car: "Nissan Skyline", difficulty: 1.3, reward: 1000 },
-    { name: "Легенда Дима", car: "Toyota Supra", difficulty: 1.6, reward: 2000 }
+    { name: "Легенда Владимир", car: "BMW M5 F90", difficulty: 1.6, reward: 2000 }
 ];
 
 // Функция для запуска автосохранения
@@ -881,29 +881,28 @@ async function startRace(opponentIndex) {
         return;
     }
     
+    // Получаем характеристики с учетом улучшений
+    const totalStats = calculateTotalStats(currentCar);
+    
     // Расчет параметров машины игрока (0-100)
-    const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
+    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
     
     // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
     const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +      // +0.2% за уровень
-        gameData.skills.speed * 0.002 +        // +0.2% за уровень
-        gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
-        gameData.skills.technique * 0.0015     // +0.15% за уровень
+        gameData.skills.driving * 0.002 +
+        gameData.skills.speed * 0.002 +
+        gameData.skills.reaction * 0.0015 +
+        gameData.skills.technique * 0.0015
     );
     
     // Общая эффективность игрока (с учетом навыков)
-    const playerEfficiency = carPower * skillMultiplier;
+    let playerEfficiency = carPower * skillMultiplier;
     
-    // Расчет эффективности соперника (базовая 60 * сложность)
-    const opponentEfficiency = 60 * opponent.difficulty;
-    
-    // Базовое время трассы 60 секунд
-    const trackBaseTime = 60;
-    
-    // Добавляем элемент случайности (±5% от результата)
-    const playerRandomFactor = 0.95 + Math.random() * 0.1;
-    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
+    // Проверяем нитро
+    if (currentCar.specialParts.nitro && Math.random() < 0.3) {
+        playerEfficiency *= 1.2;
+        showError("🚀 Нитро активировано!");
+    }
     
     // Расчет финального времени
     const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
@@ -1571,44 +1570,6 @@ function checkUpgradeAchievements() {
     } else if (totalUpgrades === 50) {
         showError("🏆 Достижение: Инженер! Машина полностью прокачана!");
     }
-}
-
-// Обновляем функцию startRace для учета улучшений
-async function startRace(opponentIndex) {
-    const opponent = opponents[opponentIndex];
-    const currentCar = gameData.cars[gameData.currentCar];
-    
-    const betAmount = opponent.reward / 2;
-    if (gameData.money < betAmount) {
-        alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
-        return;
-    }
-    
-    // Получаем характеристики с учетом улучшений
-    const totalStats = calculateTotalStats(currentCar);
-    
-    // Расчет параметров машины игрока (0-100)
-    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
-    
-    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-    const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +
-        gameData.skills.speed * 0.002 +
-        gameData.skills.reaction * 0.0015 +
-        gameData.skills.technique * 0.0015
-    );
-    
-    // Общая эффективность игрока (с учетом навыков)
-    let playerEfficiency = carPower * skillMultiplier;
-    
-    // Проверяем нитро
-    if (currentCar.specialParts.nitro && Math.random() < 0.3) {
-        playerEfficiency *= 1.2;
-        showError("🚀 Нитро активировано!");
-    }
-    
-    // Далее идет остальная логика гонки как у вас было...
-    // [остальной код функции startRace остается без изменений]
 }
 document.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' && !e.target.type) {
