@@ -174,33 +174,54 @@
 
             <!-- Экран гаража -->
             <div id="garage-screen" class="game-screen">
-                <div class="screen-header">
-                    <button class="btn-back" onclick="goBack()">← Назад</button>
-                    <h2>Гараж</h2>
-                </div>
-                
-                <div class="garage-container">
-                    <div class="car-showcase">
-                        <div id="current-car-display" class="current-car-display">
-                            <!-- Отображение текущей машины -->
-                        </div>
-                        <div class="car-controls">
-                            <button class="btn-secondary" onclick="previousCar()">←</button>
-                            <span class="car-selector">1 / 1</span>
-                            <button class="btn-secondary" onclick="nextCar()">→</button>
-                        </div>
-                    </div>
-                    
-                    <div class="car-details">
-                        <h3>Характеристики</h3>
-                        <div id="car-stats-display" class="stats-grid">
-                            <!-- Характеристики машины -->
-                        </div>
-                        <button class="btn-primary" onclick="showRaceMenu()">Выбрать для гонок</button>
-                    </div>
-                </div>
+    <div class="screen-header">
+        <button class="btn-back" onclick="goBack()">← Назад</button>
+        <h2>Гараж</h2>
+    </div>
+    
+    <div class="garage-container">
+        <div class="car-showcase">
+            <div id="current-car-display" class="current-car-display">
+                <!-- Отображение текущей машины -->
             </div>
-
+            <div class="car-controls">
+                <button class="btn-secondary" onclick="previousCar()">←</button>
+                <span class="car-selector">1 / 1</span>
+                <button class="btn-secondary" onclick="nextCar()">→</button>
+            </div>
+        </div>
+        
+        <div class="garage-tabs">
+            <button class="garage-tab active" onclick="showGarageTab('stats')">Характеристики</button>
+            <button class="garage-tab" onclick="showGarageTab('upgrades')">Улучшения</button>
+        </div>
+        
+        <!-- Вкладка характеристик -->
+        <div id="garage-stats" class="garage-content active">
+            <h3>Характеристики машины</h3>
+            <div id="car-stats-display" class="stats-grid">
+                <!-- Характеристики машины -->
+            </div>
+            <div class="car-total-stats">
+                <p>Общая мощность: <span id="total-power">0</span></p>
+                <p>Уровень прокачки: <span id="upgrade-level">0</span>/50</p>
+            </div>
+            <button class="btn-primary" onclick="showRaceMenu()">Выбрать для гонок</button>
+        </div>
+        
+        <!-- Вкладка улучшений -->
+        <div id="garage-upgrades" class="garage-content">
+            <h3>Улучшения</h3>
+            <div id="upgrades-list" class="upgrades-grid">
+                <!-- Список улучшений -->
+            </div>
+            <div class="upgrade-info">
+                <p class="upgrade-tip">💡 Улучшайте детали, чтобы повысить характеристики машины</p>
+                <p class="upgrade-balance">Баланс: $<span id="upgrade-balance">0</span></p>
+            </div>
+        </div>
+    </div>
+</div>
             <!-- Экран гонок -->
             <div id="race-menu-screen" class="game-screen">
                 <div class="screen-header">

@@ -1191,4 +1191,422 @@ window.onload = async function() {
     setTimeout(() => {
         document.getElementById('loading-screen').style.display = 'none';
     }, 500);
+};// Конфигурация системы улучшений
+const upgradeConfig = {
+    engine: {
+        name: "Двигатель",
+        icon: "🔧",
+        affects: { power: 5, speed: 3 },
+        baseCost: 500,
+        costMultiplier: 2.5,
+        description: "Увеличивает мощность и скорость"
+    },
+    turbo: {
+        name: "Турбо",
+        icon: "💨",
+        affects: { acceleration: 4, power: 2 },
+        baseCost: 300,
+        costMultiplier: 2.3,
+        description: "Улучшает ускорение и мощность"
+    },
+    tires: {
+        name: "Шины",
+        icon: "🏁",
+        affects: { handling: 3, acceleration: 2 },
+        baseCost: 200,
+        costMultiplier: 2.2,
+        description: "Повышает управление и ускорение"
+    },
+    suspension: {
+        name: "Подвеска",
+        icon: "🔩",
+        affects: { handling: 5 },
+        baseCost: 400,
+        costMultiplier: 2.4,
+        description: "Значительно улучшает управление"
+    },
+    transmission: {
+        name: "Коробка передач",
+        icon: "⚙️",
+        affects: { speed: 3, acceleration: 3 },
+        baseCost: 600,
+        costMultiplier: 2.5,
+        description: "Увеличивает скорость и ускорение"
+    }
 };
+
+// Обновляем структуру данных машин (добавляем в gameData.cars)
+function initializeCarUpgrades(car) {
+    if (!car.upgrades) {
+        car.upgrades = {
+            engine: 0,
+            turbo: 0,
+            tires: 0,
+            suspension: 0,
+            transmission: 0
+        };
+    }
+    if (!car.specialParts) {
+        car.specialParts = {
+            nitro: false,
+            bodyKit: false,
+            ecuTune: false
+        };
+    }
+}
+
+// Инициализируем улучшения для всех существующих машин
+gameData.cars.forEach(car => initializeCarUpgrades(car));
+
+// Функция переключения вкладок в гараже
+function showGarageTab(tab) {
+    document.querySelectorAll('.garage-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.garage-content').forEach(content => content.classList.remove('active'));
+    
+    if (tab === 'stats') {
+        document.querySelector('.garage-tab:first-child').classList.add('active');
+        document.getElementById('garage-stats').classList.add('active');
+    } else {
+        document.querySelector('.garage-tab:last-child').classList.add('active');
+        document.getElementById('garage-upgrades').classList.add('active');
+        updateUpgradesDisplay();
+    }
+}
+
+// Расчет стоимости улучшения
+function getUpgradeCost(type, currentLevel) {
+    const config = upgradeConfig[type];
+    return Math.floor(config.baseCost * Math.pow(config.costMultiplier, currentLevel));
+}
+
+// Расчет общих характеристик машины с учетом улучшений
+function calculateTotalStats(car) {
+    let totalStats = {
+        power: car.power,
+        speed: car.speed,
+        handling: car.handling,
+        acceleration: car.acceleration
+    };
+    
+    // Применяем улучшения
+    Object.keys(car.upgrades).forEach(upgradeType => {
+        const level = car.upgrades[upgradeType];
+        const config = upgradeConfig[upgradeType];
+        
+        Object.keys(config.affects).forEach(stat => {
+            totalStats[stat] += config.affects[stat] * level;
+        });
+    });
+    
+    // Применяем специальные детали
+    if (car.specialParts.bodyKit) {
+        Object.keys(totalStats).forEach(stat => {
+            totalStats[stat] += 10;
+        });
+    }
+    
+    if (car.specialParts.ecuTune) {
+        Object.keys(totalStats).forEach(stat => {
+            totalStats[stat] = Math.floor(totalStats[stat] * 1.15);
+        });
+    }
+    
+    return totalStats;
+}
+
+// Обновленная функция отображения гаража
+function updateGarageDisplay() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    initializeCarUpgrades(currentCar); // Убеждаемся, что улучшения инициализированы
+    
+    const carDisplay = document.getElementById('current-car-display');
+    
+    if (carDisplay && currentCar) {
+        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+        
+        carDisplay.innerHTML = `
+            <div class="car-emoji ${totalUpgradeLevel >= 25 ? 'car-glow' : ''}">🏎️</div>
+            <h3>${currentCar.name}</h3>
+            <div class="car-upgrade-level">
+                <span class="upgrade-stars">${'⭐'.repeat(Math.floor(totalUpgradeLevel / 10))}</span>
+                <span class="upgrade-text">Уровень прокачки: ${totalUpgradeLevel}/50</span>
+            </div>
+        `;
+    }
+    
+    // Обновляем селектор
+    updateCarSelector();
+    
+    // Обновляем статистику машины с учетом улучшений
+    const totalStats = calculateTotalStats(currentCar);
+    const statsDisplay = document.getElementById('car-stats-display');
+    
+    if (statsDisplay) {
+        statsDisplay.innerHTML = `
+            <div class="stat-bar">
+                <label>Мощность</label>
+                <div class="progress-bar">
+                    <div class="stat-value base-stat" style="width: ${currentCar.power}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.power - currentCar.power}%"></div>
+                </div>
+                <span>${totalStats.power} ${totalStats.power > currentCar.power ? `(+${totalStats.power - currentCar.power})` : ''}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Скорость</label>
+                <div class="progress-bar">
+                    <div class="stat-value base-stat" style="width: ${currentCar.speed}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.speed - currentCar.speed}%"></div>
+                </div>
+                <span>${totalStats.speed} ${totalStats.speed > currentCar.speed ? `(+${totalStats.speed - currentCar.speed})` : ''}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Управление</label>
+                <div class="progress-bar">
+                    <div class="stat-value base-stat" style="width: ${currentCar.handling}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.handling - currentCar.handling}%"></div>
+                </div>
+                <span>${totalStats.handling} ${totalStats.handling > currentCar.handling ? `(+${totalStats.handling - currentCar.handling})` : ''}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Разгон</label>
+                <div class="progress-bar">
+                    <div class="stat-value base-stat" style="width: ${currentCar.acceleration}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.acceleration - currentCar.acceleration}%"></div>
+                </div>
+                <span>${totalStats.acceleration} ${totalStats.acceleration > currentCar.acceleration ? `(+${totalStats.acceleration - currentCar.acceleration})` : ''}</span>
+            </div>
+        `;
+    }
+    
+    // Обновляем общую статистику
+    const totalPower = document.getElementById('total-power');
+    const upgradeLevel = document.getElementById('upgrade-level');
+    
+    if (totalPower) {
+        const avgPower = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
+        totalPower.textContent = avgPower;
+    }
+    
+    if (upgradeLevel) {
+        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+        upgradeLevel.textContent = totalUpgradeLevel;
+    }
+}
+
+// Отображение списка улучшений
+function updateUpgradesDisplay() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const upgradesList = document.getElementById('upgrades-list');
+    const upgradeBalance = document.getElementById('upgrade-balance');
+    
+    if (upgradeBalance) {
+        upgradeBalance.textContent = gameData.money;
+    }
+    
+    if (!upgradesList) return;
+    
+    upgradesList.innerHTML = '';
+    
+    // Ограничения по уровню машины
+    let maxUpgradeLevel = 10;
+    if (currentCar.price === 0 || currentCar.price <= 8000) {
+        maxUpgradeLevel = 5;
+    } else if (currentCar.price <= 35000) {
+        maxUpgradeLevel = 7;
+    }
+    
+    // Отображаем улучшения
+    Object.keys(upgradeConfig).forEach(upgradeType => {
+        const config = upgradeConfig[upgradeType];
+        const currentLevel = currentCar.upgrades[upgradeType];
+        const cost = getUpgradeCost(upgradeType, currentLevel);
+        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
+        
+        const upgradeDiv = document.createElement('div');
+        upgradeDiv.className = 'upgrade-item';
+        upgradeDiv.innerHTML = `
+            <div class="upgrade-header">
+                <span class="upgrade-icon">${config.icon}</span>
+                <h4>${config.name}</h4>
+                <span class="upgrade-level">Ур. ${currentLevel}/${maxUpgradeLevel}</span>
+            </div>
+            <p class="upgrade-description">${config.description}</p>
+            <div class="upgrade-progress">
+                <div class="upgrade-progress-bar">
+                    <div class="upgrade-progress-fill" style="width: ${(currentLevel / maxUpgradeLevel) * 100}%"></div>
+                </div>
+            </div>
+            <div class="upgrade-stats">
+                ${Object.entries(config.affects).map(([stat, value]) => 
+                    `<span class="upgrade-stat">+${value} ${getStatName(stat)}</span>`
+                ).join('')}
+            </div>
+            ${currentLevel < maxUpgradeLevel ? `
+                <button class="btn-upgrade ${canUpgrade ? 'btn-primary' : 'btn-disabled'}" 
+                        onclick="upgradeComponent('${upgradeType}')" 
+                        ${!canUpgrade ? 'disabled' : ''}>
+                    ${canUpgrade ? `Улучшить ($${cost.toLocaleString()})` : 
+                      gameData.money < cost ? 'Недостаточно денег' : 'Макс. уровень'}
+                </button>
+            ` : '<p class="max-level">Максимальный уровень</p>'}
+        `;
+        
+        upgradesList.appendChild(upgradeDiv);
+    });
+    
+    // Специальные детали
+    const specialPartsDiv = document.createElement('div');
+    specialPartsDiv.className = 'special-parts-section';
+    specialPartsDiv.innerHTML = `
+        <h3>Специальные детали</h3>
+        <div class="special-parts-grid">
+            ${!currentCar.specialParts.nitro ? `
+                <div class="special-part">
+                    <span class="special-icon">🚀</span>
+                    <h4>Нитро</h4>
+                    <p>+20% к скорости (шанс 30%)</p>
+                    <button class="btn-primary" onclick="buySpecialPart('nitro', 15000)" 
+                            ${gameData.money < 15000 ? 'disabled' : ''}>
+                        Купить ($15,000)
+                    </button>
+                </div>
+            ` : '<div class="special-part owned"><span>🚀</span><p>Нитро установлено</p></div>'}
+            
+            ${!currentCar.specialParts.bodyKit ? `
+                <div class="special-part">
+                    <span class="special-icon">🎨</span>
+                    <h4>Спортивный обвес</h4>
+                    <p>+10 ко всем характеристикам</p>
+                    <button class="btn-primary" onclick="buySpecialPart('bodyKit', 25000)" 
+                            ${gameData.money < 25000 ? 'disabled' : ''}>
+                        Купить ($25,000)
+                    </button>
+                </div>
+            ` : '<div class="special-part owned"><span>🎨</span><p>Обвес установлен</p></div>'}
+            
+            ${!currentCar.specialParts.ecuTune ? `
+                <div class="special-part">
+                    <span class="special-icon">💻</span>
+                    <h4>Чип-тюнинг</h4>
+                    <p>+15% к эффективности</p>
+                    <button class="btn-primary" onclick="buySpecialPart('ecuTune', 20000)" 
+                            ${gameData.money < 20000 ? 'disabled' : ''}>
+                        Купить ($20,000)
+                    </button>
+                </div>
+            ` : '<div class="special-part owned"><span>💻</span><p>Чип установлен</p></div>'}
+        </div>
+    `;
+    
+    upgradesList.appendChild(specialPartsDiv);
+}
+
+// Функция улучшения компонента
+async function upgradeComponent(type) {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const currentLevel = currentCar.upgrades[type];
+    const cost = getUpgradeCost(type, currentLevel);
+    
+    if (gameData.money >= cost) {
+        gameData.money -= cost;
+        gameData.stats.moneySpent += cost;
+        currentCar.upgrades[type]++;
+        
+        updatePlayerInfo();
+        updateGarageDisplay();
+        updateUpgradesDisplay();
+        
+        await autoSave();
+        
+        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
+        
+        // Проверяем достижения
+        checkUpgradeAchievements();
+    }
+}
+
+// Покупка специальных деталей
+async function buySpecialPart(type, cost) {
+    const currentCar = gameData.cars[gameData.currentCar];
+    
+    if (gameData.money >= cost) {
+        gameData.money -= cost;
+        gameData.stats.moneySpent += cost;
+        currentCar.specialParts[type] = true;
+        
+        updatePlayerInfo();
+        updateGarageDisplay();
+        updateUpgradesDisplay();
+        
+        await autoSave();
+        
+        const partNames = {
+            nitro: "Нитро",
+            bodyKit: "Спортивный обвес",
+            ecuTune: "Чип-тюнинг"
+        };
+        
+        showError(`${partNames[type]} установлен!`);
+    }
+}
+
+// Получение названия характеристики
+function getStatName(stat) {
+    const statNames = {
+        power: "Мощность",
+        speed: "Скорость",
+        handling: "Управление",
+        acceleration: "Разгон"
+    };
+    return statNames[stat] || stat;
+}
+
+// Проверка достижений
+function checkUpgradeAchievements() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const totalUpgrades = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+    
+    if (totalUpgrades === 25) {
+        showError("🏆 Достижение: Механик! Машина прокачана наполовину!");
+    } else if (totalUpgrades === 50) {
+        showError("🏆 Достижение: Инженер! Машина полностью прокачана!");
+    }
+}
+
+// Обновляем функцию startRace для учета улучшений
+async function startRace(opponentIndex) {
+    const opponent = opponents[opponentIndex];
+    const currentCar = gameData.cars[gameData.currentCar];
+    
+    const betAmount = opponent.reward / 2;
+    if (gameData.money < betAmount) {
+        alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
+        return;
+    }
+    
+    // Получаем характеристики с учетом улучшений
+    const totalStats = calculateTotalStats(currentCar);
+    
+    // Расчет параметров машины игрока (0-100)
+    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
+    
+    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
+    const skillMultiplier = 1 + (
+        gameData.skills.driving * 0.002 +
+        gameData.skills.speed * 0.002 +
+        gameData.skills.reaction * 0.0015 +
+        gameData.skills.technique * 0.0015
+    );
+    
+    // Общая эффективность игрока (с учетом навыков)
+    let playerEfficiency = carPower * skillMultiplier;
+    
+    // Проверяем нитро
+    if (currentCar.specialParts.nitro && Math.random() < 0.3) {
+        playerEfficiency *= 1.2;
+        showError("🚀 Нитро активировано!");
+    }
+    
+    // Далее идет остальная логика гонки как у вас было...
+    // [остальной код функции startRace остается без изменений]
+}

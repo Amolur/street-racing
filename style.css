@@ -1609,3 +1609,304 @@ body {
         font-size: 1.2rem;
     }
 }
+/* Добавьте эти стили в ваш style.css */
+
+/* Вкладки гаража */
+.garage-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0 1rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.garage-tab {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.garage-tab.active {
+    color: var(--neon-cyan);
+}
+
+.garage-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--neon-cyan);
+}
+
+.garage-content {
+    display: none;
+}
+
+.garage-content.active {
+    display: block;
+}
+
+/* Улучшенное отображение машины */
+.car-upgrade-level {
+    margin-top: 1rem;
+}
+
+.upgrade-stars {
+    color: var(--neon-yellow);
+    font-size: 1.2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.upgrade-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.car-emoji.car-glow {
+    animation: pulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px var(--neon-cyan)) drop-shadow(0 0 50px var(--neon-pink));
+}
+
+/* Статистика с улучшениями */
+.progress-bar {
+    position: relative;
+    display: flex;
+}
+
+.base-stat {
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+}
+
+.upgrade-stat {
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    margin-left: 2px;
+}
+
+.car-total-stats {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.car-total-stats p {
+    margin: 0.5rem 0;
+    font-family: 'Orbitron', monospace;
+}
+
+/* Сетка улучшений */
+.upgrades-grid {
+    display: grid;
+    gap: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.upgrade-item {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.upgrade-item:hover {
+    border-color: var(--neon-cyan);
+    transform: translateY(-2px);
+}
+
+.upgrade-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.upgrade-icon {
+    font-size: 2rem;
+}
+
+.upgrade-header h4 {
+    flex: 1;
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+}
+
+.upgrade-level {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.upgrade-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.upgrade-progress {
+    margin-bottom: 1rem;
+}
+
+.upgrade-progress-bar {
+    background: var(--bg-tertiary);
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.upgrade-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    transition: width 0.5s ease;
+}
+
+.upgrade-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.upgrade-stat {
+    background: var(--bg-secondary);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    color: var(--neon-green);
+}
+
+.btn-upgrade {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 0.9rem;
+}
+
+.btn-disabled {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    border: 1px solid var(--text-muted);
+    cursor: not-allowed;
+}
+
+.max-level {
+    text-align: center;
+    color: var(--neon-yellow);
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Специальные детали */
+.special-parts-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--bg-tertiary);
+}
+
+.special-parts-section h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    margin-bottom: 1rem;
+}
+
+.special-parts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.special-part {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.special-part:hover {
+    border-color: var(--neon-pink);
+    transform: translateY(-2px);
+}
+
+.special-part.owned {
+    border-color: var(--neon-green);
+    opacity: 0.7;
+}
+
+.special-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.special-part h4 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    margin-bottom: 0.5rem;
+}
+
+.special-part p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.special-part button {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.6rem;
+}
+
+/* Информация об улучшениях */
+.upgrade-info {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.upgrade-tip {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.upgrade-balance {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-size: 1.1rem;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .garage-tabs {
+        gap: 0.5rem;
+    }
+    
+    .garage-tab {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .upgrades-grid {
+        max-height: 400px;
+    }
+    
+    .special-parts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .upgrade-stats {
+        font-size: 0.75rem;
+    }
+}
