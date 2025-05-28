@@ -225,10 +225,23 @@ async function checkAuth() {
 
 // Показать/скрыть индикатор загрузки
 function showLoading(show) {
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = show ? 'flex' : 'none';
+    // Создаем индикатор загрузки если его нет
+    let loadingIndicator = document.getElementById('loading-indicator');
+    
+    if (!loadingIndicator) {
+        loadingIndicator = document.createElement('div');
+        loadingIndicator.id = 'loading-indicator';
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <p>Загрузка...</p>
+            </div>
+        `;
+        document.body.appendChild(loadingIndicator);
     }
+    
+    loadingIndicator.style.display = show ? 'flex' : 'none';
 }
 
 // Автосохранение
@@ -912,13 +925,36 @@ async function startRace(opponentIndex) {
         return;
     }
     
-    // Показываем экран гонки
+// Показываем индикатор загрузки
     showLoading(true);
     
     // Имитация гонки
     setTimeout(async () => {
+        // Расчет параметров машины игрока (0-100)
+        const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
+        
+        // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
+        const skillMultiplier = 1 + (
+            gameData.skills.driving * 0.002 +      // +0.2% за уровень
+            gameData.skills.speed * 0.002 +        // +0.2% за уровень
+            gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
+            gameData.skills.technique * 0.0015     // +0.15% за уровень
+        );
+        
+        // Общая эффективность игрока (с учетом навыков)
+        const playerEfficiency = carPower * skillMultiplier;
+        
+        // Расчет эффективности соперника (базовая 60 * сложность)
+        const opponentEfficiency = 60 * opponent.difficulty;
+        
+        // Базовое время трассы 60 секунд
+        const trackBaseTime = 60;
+        
+        // Добавляем элемент случайности (±5% от результата)
+        const playerRandomFactor = 0.95 + Math.random() * 0.1;
+        const opponentRandomFactor = 0.95 + Math.random() * 0.1;
+        
         // Расчет финального времени
-        // Формула: базовое время * (100 / эффективность) * случайность
         const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
         const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
         
@@ -943,7 +979,10 @@ async function startRace(opponentIndex) {
         // Проверка повышения уровня
         checkLevelUp();
         
+        // Скрываем загрузку
         showLoading(false);
+        
+        // Показываем результат
         showRaceResultScreen();
         
         const resultDiv = document.getElementById('race-result');
@@ -978,8 +1017,8 @@ async function startRace(opponentIndex) {
                         </div>
                         
                         <div class="result-rewards">
-                            <p class="reward-item">💰 Выигрыш: <span class="money-gain">+${opponent.reward}</span></p>
-                            <p class="balance">Баланс: ${gameData.money}</p>
+                            <p class="reward-item">💰 Выигрыш: <span class="money-gain">+$${opponent.reward}</span></p>
+                            <p class="balance">Баланс: $${gameData.money}</p>
                         </div>
                         
                         ${skillsHTML}
@@ -1011,8 +1050,8 @@ async function startRace(opponentIndex) {
                         </div>
                         
                         <div class="result-rewards">
-                            <p class="reward-item">💸 Проигрыш: <span class="money-loss">-${betAmount}</span></p>
-                            <p class="balance">Баланс: ${gameData.money}</p>
+                            <p class="reward-item">💸 Проигрыш: <span class="money-loss">-$${betAmount}</span></p>
+                            <p class="balance">Баланс: $${gameData.money}</p>
                         </div>
                         
                         ${skillsHTML}
