@@ -1,5 +1,3 @@
-// Добавьте эти функции в начало вашего script.js
-
 // Мобильное меню
 function toggleMobileMenu() {
     const menu = document.getElementById('mobile-menu');
@@ -112,94 +110,6 @@ function updateCarSelector() {
     }
 }
 
-// Обновите функцию updateGarageDisplay
-const originalUpdateGarageDisplay = updateGarageDisplay;
-updateGarageDisplay = function() {
-    // Вызываем оригинальную функцию если она есть
-    if (typeof originalUpdateGarageDisplay === 'function') {
-        originalUpdateGarageDisplay();
-    }
-    
-    // Дополнительные обновления для нового дизайна
-    const currentCar = gameData.cars[gameData.currentCar];
-    const carDisplay = document.getElementById('current-car-display');
-    
-    if (carDisplay && currentCar) {
-        carDisplay.innerHTML = `
-            <div class="car-emoji">🏎️</div>
-            <h3>${currentCar.name}</h3>
-            <div class="car-power">Мощность: ${currentCar.power}</div>
-        `;
-    }
-    
-    // Обновляем селектор
-    updateCarSelector();
-    
-    // Обновляем статистику машины
-    const statsDisplay = document.getElementById('car-stats-display');
-    if (statsDisplay && currentCar) {
-        statsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Мощность</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.power}%"></div>
-                </div>
-                <span>${currentCar.power}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.speed}%"></div>
-                </div>
-                <span>${currentCar.speed}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Управление</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.handling}%"></div>
-                </div>
-                <span>${currentCar.handling}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Разгон</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
-                </div>
-                <span>${currentCar.acceleration}</span>
-            </div>
-        `;
-    }
-};
-
-// Обновите функцию showGame для мобильной версии
-const originalShowGame = showGame;
-showGame = function() {
-    originalShowGame();
-    
-    // Обновляем информацию пользователя в мобильном меню
-    const mobileUsername = document.getElementById('mobile-username');
-    const welcomeUsername = document.getElementById('welcome-username');
-    
-    if (mobileUsername && currentUser) {
-        mobileUsername.textContent = currentUser.username;
-    }
-    
-    if (welcomeUsername && currentUser) {
-        welcomeUsername.textContent = currentUser.username;
-    }
-    
-    // Обновляем аватары
-    const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
-    avatars.forEach(avatar => {
-        if (currentUser) {
-            avatar.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4ecdc4&color=1a1a1a&size=100`;
-        }
-    });
-    
-    // Обновляем быструю статистику
-    updateQuickStats();
-};
-
 // Функция обновления быстрой статистики на главной
 function updateQuickStats() {
     const quickWins = document.getElementById('quick-wins');
@@ -210,30 +120,6 @@ function updateQuickStats() {
     if (quickCars) quickCars.textContent = gameData.cars.length;
     if (quickRating) quickRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
 }
-
-// Обновляем отображение денег и уровня в разных местах
-const originalUpdatePlayerInfo = updatePlayerInfo;
-updatePlayerInfo = function() {
-    originalUpdatePlayerInfo();
-    
-    // Обновляем в мобильном меню
-    const mobileLevel = document.getElementById('mobile-level');
-    if (mobileLevel) {
-        mobileLevel.textContent = gameData.level;
-    }
-    
-    // Обновляем баланс в гонках
-    const raceBalance = document.getElementById('race-balance');
-    if (raceBalance) {
-        raceBalance.textContent = gameData.money;
-    }
-    
-    // Обновляем текущую машину в гонках
-    const raceCurrentCar = document.getElementById('race-current-car');
-    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
-    }
-};
 
 // Адаптивное закрытие модальных окон
 document.addEventListener('DOMContentLoaded', function() {
@@ -270,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
 // Игровые данные
 let gameData = {
     money: 1000,
@@ -509,11 +396,7 @@ async function updateLeaderboard() {
             row.innerHTML = `
                 <span class="lb-position ${positionClass}">${player.position}</span>
                 <span class="lb-name">${player.username}</span>
-                <span class="lb-level">${player.level}</span>
                 <span class="lb-money">$${player.money.toLocaleString()}</span>
-                <span class="lb-wins">${player.wins}</span>
-                <span class="lb-races">${player.totalRaces}</span>
-                <span class="lb-winrate">${player.winRate}%</span>
             `;
             
             leaderboardList.appendChild(row);
@@ -531,56 +414,52 @@ async function updateLeaderboard() {
 
 // Обновление отображения гаража
 function updateGarageDisplay() {
-    const ownedCarsList = document.getElementById('owned-cars-list');
-    if (ownedCarsList) {
-        ownedCarsList.innerHTML = '';
-        
-        gameData.cars.forEach((car, index) => {
-            const carDiv = document.createElement('div');
-            carDiv.className = `car-item ${index === gameData.currentCar ? 'selected' : ''}`;
-            carDiv.innerHTML = `
-                <h4>${car.name}</h4>
-                <p>Мощность: ${car.power} | Скорость: ${car.speed}</p>
-            `;
-            carDiv.onclick = () => selectCar(index);
-            ownedCarsList.appendChild(carDiv);
-        });
+    // Дополнительные обновления для нового дизайна
+    const currentCar = gameData.cars[gameData.currentCar];
+    const carDisplay = document.getElementById('current-car-display');
+    
+    if (carDisplay && currentCar) {
+        carDisplay.innerHTML = `
+            <div class="car-emoji">🏎️</div>
+            <h3>${currentCar.name}</h3>
+            <div class="car-power">Мощность: ${currentCar.power}</div>
+        `;
     }
     
-    const selectedCarDisplay = document.getElementById('selected-car-display');
-    if (selectedCarDisplay && gameData.cars[gameData.currentCar]) {
-        const currentCar = gameData.cars[gameData.currentCar];
-        selectedCarDisplay.innerHTML = `
-            <h4>${currentCar.name}</h4>
-            <div class="car-stats">
-                <div class="stat-bar">
-                    <label>Мощность:</label>
-                    <div class="progress-bar">
-                        <div class="stat-value" style="width: ${currentCar.power}%"></div>
-                    </div>
-                    <span>${currentCar.power}/100</span>
+    // Обновляем селектор
+    updateCarSelector();
+    
+    // Обновляем статистику машины
+    const statsDisplay = document.getElementById('car-stats-display');
+    if (statsDisplay && currentCar) {
+        statsDisplay.innerHTML = `
+            <div class="stat-bar">
+                <label>Мощность</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.power}%"></div>
                 </div>
-                <div class="stat-bar">
-                    <label>Скорость:</label>
-                    <div class="progress-bar">
-                        <div class="stat-value" style="width: ${currentCar.speed}%"></div>
-                    </div>
-                    <span>${currentCar.speed}/100</span>
+                <span>${currentCar.power}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Скорость</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.speed}%"></div>
                 </div>
-                <div class="stat-bar">
-                    <label>Управление:</label>
-                    <div class="progress-bar">
-                        <div class="stat-value" style="width: ${currentCar.handling}%"></div>
-                    </div>
-                    <span>${currentCar.handling}/100</span>
+                <span>${currentCar.speed}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Управление</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.handling}%"></div>
                 </div>
-                <div class="stat-bar">
-                    <label>Разгон:</label>
-                    <div class="progress-bar">
-                        <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
-                    </div>
-                    <span>${currentCar.acceleration}/100</span>
+                <span>${currentCar.handling}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Разгон</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
                 </div>
+                <span>${currentCar.acceleration}</span>
             </div>
         `;
     }
@@ -595,6 +474,7 @@ async function selectCar(index) {
 
 // Функция обновления профиля
 function updateProfileDisplay() {
+    // Основная информация
     const profileInfo = document.getElementById('profile-info');
     if (profileInfo && currentUser) {
         profileInfo.innerHTML = `
@@ -605,6 +485,18 @@ function updateProfileDisplay() {
         `;
     }
     
+    // Обновление имени пользователя в профиле
+    const profileUsername = document.getElementById('profile-username');
+    if (profileUsername && currentUser) {
+        profileUsername.textContent = currentUser.username;
+    }
+    
+    const profileLevel = document.getElementById('profile-level');
+    if (profileLevel) {
+        profileLevel.textContent = gameData.level;
+    }
+    
+    // Навыки
     const profileSkillsDisplay = document.getElementById('profile-skills-display');
     if (profileSkillsDisplay) {
         profileSkillsDisplay.innerHTML = `
@@ -627,6 +519,7 @@ function updateProfileDisplay() {
         `;
     }
     
+    // Статистика
     const profileStats = document.getElementById('profile-stats');
     if (profileStats) {
         const winRate = gameData.stats.totalRaces > 0 
@@ -646,6 +539,7 @@ function updateProfileDisplay() {
 
 // Функция обновления магазина
 function updateShopDisplay() {
+    // Машины для покупки
     const carsForSale = document.getElementById('cars-for-sale');
     if (carsForSale) {
         carsForSale.innerHTML = '';
@@ -666,7 +560,7 @@ function updateShopDisplay() {
                         </div>
                         <p class="price">$${car.price}</p>
                     </div>
-                    <button onclick="buyCar(${car.id})" ${gameData.money < car.price ? 'disabled' : ''}>
+                    <button class="btn-primary" onclick="buyCar(${car.id})" ${gameData.money < car.price ? 'disabled' : ''}>
                         ${gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
                     </button>
                 `;
@@ -675,6 +569,7 @@ function updateShopDisplay() {
         });
     }
     
+    // Машины для продажи
     const carsToSell = document.getElementById('cars-to-sell');
     if (carsToSell) {
         carsToSell.innerHTML = '';
@@ -693,7 +588,7 @@ function updateShopDisplay() {
                         </div>
                         <p class="price">Продать за: $${sellPrice}</p>
                     </div>
-                    <button onclick="sellCar(${index})">Продать</button>
+                    <button class="btn-primary" onclick="sellCar(${index})">Продать</button>
                 `;
                 carsToSell.appendChild(carDiv);
             }
@@ -811,13 +706,13 @@ function displayOpponents() {
         opponentCard.style.opacity = canAfford ? '1' : '0.5';
         
         opponentCard.innerHTML = `
-            <div>
-                <strong>${opponent.name}</strong><br>
-                <small>Машина: ${opponent.car}</small><br>
+            <div class="opponent-info">
+                <strong>${opponent.name}</strong>
+                <small>Машина: ${opponent.car}</small>
                 <small>Выигрыш: $${opponent.reward} / Ставка: $${betAmount}</small>
             </div>
-            <button onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
-                ${canAfford ? 'Вызвать на гонку' : `Нужно $${betAmount}`}
+            <button class="btn-primary" onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
+                ${canAfford ? 'Вызвать' : `Нужно $${betAmount}`}
             </button>
         `;
         opponentsList.appendChild(opponentCard);
@@ -917,8 +812,8 @@ function showRacePreview(opponentIndex) {
             </div>
             
             <div class="modal-buttons">
-                <button class="race-btn" onclick="confirmRace(${opponentIndex})">Начать гонку!</button>
-                <button class="cancel-btn" onclick="closeRacePreview()">Отмена</button>
+                <button class="btn-primary race-btn" onclick="confirmRace(${opponentIndex})">Начать гонку!</button>
+                <button class="btn-secondary cancel-btn" onclick="closeRacePreview()">Отмена</button>
             </div>
         </div>
     `;
@@ -1009,25 +904,40 @@ async function startRace(opponentIndex) {
         return;
     }
     
+    // Расчет параметров машины игрока (0-100)
     const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
     
-    const skillBonus = (
-        gameData.skills.driving * 0.5 +
-        gameData.skills.speed * 0.5 +
-        gameData.skills.reaction * 0.3 +
-        gameData.skills.technique * 0.3
+    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
+    const skillMultiplier = 1 + (
+        gameData.skills.driving * 0.002 +      // +0.2% за уровень
+        gameData.skills.speed * 0.002 +        // +0.2% за уровень
+        gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
+        gameData.skills.technique * 0.0015     // +0.15% за уровень
     );
     
-    const totalPower = carPower + skillBonus;
+    // Общая эффективность игрока (с учетом навыков)
+    const playerEfficiency = carPower * skillMultiplier;
     
-    // Расчет времени прохождения (чем больше сила, тем меньше время)
-    const baseTime = 100; // базовое время в секундах
-    const playerTime = baseTime / (totalPower * (0.8 + Math.random() * 0.4));
-    const opponentTime = baseTime / (60 * opponent.difficulty * (0.8 + Math.random() * 0.4));
-
-    // В гонках побеждает тот, у кого МЕНЬШЕ время!
+    // Расчет эффективности соперника (базовая 60 * сложность)
+    const opponentEfficiency = 60 * opponent.difficulty;
+    
+    // Базовое время трассы 60 секунд
+    // Чем выше эффективность, тем меньше времени нужно
+    const trackBaseTime = 60;
+    
+    // Добавляем элемент случайности (±5% от результата)
+    const playerRandomFactor = 0.95 + Math.random() * 0.1;
+    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
+    
+    // Расчет финального времени
+    // Формула: базовое время * (100 / эффективность) * случайность
+    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
+    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
+    
+    // Побеждает тот, у кого меньше время
     const won = playerTime < opponentTime;
     
+    // Обновляем статистику
     gameData.stats.totalRaces++;
     if (won) {
         gameData.stats.wins++;
@@ -1061,8 +971,11 @@ async function startRace(opponentIndex) {
             <p>Выигрыш: +$${opponent.reward}</p>
             <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
             <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
+            <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
             <p>Баланс: $${gameData.money}</p>
             ${skillsHTML}
+            <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
+            <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
         `;
     } else {
         resultDiv.innerHTML = `
@@ -1071,8 +984,11 @@ async function startRace(opponentIndex) {
             <p>Проигрыш: -$${betAmount}</p>
             <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
             <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
+            <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
             <p>Баланс: $${gameData.money}</p>
             ${skillsHTML}
+            <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
+            <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
         `;
     }
     
@@ -1087,6 +1003,24 @@ function updatePlayerInfo() {
     
     if (moneyElement) moneyElement.textContent = gameData.money;
     if (levelElement) levelElement.textContent = gameData.level;
+    
+    // Обновляем в мобильном меню
+    const mobileLevel = document.getElementById('mobile-level');
+    if (mobileLevel) {
+        mobileLevel.textContent = gameData.level;
+    }
+    
+    // Обновляем баланс в гонках
+    const raceBalance = document.getElementById('race-balance');
+    if (raceBalance) {
+        raceBalance.textContent = gameData.money;
+    }
+    
+    // Обновляем текущую машину в гонках
+    const raceCurrentCar = document.getElementById('race-current-car');
+    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
+        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
+    }
 }
 
 // Функции для экрана авторизации
@@ -1138,7 +1072,28 @@ function showGame() {
         usernameElement.textContent = currentUser.username;
     }
     
+    // Обновляем информацию пользователя в мобильном меню
+    const mobileUsername = document.getElementById('mobile-username');
+    const welcomeUsername = document.getElementById('welcome-username');
+    
+    if (mobileUsername && currentUser) {
+        mobileUsername.textContent = currentUser.username;
+    }
+    
+    if (welcomeUsername && currentUser) {
+        welcomeUsername.textContent = currentUser.username;
+    }
+    
+    // Обновляем аватары
+    const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
+    avatars.forEach(avatar => {
+        if (currentUser) {
+            avatar.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4ecdc4&color=1a1a1a&size=100`;
+        }
+    });
+    
     updatePlayerInfo();
+    updateQuickStats();
     
     navigationHistory = [];
     currentScreen = 'main-menu';
