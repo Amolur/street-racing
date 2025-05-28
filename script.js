@@ -1542,6 +1542,12 @@ function updateProfileDisplay() {
     // Обновляем быструю статистику
     updateQuickStats();
     
+    // Обновляем аватар
+    const profileAvatar = document.querySelector('.profile-avatar');
+    if (profileAvatar && currentUser) {
+        profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
+    }
+    
     // Навыки
     const profileSkillsDisplay = document.getElementById('profile-skills-display');
     if (profileSkillsDisplay) {

@@ -770,3 +770,354 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* Дополнительные стили для полноты */
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Стили для списков */
+.stats-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+.skills-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.skill-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 40px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.skill-name {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.skill-bar {
+    background: var(--bg-tertiary);
+    height: 15px;
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.skill-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    transition: width 0.5s ease;
+}
+
+.skill-level {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    text-align: right;
+}
+
+/* Стили для вкладок гаража */
+.garage-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0 1rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.garage-tab {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.garage-tab.active {
+    color: var(--neon-cyan);
+}
+
+.garage-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--neon-cyan);
+}
+
+.garage-content {
+    display: none;
+}
+
+.garage-content.active {
+    display: block;
+}
+
+/* Стили для карточек соперников */
+.opponent-card {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.opponent-info h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    margin-bottom: 0.5rem;
+}
+
+.opponent-car {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.opponent-stakes {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.stake-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stake-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.stake-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Стили для магазина */
+.shop-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--neon-cyan);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--neon-cyan);
+}
+
+.shop-content {
+    display: none;
+}
+
+.shop-content.active {
+    display: block;
+}
+
+/* Стили для машин в магазине */
+.car-shop-item {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.car-shop-emoji {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.car-shop-info h4 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    margin-bottom: 1rem;
+}
+
+.car-shop-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.shop-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.shop-stat-label {
+    color: var(--text-secondary);
+}
+
+.shop-stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+.price {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    color: var(--neon-green);
+    text-align: center;
+    margin: 1rem 0;
+}
+
+/* Стили для таблицы лидеров */
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 60px 100px;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--bg-tertiary);
+    transition: all 0.3s;
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row.current-user {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid var(--neon-cyan);
+}
+
+.lb-position {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.lb-position.gold {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.lb-position.silver {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.lb-position.bronze {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.lb-name {
+    font-weight: 600;
+}
+
+.lb-level {
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.lb-money {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    text-align: right;
+}
+
+/* Стили для результата гонки */
+.race-result {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.result-container {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.result-title.win {
+    color: var(--neon-green);
+    text-shadow: var(--glow-yellow);
+    animation: pulse 1s ease infinite;
+}
+
+.result-title.lose {
+    color: var(--neon-red);
+    text-shadow: 0 0 20px rgba(255, 0, 64, 0.5);
+}
+
+/* Полоска опыта в результатах */
+.xp-progress-section {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 10px;
+}
+
+.xp-gain {
+    color: var(--neon-yellow);
+    font-weight: 700;
+}
