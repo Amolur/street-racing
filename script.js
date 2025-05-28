@@ -1,3 +1,275 @@
+// Добавьте эти функции в начало вашего script.js
+
+// Мобильное меню
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    menu.classList.toggle('active');
+    
+    // Закрываем меню при клике вне его
+    if (menu.classList.contains('active')) {
+        setTimeout(() => {
+            document.addEventListener('click', closeMobileMenuOutside);
+        }, 100);
+    } else {
+        document.removeEventListener('click', closeMobileMenuOutside);
+    }
+}
+
+function closeMobileMenuOutside(e) {
+    const menu = document.getElementById('mobile-menu');
+    const menuToggle = document.querySelector('.menu-toggle');
+    
+    if (!menu.contains(e.target) && !menuToggle.contains(e.target)) {
+        menu.classList.remove('active');
+        document.removeEventListener('click', closeMobileMenuOutside);
+    }
+}
+
+// Улучшенная навигация
+function navigateTo(screenId) {
+    // Закрываем мобильное меню
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+        mobileMenu.classList.remove('active');
+    }
+    
+    // Скрываем все экраны
+    hideAllScreens();
+    
+    // Показываем нужный экран
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.classList.add('active');
+        navigateToScreen(screenId);
+    }
+    
+    // Обновляем активную кнопку в нижней навигации
+    updateBottomNav(screenId);
+    
+    // Обновляем данные экрана если нужно
+    switch(screenId) {
+        case 'garage-screen':
+            updateGarageDisplay();
+            break;
+        case 'race-menu-screen':
+            displayOpponents();
+            break;
+        case 'profile-screen':
+            updateProfileDisplay();
+            break;
+        case 'shop-screen':
+            updateShopDisplay();
+            break;
+        case 'leaderboard-screen':
+            updateLeaderboard();
+            break;
+    }
+}
+
+// Обновление активной кнопки в нижней навигации
+function updateBottomNav(screenId) {
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Находим соответствующую кнопку
+    const screenMap = {
+        'main-menu': 0,
+        'race-menu-screen': 1,
+        'garage-screen': 2,
+        'shop-screen': 3,
+        'profile-screen': 4
+    };
+    
+    const index = screenMap[screenId];
+    if (index !== undefined && navItems[index]) {
+        navItems[index].classList.add('active');
+    }
+}
+
+// Переключение между машинами в гараже
+function previousCar() {
+    if (gameData.currentCar > 0) {
+        gameData.currentCar--;
+        updateGarageDisplay();
+        updateCarSelector();
+    }
+}
+
+function nextCar() {
+    if (gameData.currentCar < gameData.cars.length - 1) {
+        gameData.currentCar++;
+        updateGarageDisplay();
+        updateCarSelector();
+    }
+}
+
+function updateCarSelector() {
+    const selector = document.querySelector('.car-selector');
+    if (selector) {
+        selector.textContent = `${gameData.currentCar + 1} / ${gameData.cars.length}`;
+    }
+}
+
+// Обновите функцию updateGarageDisplay
+const originalUpdateGarageDisplay = updateGarageDisplay;
+updateGarageDisplay = function() {
+    // Вызываем оригинальную функцию если она есть
+    if (typeof originalUpdateGarageDisplay === 'function') {
+        originalUpdateGarageDisplay();
+    }
+    
+    // Дополнительные обновления для нового дизайна
+    const currentCar = gameData.cars[gameData.currentCar];
+    const carDisplay = document.getElementById('current-car-display');
+    
+    if (carDisplay && currentCar) {
+        carDisplay.innerHTML = `
+            <div class="car-emoji">🏎️</div>
+            <h3>${currentCar.name}</h3>
+            <div class="car-power">Мощность: ${currentCar.power}</div>
+        `;
+    }
+    
+    // Обновляем селектор
+    updateCarSelector();
+    
+    // Обновляем статистику машины
+    const statsDisplay = document.getElementById('car-stats-display');
+    if (statsDisplay && currentCar) {
+        statsDisplay.innerHTML = `
+            <div class="stat-bar">
+                <label>Мощность</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.power}%"></div>
+                </div>
+                <span>${currentCar.power}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Скорость</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.speed}%"></div>
+                </div>
+                <span>${currentCar.speed}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Управление</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.handling}%"></div>
+                </div>
+                <span>${currentCar.handling}</span>
+            </div>
+            <div class="stat-bar">
+                <label>Разгон</label>
+                <div class="progress-bar">
+                    <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
+                </div>
+                <span>${currentCar.acceleration}</span>
+            </div>
+        `;
+    }
+};
+
+// Обновите функцию showGame для мобильной версии
+const originalShowGame = showGame;
+showGame = function() {
+    originalShowGame();
+    
+    // Обновляем информацию пользователя в мобильном меню
+    const mobileUsername = document.getElementById('mobile-username');
+    const welcomeUsername = document.getElementById('welcome-username');
+    
+    if (mobileUsername && currentUser) {
+        mobileUsername.textContent = currentUser.username;
+    }
+    
+    if (welcomeUsername && currentUser) {
+        welcomeUsername.textContent = currentUser.username;
+    }
+    
+    // Обновляем аватары
+    const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
+    avatars.forEach(avatar => {
+        if (currentUser) {
+            avatar.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4ecdc4&color=1a1a1a&size=100`;
+        }
+    });
+    
+    // Обновляем быструю статистику
+    updateQuickStats();
+};
+
+// Функция обновления быстрой статистики на главной
+function updateQuickStats() {
+    const quickWins = document.getElementById('quick-wins');
+    const quickCars = document.getElementById('quick-cars');
+    const quickRating = document.getElementById('quick-rating');
+    
+    if (quickWins) quickWins.textContent = gameData.stats.wins;
+    if (quickCars) quickCars.textContent = gameData.cars.length;
+    if (quickRating) quickRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
+}
+
+// Обновляем отображение денег и уровня в разных местах
+const originalUpdatePlayerInfo = updatePlayerInfo;
+updatePlayerInfo = function() {
+    originalUpdatePlayerInfo();
+    
+    // Обновляем в мобильном меню
+    const mobileLevel = document.getElementById('mobile-level');
+    if (mobileLevel) {
+        mobileLevel.textContent = gameData.level;
+    }
+    
+    // Обновляем баланс в гонках
+    const raceBalance = document.getElementById('race-balance');
+    if (raceBalance) {
+        raceBalance.textContent = gameData.money;
+    }
+    
+    // Обновляем текущую машину в гонках
+    const raceCurrentCar = document.getElementById('race-current-car');
+    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
+        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
+    }
+};
+
+// Адаптивное закрытие модальных окон
+document.addEventListener('DOMContentLoaded', function() {
+    // Закрытие модальных окон по клику на фон
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('race-preview-modal')) {
+            closeRacePreview();
+        }
+    });
+    
+    // Обработка свайпов для мобильного меню
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const menu = document.getElementById('mobile-menu');
+        
+        if (touchEndX < touchStartX - swipeThreshold && menu.classList.contains('active')) {
+            // Свайп влево - закрываем меню
+            menu.classList.remove('active');
+        } else if (touchEndX > touchStartX + swipeThreshold && touchStartX < 50) {
+            // Свайп вправо от края - открываем меню
+            menu.classList.add('active');
+        }
+    }
+});
 // Игровые данные
 let gameData = {
     money: 1000,
