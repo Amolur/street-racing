@@ -112,12 +112,6 @@ async function autoSave() {
     }
 }
 
-// Функция переключения сайдбара (для мобильных)
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('active');
-}
-
 // Функция скрытия всех экранов
 function hideAllScreens() {
     document.querySelectorAll('.game-screen').forEach(screen => {
@@ -136,21 +130,24 @@ function showRaceMenu() {
     hideAllScreens();
     document.getElementById('race-menu-screen').classList.add('active');
     displayOpponents();
-    updateMenuActive('race-menu');
 }
 
 function showGarageScreen() {
     hideAllScreens();
     document.getElementById('garage-screen').classList.add('active');
     updateGarageDisplay();
-    updateMenuActive('garage');
 }
 
 function showShopScreen() {
     hideAllScreens();
     document.getElementById('shop-screen').classList.add('active');
     updateShopDisplay();
-    updateMenuActive('shop');
+}
+
+async function showLeaderboardScreen() {
+    hideAllScreens();
+    document.getElementById('leaderboard-screen').classList.add('active');
+    await updateLeaderboard();
 }
 
 function showRaceResultScreen() {
@@ -158,19 +155,21 @@ function showRaceResultScreen() {
     document.getElementById('race-result-screen').classList.add('active');
 }
 
-// Обновление активного пункта меню
-function updateMenuActive(menuId) {
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    // Здесь можно добавить логику для выделения активного пункта
-}
-
 // Обновление главного меню
 function updateMainMenuDisplay() {
     const currentCar = gameData.cars[gameData.currentCar];
     if (currentCar) {
         document.getElementById('current-car-name').textContent = currentCar.name;
+        document.getElementById('car-power').textContent = currentCar.power;
+        document.getElementById('car-speed').textContent = currentCar.speed;
+        document.getElementById('car-handling').textContent = currentCar.handling;
+        document.getElementById('car-acceleration').textContent = currentCar.acceleration;
+    }
+    
+    // Обновляем уровень
+    const levelElement = document.getElementById('level');
+    if (levelElement) {
+        levelElement.textContent = gameData.level;
     }
 }
 
@@ -180,38 +179,163 @@ function updateGarageDisplay() {
     const currentCar = gameData.cars[gameData.currentCar];
     
     if (garageContent && currentCar) {
-        garageContent.innerHTML = `
-            <div class="car-display-main">
-                <div class="car-emoji-large">🚗</div>
-                <h3>${currentCar.name}</h3>
-                <div class="car-stats-main">
-                    <div class="car-stat-main">
-                        <div class="car-stat-value">${currentCar.power}</div>
-                        <div class="car-stat-label">л.с.</div>
+        let carsHtml = '';
+        gameData.cars.forEach((car, index) => {
+            const isActive = index === gameData.currentCar;
+            carsHtml += `
+                <div class="car-display-simple ${isActive ? 'active' : ''}">
+                    <div class="car-emoji-large">🚗</div>
+                    <h3>${car.name}</h3>
+                    <div class="car-stats-grid">
+                        <div class="car-stat">
+                            <span class="car-stat-value">${car.power}</span>
+                            <span class="car-stat-label">л.с.</span>
+                        </div>
+                        <div class="car-stat">
+                            <span class="car-stat-value">${car.speed}</span>
+                            <span class="car-stat-label">км/ч</span>
+                        </div>
+                        <div class="car-stat">
+                            <span class="car-stat-value">${car.handling}</span>
+                            <span class="car-stat-label">управление</span>
+                        </div>
+                        <div class="car-stat">
+                            <span class="car-stat-value">${car.acceleration}</span>
+                            <span class="car-stat-label">разгон</span>
+                        </div>
                     </div>
-                    <div class="car-stat-main">
-                        <div class="car-stat-value">${currentCar.speed}</div>
-                        <div class="car-stat-label">км/ч</div>
-                    </div>
-                    <div class="car-stat-main">
-                        <div class="car-stat-value">${currentCar.handling}</div>
-                        <div class="car-stat-label">управление</div>
-                    </div>
-                    <div class="car-stat-main">
-                        <div class="car-stat-value">${currentCar.acceleration}</div>
-                        <div class="car-stat-label">разгон</div>
-                    </div>
+                    ${!isActive ? `<button class="btn-primary" onclick="selectCar(${index})">Выбрать эту машину</button>` : '<p style="color: var(--accent-green);">Текущая машина</p>'}
                 </div>
-            </div>
-        `;
+            `;
+        });
+        
+        garageContent.innerHTML = carsHtml;
     }
+}
+
+// Функция выбора машины
+async function selectCar(index) {
+    gameData.currentCar = index;
+    updateGarageDisplay();
+    updateMainMenuDisplay();
+    await autoSave();
 }
 
 // Обновление магазина
 function updateShopDisplay() {
     const shopContent = document.getElementById('shop-content');
     if (shopContent) {
-        shopContent.innerHTML = '<p>Магазин временно закрыт</p>';
+        let shopHtml = '<div class="shop-list">';
+        
+        allCars.forEach(car => {
+            const owned = gameData.cars.some(c => c.id === car.id);
+            if (!owned && car.price > 0) {
+                const canAfford = gameData.money >= car.price;
+                shopHtml += `
+                    <div class="car-display-simple">
+                        <div class="car-emoji-large">🚙</div>
+                        <h3>${car.name}</h3>
+                        <div class="car-stats-grid">
+                            <div class="car-stat">
+                                <span class="car-stat-value">${car.power}</span>
+                                <span class="car-stat-label">л.с.</span>
+                            </div>
+                            <div class="car-stat">
+                                <span class="car-stat-value">${car.speed}</span>
+                                <span class="car-stat-label">км/ч</span>
+                            </div>
+                            <div class="car-stat">
+                                <span class="car-stat-value">${car.handling}</span>
+                                <span class="car-stat-label">управление</span>
+                            </div>
+                            <div class="car-stat">
+                                <span class="car-stat-value">${car.acceleration}</span>
+                                <span class="car-stat-label">разгон</span>
+                            </div>
+                        </div>
+                        <p style="font-size: 1.5rem; color: var(--accent-yellow); margin: 1rem 0;">Цена: ${car.price}</p>
+                        <button class="btn-primary" onclick="buyCar(${car.id})" ${!canAfford ? 'disabled' : ''}>
+                            ${canAfford ? 'Купить' : 'Недостаточно денег'}
+                        </button>
+                    </div>
+                `;
+            }
+        });
+        
+        if (shopHtml === '<div class="shop-list">') {
+            shopHtml += '<p class="no-data">Все доступные машины уже куплены!</p>';
+        }
+        
+        shopHtml += '</div>';
+        shopContent.innerHTML = shopHtml;
+    }
+}
+
+// Функция покупки машины
+async function buyCar(carId) {
+    const car = allCars.find(c => c.id === carId);
+    if (!car || gameData.money < car.price) return;
+    
+    if (confirm(`Купить ${car.name} за ${car.price}?`)) {
+        gameData.money -= car.price;
+        gameData.stats.moneySpent += car.price;
+        gameData.cars.push({...car, owned: true});
+        
+        updatePlayerInfo();
+        updateShopDisplay();
+        await autoSave();
+        
+        alert(`Вы купили ${car.name}!`);
+    }
+}
+
+// Обновление таблицы лидеров
+async function updateLeaderboard() {
+    const leaderboardContent = document.getElementById('leaderboard-content');
+    
+    try {
+        leaderboardContent.innerHTML = '<div class="loading">Загрузка рейтинга...</div>';
+        
+        const leaders = await getLeaderboard();
+        
+        if (leaders.length === 0) {
+            leaderboardContent.innerHTML = '<div class="no-data">Пока нет данных</div>';
+            return;
+        }
+        
+        let tableHtml = `
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Игрок</th>
+                        <th>Уровень</th>
+                        <th>Побед</th>
+                        <th>Деньги</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        leaders.forEach(player => {
+            const isCurrentUser = player.username === currentUser.username;
+            tableHtml += `
+                <tr class="${isCurrentUser ? 'current-user' : ''}">
+                    <td>${player.position}</td>
+                    <td>${player.username}</td>
+                    <td>${player.level}</td>
+                    <td>${player.wins}</td>
+                    <td>${player.money.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+        
+        tableHtml += '</tbody></table>';
+        leaderboardContent.innerHTML = tableHtml;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки таблицы лидеров:', error);
+        leaderboardContent.innerHTML = '<div class="error">Ошибка загрузки данных</div>';
     }
 }
 
@@ -227,25 +351,18 @@ function displayOpponents() {
         const canAfford = gameData.money >= betAmount;
         
         const opponentDiv = document.createElement('div');
-        opponentDiv.className = 'opponent-item';
-        opponentDiv.style.padding = '1rem';
-        opponentDiv.style.background = 'var(--bg-tertiary)';
-        opponentDiv.style.marginBottom = '1rem';
-        opponentDiv.style.cursor = canAfford ? 'pointer' : 'not-allowed';
-        opponentDiv.style.opacity = canAfford ? '1' : '0.5';
+        opponentDiv.className = 'opponent-item-simple';
         
         opponentDiv.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong>${opponent.name}</strong><br>
-                    <small>Машина: ${opponent.car}</small><br>
-                    <small>Ставка: $${betAmount} / Выигрыш: $${opponent.reward}</small>
-                </div>
-                <button onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''} 
-                        style="padding: 0.5rem 1rem; background: var(--accent-blue); color: white; border: none; cursor: pointer;">
-                    Вызвать
-                </button>
+            <div class="opponent-info">
+                <h3>${opponent.name}</h3>
+                <p>Машина: ${opponent.car}</p>
+                <p>Ставка: ${betAmount}</p>
+                <p>Выигрыш: ${opponent.reward}</p>
             </div>
+            <button class="opponent-button" onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
+                ${canAfford ? 'ВЫЗВАТЬ' : 'МАЛО ДЕНЕГ'}
+            </button>
         `;
         
         opponentsList.appendChild(opponentDiv);

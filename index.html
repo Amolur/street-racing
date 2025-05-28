@@ -58,182 +58,73 @@
         <header class="game-header">
             <div class="header-top">STREET RACING</div>
             <div class="header-stats">
-                <div class="stats-left">
-                    <div class="stat-item">
-                        <span class="stat-icon">✉️</span>
-                        <span id="username" class="stat-value">test</span>
-                    </div>
-                    <div class="stat-item money">
-                        <span class="stat-icon">💵</span>
-                        <span id="money" class="stat-value">4800</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">🏆</span>
-                        <span id="wins" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">❌</span>
-                        <span id="losses" class="stat-value">0</span>
-                    </div>
+                <div class="stats-group">
+                    <span class="stat-label">Игрок:</span>
+                    <span id="username" class="stat-value">test</span>
                 </div>
-                <div class="stats-right">
-                    <div class="stat-item fuel">
-                        <span class="stat-icon">⛽</span>
-                        <span id="fuel" class="stat-value">20</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">🏁</span>
-                        <span id="races" class="stat-value">5/5</span>
-                    </div>
-                    <div class="stat-item repair">
-                        <span class="stat-icon">🔧</span>
-                        <span id="repair" class="stat-value">100</span>
-                    </div>
+                <div class="stats-group">
+                    <span class="stat-label">Деньги:</span>
+                    <span id="money" class="stat-value money">$4800</span>
+                </div>
+                <div class="stats-group">
+                    <span class="stat-label">Побед:</span>
+                    <span id="wins" class="stat-value">0</span>
+                </div>
+                <div class="stats-group">
+                    <span class="stat-label">Поражений:</span>
+                    <span id="losses" class="stat-value">0</span>
+                </div>
+                <div class="stats-group">
+                    <span class="stat-label">Уровень:</span>
+                    <span id="level" class="stat-value">1</span>
                 </div>
             </div>
         </header>
-
-        <!-- Левое боковое меню -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <span>STREET RACING</span>
-            </div>
-            <nav class="sidebar-menu">
-                <div class="menu-section">
-                    <div class="menu-section-title">Гонки</div>
-                    <a href="#" class="menu-item active" onclick="showRaceMenu()">
-                        <span class="menu-icon">🏁</span>
-                        <span>Трасса</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🏆</span>
-                        <span>Чемпионаты</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">👥</span>
-                        <span>Разборки (1)</span>
-                    </a>
-                </div>
-                
-                <div class="menu-section">
-                    <div class="menu-section-title">Тех.обслуживание</div>
-                    <a href="#" class="menu-item" onclick="showGarageScreen()">
-                        <span class="menu-icon">🚗</span>
-                        <span>Мой гараж</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🔧</span>
-                        <span>СТО (ремонт)</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🎨</span>
-                        <span>Тюнинг-студия</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">⛽</span>
-                        <span>Заправка</span>
-                    </a>
-                </div>
-                
-                <div class="menu-section">
-                    <div class="menu-section-title">Торговля</div>
-                    <a href="#" class="menu-item" onclick="showShopScreen()">
-                        <span class="menu-icon">🚙</span>
-                        <span>Авто-салон</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🛒</span>
-                        <span>Авто-базар</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🏪</span>
-                        <span>Черный рынок</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🏦</span>
-                        <span>Банк</span>
-                    </a>
-                </div>
-                
-                <div class="menu-section">
-                    <div class="menu-section-title">Заработок</div>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">👩</span>
-                        <span>Темные делишки</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🚔</span>
-                        <span>СТО</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🚕</span>
-                        <span>Такси</span>
-                    </a>
-                </div>
-                
-                <div class="menu-section">
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">🎰</span>
-                        <span>Клубы</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">📊</span>
-                        <span>Бардачек</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">👥</span>
-                        <span>Общение</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <span class="menu-icon">📰</span>
-                        <span>События</span>
-                    </a>
-                    <a href="#" class="menu-item" onclick="logout()">
-                        <span class="menu-icon">🚪</span>
-                        <span>Выход</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Кнопка меню для мобильных -->
-        <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">☰</button>
 
         <!-- Основной контент -->
         <main class="main-content">
             <!-- Главная страница -->
             <div id="main-menu" class="game-screen active">
-                <div class="main-menu-content">
-                    <div class="car-display-main">
-                        <div class="car-emoji-large">🚗</div>
-                        <h2 id="current-car-name">ВАЗ 2102</h2>
-                        <div class="car-stats-main">
-                            <div class="car-stat-main">
-                                <div class="car-stat-value">7500</div>
-                                <div class="car-stat-label">об</div>
-                            </div>
-                            <div class="car-stat-main">
-                                <div class="car-stat-value">58</div>
-                                <div class="car-stat-label">л.с.</div>
-                            </div>
-                            <div class="car-stat-main">
-                                <div class="car-stat-value">20.59</div>
-                                <div class="car-stat-label">сек.</div>
-                            </div>
-                            <div class="car-stat-main">
-                                <div class="car-stat-value">1</div>
-                                <div class="car-stat-label">уровень</div>
-                            </div>
+                <div class="text-menu">
+                    <h1>ГЛАВНОЕ МЕНЮ</h1>
+                    <div class="car-info-section">
+                        <h2>Текущая машина: <span id="current-car-name">ВАЗ 2102</span></h2>
+                        <div class="car-quick-stats">
+                            <span>Мощность: <strong id="car-power">58</strong> л.с.</span>
+                            <span>Скорость: <strong id="car-speed">137</strong> км/ч</span>
+                            <span>Управление: <strong id="car-handling">25</strong></span>
+                            <span>Разгон: <strong id="car-acceleration">1010</strong></span>
                         </div>
+                    </div>
+                    
+                    <div class="menu-links">
+                        <a href="#" onclick="showRaceMenu()" class="menu-link">
+                            <span class="link-number">[1]</span> ГОНКИ
+                        </a>
+                        <a href="#" onclick="showGarageScreen()" class="menu-link">
+                            <span class="link-number">[2]</span> ГАРАЖ
+                        </a>
+                        <a href="#" onclick="showShopScreen()" class="menu-link">
+                            <span class="link-number">[3]</span> АВТО-МАГАЗИН
+                        </a>
+                        <a href="#" onclick="showLeaderboardScreen()" class="menu-link">
+                            <span class="link-number">[4]</span> РЕЙТИНГ
+                        </a>
+                        <a href="#" onclick="logout()" class="menu-link logout">
+                            <span class="link-number">[0]</span> ВЫХОД
+                        </a>
                     </div>
                 </div>
             </div>
 
             <!-- Экран выбора соперника -->
             <div id="race-menu-screen" class="game-screen">
-                <div class="race-preview-simple">
-                    <div class="race-title">Трасса</div>
-                    <div id="opponents-list">
+                <div class="screen-content">
+                    <h1>ВЫБОР СОПЕРНИКА</h1>
+                    <div class="back-link">
+                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                    </div>
+                    <div id="opponents-list" class="opponents-list-simple">
                         <!-- Список соперников будет здесь -->
                     </div>
                 </div>
@@ -241,8 +132,8 @@
 
             <!-- Экран результата гонки -->
             <div id="race-result-screen" class="game-screen">
-                <div class="race-result-content">
-                    <div class="result-title">Детали заезда</div>
+                <div class="screen-content">
+                    <h1>РЕЗУЛЬТАТ ГОНКИ</h1>
                     <div id="race-result">
                         <!-- Результаты будут здесь -->
                     </div>
@@ -251,17 +142,40 @@
 
             <!-- Экран гаража -->
             <div id="garage-screen" class="game-screen">
-                <h2>Мой гараж</h2>
-                <div id="garage-content">
-                    <!-- Контент гаража -->
+                <div class="screen-content">
+                    <h1>МОЙ ГАРАЖ</h1>
+                    <div class="back-link">
+                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                    </div>
+                    <div id="garage-content">
+                        <!-- Контент гаража -->
+                    </div>
                 </div>
             </div>
 
             <!-- Экран магазина -->
             <div id="shop-screen" class="game-screen">
-                <h2>Авто-салон</h2>
-                <div id="shop-content">
-                    <!-- Контент магазина -->
+                <div class="screen-content">
+                    <h1>АВТО-МАГАЗИН</h1>
+                    <div class="back-link">
+                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                    </div>
+                    <div id="shop-content">
+                        <!-- Контент магазина -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран рейтинга -->
+            <div id="leaderboard-screen" class="game-screen">
+                <div class="screen-content">
+                    <h1>ТАБЛИЦА ЛИДЕРОВ</h1>
+                    <div class="back-link">
+                        <a href="#" onclick="showMainMenu()">[← Назад в главное меню]</a>
+                    </div>
+                    <div id="leaderboard-content">
+                        <div class="loading">Загрузка рейтинга...</div>
+                    </div>
                 </div>
             </div>
         </main>
