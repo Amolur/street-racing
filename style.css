@@ -6,6 +6,17 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Ключевые анимации (определены в начале) */
+@keyframes glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.3); }
+}
+
+@keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
 :root {
     /* Основные цвета - киберпанк стиль */
     --bg-primary: #0a0a0a;
@@ -34,6 +45,27 @@
     --glow-cyan: 0 0 20px rgba(0, 255, 255, 0.5);
     --glow-pink: 0 0 20px rgba(255, 0, 255, 0.5);
     --glow-yellow: 0 0 20px rgba(255, 255, 0, 0.5);
+}
+
+/* Поддержка светлой темы */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-primary: #f0f0f0;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #e0e0e0;
+        --bg-card: #ffffff;
+        --text-primary: #000000;
+        --text-secondary: #4a4a4a;
+        --text-muted: #999999;
+    }
+}
+
+/* Отключение анимаций для тех, кто предпочитает */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Шрифты */
@@ -73,7 +105,37 @@ body::before {
             transparent 2px
         );
     pointer-events: none;
-    z-index: 1;
+    z-index: 9998;
+}
+
+/* Кастомный скроллбар */
+::-webkit-scrollbar {
+    width: 10px;
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-pink);
+}
+
+/* Стили фокуса для доступности */
+*:focus-visible {
+    outline: 2px solid var(--neon-cyan);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--neon-yellow);
 }
 
 /* Контейнер */
@@ -82,7 +144,6 @@ body::before {
     margin: 0 auto;
     padding: 0 20px;
     position: relative;
-    z-index: 2;
 }
 
 /* Экран загрузки */
@@ -110,12 +171,8 @@ body::before {
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { filter: brightness(1); }
-    to { filter: brightness(1.3); }
 }
 
 /* Экран авторизации */
@@ -163,11 +220,6 @@ body::before {
     bottom: 0;
     left: 0;
     animation-delay: 1.5s;
-}
-
-@keyframes scan {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
 }
 
 .logo-container {
@@ -231,6 +283,21 @@ body::before {
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
+/* Базовый класс для кнопок */
+.btn-base {
+    padding: 1rem 2rem;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+}
+
 .btn-primary {
     width: 100%;
     padding: 1rem;
@@ -259,13 +326,25 @@ body::before {
     transition: left 0.5s;
 }
 
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
 }
 
 .btn-primary:hover::before {
     left: 100%;
+}
+
+.btn-primary:hover::after {
+    opacity: 1;
 }
 
 /* Игровой контейнер */
@@ -274,7 +353,6 @@ body::before {
     display: flex;
     flex-direction: column;
     position: relative;
-    z-index: 2;
 }
 
 /* Header */
@@ -288,6 +366,9 @@ body::before {
     border-bottom: 2px solid var(--neon-cyan);
     z-index: 100;
     box-shadow: 0 2px 20px rgba(0, 255, 255, 0.3);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .header-top {
@@ -306,6 +387,7 @@ body::before {
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     letter-spacing: 3px;
 }
 
@@ -385,6 +467,7 @@ body::before {
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-transform: uppercase;
     letter-spacing: 4px;
 }
@@ -395,7 +478,7 @@ body::before {
     padding: 2rem;
     margin-bottom: 3rem;
     position: relative;
-    overflow: hidden;
+    isolation: isolate;
 }
 
 .car-showcase::before {
@@ -491,12 +574,24 @@ body::before {
 
 .menu-item:hover {
     border-color: var(--neon-cyan);
-    box-shadow: var(--glow-cyan);
     transform: translateY(-2px);
 }
 
 .menu-item:hover::before {
     width: 100%;
+}
+
+.menu-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: var(--glow-cyan);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.menu-item:hover::after {
+    opacity: 1;
 }
 
 .menu-icon {
@@ -552,6 +647,7 @@ body::before {
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-transform: uppercase;
     letter-spacing: 3px;
     margin-bottom: 1rem;
@@ -586,11 +682,24 @@ body::before {
     gap: 2rem;
     align-items: center;
     transition: all 0.3s;
+    position: relative;
+}
+
+.opponent-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: var(--glow-pink);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .opponent-card:hover {
     border-color: var(--neon-pink);
-    box-shadow: var(--glow-pink);
+}
+
+.opponent-card:hover::after {
+    opacity: 1;
 }
 
 .opponent-info h3 {
@@ -634,12 +743,25 @@ body::before {
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
+}
+
+.challenge-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: var(--glow-pink);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .challenge-button:hover {
     background: var(--neon-pink);
     color: var(--bg-primary);
-    box-shadow: var(--glow-pink);
+}
+
+.challenge-button:hover::after {
+    opacity: 1;
 }
 
 .challenge-button:disabled {
@@ -812,11 +934,24 @@ body::before {
     letter-spacing: 3px;
     cursor: pointer;
     transition: all 0.3s;
+    position: relative;
+}
+
+.race-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .race-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+}
+
+.race-button:hover::after {
+    opacity: 1;
 }
 
 /* Результаты гонки */
@@ -893,12 +1028,25 @@ body::before {
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.3s;
+    position: relative;
+}
+
+.result-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: var(--glow-cyan);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .result-button:hover {
     background: var(--neon-cyan);
     color: var(--bg-primary);
-    box-shadow: var(--glow-cyan);
+}
+
+.result-button:hover::after {
+    opacity: 1;
 }
 
 /* Таблица лидеров */
@@ -972,7 +1120,14 @@ body::before {
 
 .car-card.current {
     border-color: var(--neon-cyan);
+}
+
+.car-card.current::after {
+    content: '';
+    position: absolute;
+    inset: 0;
     box-shadow: var(--glow-cyan);
+    opacity: 1;
 }
 
 .car-card:hover {
@@ -1045,12 +1200,25 @@ body::before {
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
+    position: relative;
+}
+
+.action-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .action-button:hover {
     background: var(--neon-green);
     color: var(--bg-primary);
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.action-button:hover::after {
+    opacity: 1;
 }
 
 .action-button:disabled {
@@ -1091,6 +1259,15 @@ body::before {
 
 /* Адаптивность */
 @media (max-width: 768px) {
+    :root {
+        --header-height: auto;
+    }
+    
+    .game-header {
+        height: auto;
+        min-height: 120px;
+    }
+    
     .header-stats {
         flex-direction: column;
         height: auto;
@@ -1106,6 +1283,10 @@ body::before {
     
     .stat-item:last-child {
         border-bottom: none;
+    }
+    
+    .main-content {
+        padding-top: 140px;
     }
     
     .menu-grid {
@@ -1128,5 +1309,13 @@ body::before {
     .opponent-card {
         grid-template-columns: 1fr;
         text-align: center;
+    }
+    
+    .main-title {
+        font-size: 2rem;
+    }
+    
+    .car-visual {
+        font-size: 6rem;
     }
 }
