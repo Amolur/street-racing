@@ -1,172 +1,17 @@
-// Мобильное меню
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    menu.classList.toggle('active');
-    
-    // Закрываем меню при клике вне его
-    if (menu.classList.contains('active')) {
-        setTimeout(() => {
-            document.addEventListener('click', closeMobileMenuOutside);
-        }, 100);
-    } else {
-        document.removeEventListener('click', closeMobileMenuOutside);
-    }
-}
-
-function closeMobileMenuOutside(e) {
-    const menu = document.getElementById('mobile-menu');
-    const menuToggle = document.querySelector('.menu-toggle');
-    
-    if (!menu.contains(e.target) && !menuToggle.contains(e.target)) {
-        menu.classList.remove('active');
-        document.removeEventListener('click', closeMobileMenuOutside);
-    }
-}
-
-// Улучшенная навигация
-function navigateTo(screenId) {
-    // Закрываем мобильное меню
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu) {
-        mobileMenu.classList.remove('active');
-    }
-    
-    // Скрываем все экраны
-    hideAllScreens();
-    
-    // Показываем нужный экран
-    const screen = document.getElementById(screenId);
-    if (screen) {
-        screen.classList.add('active');
-        navigateToScreen(screenId);
-    }
-    
-    // Обновляем активную кнопку в нижней навигации
-    updateBottomNav(screenId);
-    
-    // Обновляем данные экрана если нужно
-    switch(screenId) {
-        case 'garage-screen':
-            updateGarageDisplay();
-            break;
-        case 'race-menu-screen':
-            displayOpponents();
-            break;
-        case 'profile-screen':
-            updateProfileDisplay();
-            break;
-        case 'shop-screen':
-            updateShopDisplay();
-            break;
-        case 'leaderboard-screen':
-            updateLeaderboard();
-            break;
-    }
-}
-
-// Обновление активной кнопки в нижней навигации
-function updateBottomNav(screenId) {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Находим соответствующую кнопку
-    const screenMap = {
-        'main-menu': 0,
-        'race-menu-screen': 1,
-        'garage-screen': 2,
-        'shop-screen': 3,
-        'profile-screen': 4
-    };
-    
-    const index = screenMap[screenId];
-    if (index !== undefined && navItems[index]) {
-        navItems[index].classList.add('active');
-    }
-}
-
-// Переключение между машинами в гараже
-function previousCar() {
-    if (gameData.currentCar > 0) {
-        gameData.currentCar--;
-        updateGarageDisplay();
-        updateCarSelector();
-    }
-}
-
-function nextCar() {
-    if (gameData.currentCar < gameData.cars.length - 1) {
-        gameData.currentCar++;
-        updateGarageDisplay();
-        updateCarSelector();
-    }
-}
-
-function updateCarSelector() {
-    const selector = document.querySelector('.car-selector');
-    if (selector) {
-        selector.textContent = `${gameData.currentCar + 1} / ${gameData.cars.length}`;
-    }
-}
-
-// Функция обновления быстрой статистики на главной
-function updateQuickStats() {
-    const quickWins = document.getElementById('quick-wins');
-    const quickCars = document.getElementById('quick-cars');
-    const quickRating = document.getElementById('quick-rating');
-    
-    if (quickWins) quickWins.textContent = gameData.stats.wins;
-    if (quickCars) quickCars.textContent = gameData.cars.length;
-    if (quickRating) quickRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
-}
-
-// Адаптивное закрытие модальных окон
-document.addEventListener('DOMContentLoaded', function() {
-    // Закрытие модальных окон по клику на фон
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('race-preview-modal')) {
-            closeRacePreview();
-        }
-    });
-    
-    // Обработка свайпов для мобильного меню
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    document.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    document.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    });
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const menu = document.getElementById('mobile-menu');
-        
-        if (touchEndX < touchStartX - swipeThreshold && menu.classList.contains('active')) {
-            // Свайп влево - закрываем меню
-            menu.classList.remove('active');
-        } else if (touchEndX > touchStartX + swipeThreshold && touchStartX < 50) {
-            // Свайп вправо от края - открываем меню
-            menu.classList.add('active');
-        }
-    }
-});
-
 // Игровые данные
 let gameData = {
-    money: 1000,
+    money: 4800,
     level: 1,
     currentCar: 0,
+    fuel: 20,
+    races: 5,
+    racesMax: 5,
+    repair: 100,
     skills: {
         driving: 1,
-        speed: 1,
-        reaction: 1,
-        technique: 1
+        speed: 0,
+        reaction: 0,
+        technique: 0
     },
     stats: {
         totalRaces: 0,
@@ -178,11 +23,11 @@ let gameData = {
     cars: [
         {
             id: 0,
-            name: "Honda Civic",
-            power: 50,
-            speed: 60,
-            handling: 70,
-            acceleration: 55,
+            name: "ВАЗ 2102",
+            power: 58,
+            speed: 137,
+            handling: 25,
+            acceleration: 1010,
             price: 0,
             owned: true
         }
@@ -192,28 +37,22 @@ let gameData = {
 // Текущий пользователь
 let currentUser = null;
 
-// История навигации для кнопки "Назад"
-let navigationHistory = [];
-let currentScreen = 'main-menu';
-
 // Список всех доступных машин в игре
 const allCars = [
-    { id: 0, name: "Honda Civic", power: 50, speed: 60, handling: 70, acceleration: 55, price: 0 },
-    { id: 1, name: "Volkswagen Golf", power: 55, speed: 65, handling: 75, acceleration: 60, price: 5000 },
-    { id: 2, name: "Mazda MX-5", power: 60, speed: 70, handling: 85, acceleration: 65, price: 8000 },
-    { id: 3, name: "BMW 325i", power: 70, speed: 75, handling: 80, acceleration: 70, price: 15000 },
-    { id: 4, name: "Subaru WRX", power: 80, speed: 85, handling: 75, acceleration: 85, price: 25000 },
-    { id: 5, name: "Nissan 370Z", power: 85, speed: 90, handling: 70, acceleration: 80, price: 35000 },
-    { id: 6, name: "Porsche Cayman", power: 90, speed: 95, handling: 95, acceleration: 90, price: 50000 },
-    { id: 7, name: "Chevrolet Corvette", power: 95, speed: 98, handling: 85, acceleration: 95, price: 75000 }
+    { id: 0, name: "ВАЗ 2102", power: 58, speed: 137, handling: 25, acceleration: 1010, price: 0 },
+    { id: 1, name: "ВАЗ 2106", power: 75, speed: 145, handling: 30, acceleration: 950, price: 5000 },
+    { id: 2, name: "ВАЗ 2107", power: 77, speed: 150, handling: 35, acceleration: 920, price: 8000 },
+    { id: 3, name: "BMW 325i", power: 170, speed: 220, handling: 80, acceleration: 700, price: 25000 },
+    { id: 4, name: "Nissan Skyline", power: 280, speed: 250, handling: 85, acceleration: 550, price: 50000 },
+    { id: 5, name: "Toyota Supra", power: 320, speed: 270, handling: 90, acceleration: 450, price: 75000 }
 ];
 
 // Список возможных соперников
 const opponents = [
-    { name: "Новичок Вася", car: "Lada 2107", difficulty: 0.8, reward: 200 },
-    { name: "Уличный гонщик Макс", car: "BMW E36", difficulty: 1.0, reward: 500 },
-    { name: "Профи Алекс", car: "Nissan Skyline", difficulty: 1.3, reward: 1000 },
-    { name: "Легенда Дима", car: "Toyota Supra", difficulty: 1.6, reward: 2000 }
+    { name: "Новичок Вася", car: "ВАЗ 2106", difficulty: 0.8, reward: 200 },
+    { name: "Местный Игорь", car: "ВАЗ 2107", difficulty: 1.0, reward: 500 },
+    { name: "Профи Макс", car: "BMW E30", difficulty: 1.3, reward: 1000 },
+    { name: "Легенда Федя", car: "Nissan 200SX", difficulty: 1.6, reward: 2000 }
 ];
 
 // Функции авторизации
@@ -221,7 +60,7 @@ async function register(username, password) {
     try {
         const data = await registerAPI(username, password);
         currentUser = { username: data.user.username };
-        gameData = data.user.gameData;
+        gameData = data.user.gameData || gameData;
         return true;
     } catch (error) {
         alert(error.message);
@@ -233,7 +72,7 @@ async function login(username, password) {
     try {
         const data = await loginAPI(username, password);
         currentUser = { username: data.user.username };
-        gameData = data.user.gameData;
+        gameData = data.user.gameData || gameData;
         return true;
     } catch (error) {
         alert(error.message);
@@ -253,7 +92,7 @@ async function checkAuth() {
     try {
         const data = await loadGameData();
         currentUser = { username: data.username };
-        gameData = data.gameData;
+        gameData = data.gameData || gameData;
         return true;
     } catch (error) {
         localStorage.removeItem('authToken');
@@ -273,50 +112,10 @@ async function autoSave() {
     }
 }
 
-// Функция для отслеживания навигации
-function navigateToScreen(screenId) {
-    if (currentScreen !== screenId) {
-        navigationHistory.push(currentScreen);
-        currentScreen = screenId;
-    }
-}
-
-// Функция возврата на предыдущий экран
-function goBack() {
-    if (navigationHistory.length > 0) {
-        const previousScreen = navigationHistory.pop();
-        currentScreen = previousScreen;
-        
-        switch(previousScreen) {
-            case 'main-menu':
-                showMainMenu(false);
-                break;
-            case 'garage-screen':
-                showGarageScreen(false);
-                break;
-            case 'race-menu-screen':
-                showRaceMenu(false);
-                break;
-            case 'profile-screen':
-                showProfileScreen(false);
-                break;
-            case 'shop-screen':
-                showShopScreen(false);
-                break;
-            case 'leaderboard-screen':
-                showLeaderboardScreen(false);
-                break;
-        }
-    } else {
-        showMainMenu(false);
-    }
-}
-
-// Функция возврата в главное меню
-function goToMainMenu() {
-    navigationHistory = [];
-    currentScreen = 'main-menu';
-    showMainMenu(false);
+// Функция переключения сайдбара (для мобильных)
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
 }
 
 // Функция скрытия всех экранов
@@ -327,45 +126,31 @@ function hideAllScreens() {
 }
 
 // Функции навигации
-function showMainMenu(addToHistory = true) {
+function showMainMenu() {
     hideAllScreens();
     document.getElementById('main-menu').classList.add('active');
-    if (addToHistory) navigateToScreen('main-menu');
+    updateMainMenuDisplay();
 }
 
-function showGarageScreen(addToHistory = true) {
-    hideAllScreens();
-    document.getElementById('garage-screen').classList.add('active');
-    updateGarageDisplay();
-    if (addToHistory) navigateToScreen('garage-screen');
-}
-
-function showRaceMenu(addToHistory = true) {
+function showRaceMenu() {
     hideAllScreens();
     document.getElementById('race-menu-screen').classList.add('active');
     displayOpponents();
-    if (addToHistory) navigateToScreen('race-menu-screen');
+    updateMenuActive('race-menu');
 }
 
-function showProfileScreen(addToHistory = true) {
+function showGarageScreen() {
     hideAllScreens();
-    document.getElementById('profile-screen').classList.add('active');
-    updateProfileDisplay();
-    if (addToHistory) navigateToScreen('profile-screen');
+    document.getElementById('garage-screen').classList.add('active');
+    updateGarageDisplay();
+    updateMenuActive('garage');
 }
 
-function showShopScreen(addToHistory = true) {
+function showShopScreen() {
     hideAllScreens();
     document.getElementById('shop-screen').classList.add('active');
     updateShopDisplay();
-    if (addToHistory) navigateToScreen('shop-screen');
-}
-
-async function showLeaderboardScreen(addToHistory = true) {
-    hideAllScreens();
-    document.getElementById('leaderboard-screen').classList.add('active');
-    if (addToHistory) navigateToScreen('leaderboard-screen');
-    await updateLeaderboard();
+    updateMenuActive('shop');
 }
 
 function showRaceResultScreen() {
@@ -373,321 +158,61 @@ function showRaceResultScreen() {
     document.getElementById('race-result-screen').classList.add('active');
 }
 
-// Обновление таблицы лидеров
-async function updateLeaderboard() {
-    try {
-        const leaderboardList = document.getElementById('leaderboard-list');
-        leaderboardList.innerHTML = '<div class="loading">Загрузка...</div>';
-        
-        const leaders = await getLeaderboard();
-        
-        leaderboardList.innerHTML = '';
-        
-        leaders.forEach((player, index) => {
-            const isCurrentUser = player.username === currentUser.username;
-            const row = document.createElement('div');
-            row.className = `leaderboard-row ${isCurrentUser ? 'current-user' : ''}`;
-            
-            let positionClass = '';
-            if (player.position === 1) positionClass = 'gold';
-            else if (player.position === 2) positionClass = 'silver';
-            else if (player.position === 3) positionClass = 'bronze';
-            
-            row.innerHTML = `
-                <span class="lb-position ${positionClass}">${player.position}</span>
-                <span class="lb-name">${player.username}</span>
-                <span class="lb-money">$${player.money.toLocaleString()}</span>
-            `;
-            
-            leaderboardList.appendChild(row);
-        });
-        
-        if (leaders.length === 0) {
-            leaderboardList.innerHTML = '<div class="no-data">Пока нет данных</div>';
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки таблицы лидеров:', error);
-        document.getElementById('leaderboard-list').innerHTML = 
-            '<div class="error">Ошибка загрузки данных</div>';
+// Обновление активного пункта меню
+function updateMenuActive(menuId) {
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    // Здесь можно добавить логику для выделения активного пункта
+}
+
+// Обновление главного меню
+function updateMainMenuDisplay() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    if (currentCar) {
+        document.getElementById('current-car-name').textContent = currentCar.name;
     }
 }
 
 // Обновление отображения гаража
 function updateGarageDisplay() {
-    // Дополнительные обновления для нового дизайна
+    const garageContent = document.getElementById('garage-content');
     const currentCar = gameData.cars[gameData.currentCar];
-    const carDisplay = document.getElementById('current-car-display');
     
-    if (carDisplay && currentCar) {
-        carDisplay.innerHTML = `
-            <div class="car-emoji">🏎️</div>
-            <h3>${currentCar.name}</h3>
-            <div class="car-power">Мощность: ${currentCar.power}</div>
-        `;
-    }
-    
-    // Обновляем селектор
-    updateCarSelector();
-    
-    // Обновляем статистику машины
-    const statsDisplay = document.getElementById('car-stats-display');
-    if (statsDisplay && currentCar) {
-        statsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Мощность</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.power}%"></div>
+    if (garageContent && currentCar) {
+        garageContent.innerHTML = `
+            <div class="car-display-main">
+                <div class="car-emoji-large">🚗</div>
+                <h3>${currentCar.name}</h3>
+                <div class="car-stats-main">
+                    <div class="car-stat-main">
+                        <div class="car-stat-value">${currentCar.power}</div>
+                        <div class="car-stat-label">л.с.</div>
+                    </div>
+                    <div class="car-stat-main">
+                        <div class="car-stat-value">${currentCar.speed}</div>
+                        <div class="car-stat-label">км/ч</div>
+                    </div>
+                    <div class="car-stat-main">
+                        <div class="car-stat-value">${currentCar.handling}</div>
+                        <div class="car-stat-label">управление</div>
+                    </div>
+                    <div class="car-stat-main">
+                        <div class="car-stat-value">${currentCar.acceleration}</div>
+                        <div class="car-stat-label">разгон</div>
+                    </div>
                 </div>
-                <span>${currentCar.power}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.speed}%"></div>
-                </div>
-                <span>${currentCar.speed}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Управление</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.handling}%"></div>
-                </div>
-                <span>${currentCar.handling}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Разгон</label>
-                <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
-                </div>
-                <span>${currentCar.acceleration}</span>
             </div>
         `;
     }
 }
 
-// Функция выбора машины
-async function selectCar(index) {
-    gameData.currentCar = index;
-    updateGarageDisplay();
-    await autoSave();
-}
-
-// Функция обновления профиля
-function updateProfileDisplay() {
-    // Основная информация
-    const profileInfo = document.getElementById('profile-info');
-    if (profileInfo && currentUser) {
-        profileInfo.innerHTML = `
-            <p><strong>Имя:</strong> ${currentUser.username}</p>
-            <p><strong>Уровень:</strong> ${gameData.level}</p>
-            <p><strong>Деньги:</strong> $${gameData.money}</p>
-            <p><strong>Машин в гараже:</strong> ${gameData.cars.length}</p>
-        `;
-    }
-    
-    // Обновление имени пользователя в профиле
-    const profileUsername = document.getElementById('profile-username');
-    if (profileUsername && currentUser) {
-        profileUsername.textContent = currentUser.username;
-    }
-    
-    const profileLevel = document.getElementById('profile-level');
-    if (profileLevel) {
-        profileLevel.textContent = gameData.level;
-    }
-    
-    // Навыки
-    const profileSkillsDisplay = document.getElementById('profile-skills-display');
-    if (profileSkillsDisplay) {
-        profileSkillsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Вождение:</label>
-                <div class="skill-level">${gameData.skills.driving}</div>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость:</label>
-                <div class="skill-level">${gameData.skills.speed}</div>
-            </div>
-            <div class="stat-bar">
-                <label>Реакция:</label>
-                <div class="skill-level">${gameData.skills.reaction}</div>
-            </div>
-            <div class="stat-bar">
-                <label>Навык:</label>
-                <div class="skill-level">${gameData.skills.technique}</div>
-            </div>
-        `;
-    }
-    
-    // Статистика
-    const profileStats = document.getElementById('profile-stats');
-    if (profileStats) {
-        const winRate = gameData.stats.totalRaces > 0 
-            ? ((gameData.stats.wins / gameData.stats.totalRaces) * 100).toFixed(1) 
-            : 0;
-            
-        profileStats.innerHTML = `
-            <p><strong>Всего гонок:</strong> ${gameData.stats.totalRaces}</p>
-            <p><strong>Побед:</strong> ${gameData.stats.wins}</p>
-            <p><strong>Поражений:</strong> ${gameData.stats.losses}</p>
-            <p><strong>Процент побед:</strong> ${winRate}%</p>
-            <p><strong>Заработано:</strong> ${gameData.stats.moneyEarned}</p>
-            <p><strong>Потрачено:</strong> ${gameData.stats.moneySpent}</p>
-        `;
-    }
-}
-
-// Функция обновления магазина
+// Обновление магазина
 function updateShopDisplay() {
-    // Машины для покупки
-    const carsForSale = document.getElementById('cars-for-sale');
-    if (carsForSale) {
-        carsForSale.innerHTML = '';
-        
-        allCars.forEach(car => {
-            const owned = gameData.cars.some(c => c.id === car.id);
-            if (!owned && car.price > 0) {
-                const carDiv = document.createElement('div');
-                carDiv.className = 'car-shop-item';
-                carDiv.innerHTML = `
-                    <div class="car-shop-info">
-                        <h4>${car.name}</h4>
-                        <div class="car-shop-stats">
-                            <span>Мощность: ${car.power}</span>
-                            <span>Скорость: ${car.speed}</span>
-                            <span>Управление: ${car.handling}</span>
-                            <span>Разгон: ${car.acceleration}</span>
-                        </div>
-                        <p class="price">${car.price}</p>
-                    </div>
-                    <button class="btn-primary" onclick="buyCar(${car.id})" ${gameData.money < car.price ? 'disabled' : ''}>
-                        ${gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
-                    </button>
-                `;
-                carsForSale.appendChild(carDiv);
-            }
-        });
+    const shopContent = document.getElementById('shop-content');
+    if (shopContent) {
+        shopContent.innerHTML = '<p>Магазин временно закрыт</p>';
     }
-    
-    // Машины для продажи
-    const carsToSell = document.getElementById('cars-to-sell');
-    if (carsToSell) {
-        carsToSell.innerHTML = '';
-        
-        gameData.cars.forEach((car, index) => {
-            if (car.price > 0) {
-                const sellPrice = Math.floor(car.price * 0.7);
-                const carDiv = document.createElement('div');
-                carDiv.className = 'car-shop-item';
-                carDiv.innerHTML = `
-                    <div class="car-shop-info">
-                        <h4>${car.name}</h4>
-                        <div class="car-shop-stats">
-                            <span>Мощность: ${car.power}</span>
-                            <span>Скорость: ${car.speed}</span>
-                        </div>
-                        <p class="price">Продать за: ${sellPrice}</p>
-                    </div>
-                    <button class="btn-primary" onclick="sellCar(${index})">Продать</button>
-                `;
-                carsToSell.appendChild(carDiv);
-            }
-        });
-    }
-}
-
-// Функция покупки машины
-async function buyCar(carId) {
-    const car = allCars.find(c => c.id === carId);
-    if (!car || gameData.money < car.price) return;
-    
-    gameData.money -= car.price;
-    gameData.stats.moneySpent += car.price;
-    gameData.cars.push({...car, owned: true});
-    
-    updatePlayerInfo();
-    updateShopDisplay();
-    await autoSave();
-    
-    alert(`Вы купили ${car.name}!`);
-}
-
-// Функция продажи машины
-async function sellCar(index) {
-    if (gameData.cars.length <= 1) {
-        alert('Нельзя продать последнюю машину!');
-        return;
-    }
-    
-    const car = gameData.cars[index];
-    const sellPrice = Math.floor(car.price * 0.7);
-    
-    if (confirm(`Продать ${car.name} за ${sellPrice}?`)) {
-        gameData.money += sellPrice;
-        gameData.stats.moneyEarned += sellPrice;
-        gameData.cars.splice(index, 1);
-        
-        if (gameData.currentCar >= gameData.cars.length) {
-            gameData.currentCar = 0;
-        }
-        
-        updatePlayerInfo();
-        updateShopDisplay();
-        await autoSave();
-    }
-}
-
-// Функция переключения вкладок магазина
-function showShopTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.shop-content').forEach(content => content.classList.remove('active'));
-    
-    if (tab === 'buy') {
-        document.querySelector('.tab-btn:first-child').classList.add('active');
-        document.getElementById('shop-buy').classList.add('active');
-    } else {
-        document.querySelector('.tab-btn:last-child').classList.add('active');
-        document.getElementById('shop-sell').classList.add('active');
-    }
-}
-
-// Функция расчета получения навыков после гонки
-function calculateSkillGain(isWin) {
-    const skillNames = ['driving', 'speed', 'reaction', 'technique'];
-    const skillNamesRu = {
-        driving: 'Вождение',
-        speed: 'Скорость',
-        reaction: 'Реакция',
-        technique: 'Навык'
-    };
-    
-    let gainedSkills = [];
-    
-    const attempts = Math.random() < 0.7 ? 1 : 2;
-    const baseChance = isWin ? 0.9 : 0.45;
-    
-    for (let i = 0; i < attempts; i++) {
-        const randomSkill = skillNames[Math.floor(Math.random() * skillNames.length)];
-        
-        if (gainedSkills.find(s => s.skill === randomSkill)) {
-            continue;
-        }
-        
-        const currentSkillLevel = gameData.skills[randomSkill];
-        const chance = baseChance / (1 + currentSkillLevel * 0.01);
-        
-        if (Math.random() < chance) {
-            gameData.skills[randomSkill]++;
-            gainedSkills.push({
-                skill: randomSkill,
-                name: skillNamesRu[randomSkill],
-                newLevel: gameData.skills[randomSkill],
-                chance: (chance * 100).toFixed(1)
-            });
-        }
-    }
-    
-    return gainedSkills;
 }
 
 // Отображение списка соперников
@@ -701,25 +226,33 @@ function displayOpponents() {
         const betAmount = opponent.reward / 2;
         const canAfford = gameData.money >= betAmount;
         
-        const opponentCard = document.createElement('div');
-        opponentCard.className = 'opponent-card';
-        opponentCard.style.opacity = canAfford ? '1' : '0.5';
+        const opponentDiv = document.createElement('div');
+        opponentDiv.className = 'opponent-item';
+        opponentDiv.style.padding = '1rem';
+        opponentDiv.style.background = 'var(--bg-tertiary)';
+        opponentDiv.style.marginBottom = '1rem';
+        opponentDiv.style.cursor = canAfford ? 'pointer' : 'not-allowed';
+        opponentDiv.style.opacity = canAfford ? '1' : '0.5';
         
-        opponentCard.innerHTML = `
-            <div class="opponent-info">
-                <strong>${opponent.name}</strong>
-                <small>Машина: ${opponent.car}</small>
-                <small>Выигрыш: ${opponent.reward} / Ставка: ${betAmount}</small>
+        opponentDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>${opponent.name}</strong><br>
+                    <small>Машина: ${opponent.car}</small><br>
+                    <small>Ставка: $${betAmount} / Выигрыш: $${opponent.reward}</small>
+                </div>
+                <button onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''} 
+                        style="padding: 0.5rem 1rem; background: var(--accent-blue); color: white; border: none; cursor: pointer;">
+                    Вызвать
+                </button>
             </div>
-            <button class="btn-primary" onclick="showRacePreview(${index})" ${!canAfford ? 'disabled' : ''}>
-                ${canAfford ? 'Вызвать' : `Нужно ${betAmount}`}
-            </button>
         `;
-        opponentsList.appendChild(opponentCard);
+        
+        opponentsList.appendChild(opponentDiv);
     });
 }
 
-// Показать превью гонки с сравнением
+// Показать превью гонки
 function showRacePreview(opponentIndex) {
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
@@ -727,234 +260,146 @@ function showRacePreview(opponentIndex) {
     
     // Генерируем характеристики соперника
     const opponentStats = {
-        power: Math.floor(50 * opponent.difficulty + Math.random() * 20),
-        speed: Math.floor(55 * opponent.difficulty + Math.random() * 20),
-        handling: Math.floor(60 * opponent.difficulty + Math.random() * 20),
-        acceleration: Math.floor(50 * opponent.difficulty + Math.random() * 20)
+        power: Math.floor(50 + opponent.difficulty * 30),
+        speed: Math.floor(140 + opponent.difficulty * 50),
+        handling: Math.floor(25 + opponent.difficulty * 20),
+        acceleration: Math.floor(1000 - opponent.difficulty * 200)
     };
     
     const opponentSkills = {
-        driving: Math.floor(5 * opponent.difficulty + Math.random() * 10),
-        speed: Math.floor(5 * opponent.difficulty + Math.random() * 10),
-        reaction: Math.floor(5 * opponent.difficulty + Math.random() * 10),
-        technique: Math.floor(5 * opponent.difficulty + Math.random() * 10)
+        driving: Math.floor(opponent.difficulty * 5),
+        speed: Math.floor(opponent.difficulty * 3),
+        reaction: Math.floor(opponent.difficulty * 2),
+        technique: Math.floor(opponent.difficulty * 2)
     };
     
     const modal = document.createElement('div');
     modal.className = 'race-preview-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.9)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '1000';
+    
     modal.innerHTML = `
-        <div class="race-preview-content">
-            <button class="modal-close-btn" onclick="closeRacePreview()">×</button>
+        <div class="race-preview-simple" style="background: var(--bg-secondary); padding: 2rem; max-width: 800px; width: 90%;">
+            <div class="race-title">Трасса</div>
+            <div class="race-vs-title">${currentUser.username} vs ${opponent.name}</div>
             
-            <div class="race-preview-header">
-                <h2>RACE CHALLENGE</h2>
-            </div>
-            
-            <div class="race-comparison">
-                <!-- Игрок -->
-                <div class="racer-side player">
-                    <div class="racer-header">
-                        <h3 class="racer-name">${currentUser.username}</h3>
-                        <div class="racer-avatar">
-                            <img src="https://ui-avatars.com/api/?name=${currentUser.username}&background=00D9FF&color=000&size=120" alt="Player">
-                        </div>
+            <div class="racers-comparison">
+                <div class="racer-info">
+                    <div class="racer-photo">
+                        <img src="https://ui-avatars.com/api/?name=${currentUser.username}&background=4169E1&color=fff&size=150" 
+                             alt="Player" style="width: 100%; height: 100%;">
                     </div>
-                    
-                    <div class="stats-section">
-                        <div class="stats-title">Навыки пилота</div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Вождение</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${gameData.skills.driving * 5}%">
-                                    <span class="stat-value">${gameData.skills.driving}</span>
-                                </div>
-                            </div>
+                    <div class="racer-stats">
+                        <div class="stat-line">
+                            <span class="stat-number">${gameData.skills.driving}</span>
+                            <span class="stat-icon-small">💪</span>
                         </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Скорость</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${gameData.skills.speed * 5}%">
-                                    <span class="stat-value">${gameData.skills.speed}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-number">${gameData.skills.speed}</span>
+                            <span class="stat-icon-small">⚡</span>
                         </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Реакция</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${gameData.skills.reaction * 5}%">
-                                    <span class="stat-value">${gameData.skills.reaction}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-number">${gameData.skills.reaction}</span>
+                            <span class="stat-icon-small">🚌</span>
                         </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Техника</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${gameData.skills.technique * 5}%">
-                                    <span class="stat-value">${gameData.skills.technique}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="car-display">
-                        <div class="car-name">${currentCar.name}</div>
-                        <div class="car-model">🚗</div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <div class="stats-title">Характеристики машины</div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Мощность</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${currentCar.power}%">
-                                    <span class="stat-value">${currentCar.power}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Скорость</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${currentCar.speed}%">
-                                    <span class="stat-value">${currentCar.speed}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Управление</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${currentCar.handling}%">
-                                    <span class="stat-value">${currentCar.handling}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Разгон</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${currentCar.acceleration}%">
-                                    <span class="stat-value">${currentCar.acceleration}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-number">${gameData.skills.technique}</span>
+                            <span class="stat-icon-small">👤</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Разделитель VS -->
-                <div class="vs-divider">
-                    <div class="vs-badge">VS</div>
-                    <div class="race-stakes">
-                        <div class="stake-info">
-                            <span class="stake-label">Ставка</span>
-                            <span class="stake-amount">${betAmount}</span>
-                        </div>
-                        <div class="stake-info">
-                            <span class="stake-label">Выигрыш</span>
-                            <span class="stake-amount">${opponent.reward}</span>
-                        </div>
-                        <button class="race-start-btn" onclick="confirmRace(${opponentIndex})">
-                            НАЧАТЬ ГОНКУ
-                        </button>
+                <div class="racer-info">
+                    <div class="racer-photo">
+                        <img src="https://ui-avatars.com/api/?name=${opponent.name}&background=FF4444&color=fff&size=150" 
+                             alt="Opponent" style="width: 100%; height: 100%;">
                     </div>
-                </div>
-                
-                <!-- Соперник -->
-                <div class="racer-side opponent">
-                    <div class="racer-header">
-                        <h3 class="racer-name">${opponent.name}</h3>
-                        <div class="racer-avatar">
-                            <span>🏁</span>
+                    <div class="racer-stats">
+                        <div class="stat-line">
+                            <span class="stat-icon-small">💪</span>
+                            <span class="stat-number">${opponentSkills.driving}</span>
                         </div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <div class="stats-title">Навыки пилота</div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Вождение</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentSkills.driving * 5}%">
-                                    <span class="stat-value">${opponentSkills.driving}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-icon-small">⚡</span>
+                            <span class="stat-number">${opponentSkills.speed}</span>
                         </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Скорость</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentSkills.speed * 5}%">
-                                    <span class="stat-value">${opponentSkills.speed}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-icon-small">🚌</span>
+                            <span class="stat-number">${opponentSkills.reaction}</span>
                         </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Реакция</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentSkills.reaction * 5}%">
-                                    <span class="stat-value">${opponentSkills.reaction}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Техника</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentSkills.technique * 5}%">
-                                    <span class="stat-value">${opponentSkills.technique}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="car-display">
-                        <div class="car-name">${opponent.car}</div>
-                        <div class="car-model">🏎️</div>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <div class="stats-title">Характеристики машины</div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Мощность</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentStats.power}%">
-                                    <span class="stat-value">${opponentStats.power}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Скорость</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentStats.speed}%">
-                                    <span class="stat-value">${opponentStats.speed}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Управление</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentStats.handling}%">
-                                    <span class="stat-value">${opponentStats.handling}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="stat-comparison">
-                            <span class="stat-label">Разгон</span>
-                            <div class="stat-bar-wrapper">
-                                <div class="stat-bar-fill" style="width: ${opponentStats.acceleration}%">
-                                    <span class="stat-value">${opponentStats.acceleration}</span>
-                                </div>
-                            </div>
+                        <div class="stat-line">
+                            <span class="stat-icon-small">👤</span>
+                            <span class="stat-number">${opponentSkills.technique}</span>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <div class="cars-comparison">
+                <div class="car-info">
+                    <div class="car-image">🚗</div>
+                    <div class="car-name">${currentCar.name}</div>
+                    <div class="car-params">
+                        <div class="car-param">
+                            <span>${currentCar.power}</span>
+                            <span>⚙️</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${currentCar.speed}</span>
+                            <span>💨</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${currentCar.handling}</span>
+                            <span>🎮</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${currentCar.acceleration}</span>
+                            <span>🚀</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="car-info">
+                    <div class="car-image">🏎️</div>
+                    <div class="car-name">${opponent.car}</div>
+                    <div class="car-params">
+                        <div class="car-param">
+                            <span>${opponentStats.power}</span>
+                            <span>⚙️</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${opponentStats.speed}</span>
+                            <span>💨</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${opponentStats.handling}</span>
+                            <span>🎮</span>
+                        </div>
+                        <div class="car-param">
+                            <span>${opponentStats.acceleration}</span>
+                            <span>🚀</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="race-bet-button" onclick="confirmRace(${opponentIndex})">
+                Гоняться на $${betAmount}
+            </button>
+            
+            <a href="#" class="find-another" onclick="closeRacePreview()">Искать другого</a>
         </div>
     `;
     
     document.body.appendChild(modal);
-    
-    // Анимация появления статистик
-    setTimeout(() => {
-        const statBars = modal.querySelectorAll('.stat-bar-fill');
-        statBars.forEach(bar => {
-            bar.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
-        });
-    }, 100);
 }
 
 // Закрыть превью гонки
@@ -975,48 +420,31 @@ function confirmRace(opponentIndex) {
 async function startRace(opponentIndex) {
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
-    
     const betAmount = opponent.reward / 2;
+    
     if (gameData.money < betAmount) {
-        alert(`Недостаточно денег для участия! Нужно минимум ${betAmount}`);
+        alert(`Недостаточно денег! Нужно $${betAmount}`);
         return;
     }
     
-    // Расчет параметров машины игрока (0-100)
-    const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
+    // Простой расчет результата
+    const playerPower = currentCar.power + currentCar.speed + (100 - currentCar.acceleration/10) + currentCar.handling;
+    const playerSkillBonus = (gameData.skills.driving + gameData.skills.speed + gameData.skills.reaction + gameData.skills.technique) * 5;
+    const playerTotal = playerPower + playerSkillBonus + Math.random() * 50;
     
-    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-    const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +      // +0.2% за уровень
-        gameData.skills.speed * 0.002 +        // +0.2% за уровень
-        gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
-        gameData.skills.technique * 0.0015     // +0.15% за уровень
-    );
+    const opponentPower = 200 * opponent.difficulty;
+    const opponentTotal = opponentPower + Math.random() * 50;
     
-    // Общая эффективность игрока (с учетом навыков)
-    const playerEfficiency = carPower * skillMultiplier;
+    const won = playerTotal > opponentTotal;
     
-    // Расчет эффективности соперника (базовая 60 * сложность)
-    const opponentEfficiency = 60 * opponent.difficulty;
-    
-    // Базовое время трассы 60 секунд
-    // Чем выше эффективность, тем меньше времени нужно
-    const trackBaseTime = 60;
-    
-    // Добавляем элемент случайности (±5% от результата)
-    const playerRandomFactor = 0.95 + Math.random() * 0.1;
-    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-    
-    // Расчет финального времени
-    // Формула: базовое время * (100 / эффективность) * случайность
-    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
-    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
-    
-    // Побеждает тот, у кого меньше время
-    const won = playerTime < opponentTime;
+    // Расчет времени
+    const playerTime = 26 + Math.random() * 2 - (playerTotal / 100);
+    const opponentTime = 26 + Math.random() * 2 - (opponentTotal / 100);
     
     // Обновляем статистику
     gameData.stats.totalRaces++;
+    gameData.races--;
+    
     if (won) {
         gameData.stats.wins++;
         gameData.stats.moneyEarned += opponent.reward;
@@ -1027,48 +455,30 @@ async function startRace(opponentIndex) {
         gameData.money -= betAmount;
     }
     
-    const gainedSkills = calculateSkillGain(won);
-    
     showRaceResultScreen();
     
     const resultDiv = document.getElementById('race-result');
-    let skillsHTML = '';
-    
-    if (gainedSkills.length > 0) {
-        skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
-        gainedSkills.forEach(skill => {
-            skillsHTML += `<p>${skill.name} +1 (уровень ${skill.newLevel})</p>`;
-        });
-        skillsHTML += '</div>';
-    }
-    
-    if (won) {
-        resultDiv.innerHTML = `
-            <h3 style="color: #4ecdc4;">ПОБЕДА!</h3>
-            <p>Вы обогнали ${opponent.name}!</p>
-            <p>Выигрыш: +${opponent.reward}</p>
-            <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
-            <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
-            <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
-            <p>Баланс: ${gameData.money}</p>
-            ${skillsHTML}
-            <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-            <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <h3 style="color: #ff6b6b;">ПОРАЖЕНИЕ</h3>
-            <p>${opponent.name} оказался быстрее!</p>
-            <p>Проигрыш: -${betAmount}</p>
-            <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
-            <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
-            <p>Разница: ${Math.abs(playerTime - opponentTime).toFixed(2)} сек</p>
-            <p>Баланс: ${gameData.money}</p>
-            ${skillsHTML}
-            <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-            <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-        `;
-    }
+    resultDiv.innerHTML = `
+        <div class="result-image">
+            <img src="https://via.placeholder.com/300x200/333/fff?text=${won ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ'}" 
+                 alt="Result" style="width: 100%; height: 100%;">
+        </div>
+        
+        <div class="result-message ${won ? 'result-win' : 'result-lose'}">
+            ${won ? `Ты пришел к финишу первым! Твой выигрыш - $${opponent.reward}!` : `${opponent.name} оказался быстрее!`}
+        </div>
+        
+        <div class="result-times">
+            <div class="time-info">Время ${currentUser.username}: ${playerTime.toFixed(2)}сек.</div>
+            <div class="time-info">Время ${opponent.name}: ${opponentTime.toFixed(2)}сек.</div>
+        </div>
+        
+        <div class="result-buttons">
+            <a href="#" onclick="showRaceMenu()">Искать другого</a>
+            <a href="#" onclick="showMainMenu()">Характеристики соперников</a>
+            <a href="#" onclick="showRaceMenu()">Трасса</a>
+        </div>
+    `;
     
     updatePlayerInfo();
     await autoSave();
@@ -1076,29 +486,16 @@ async function startRace(opponentIndex) {
 
 // Обновление информации игрока
 function updatePlayerInfo() {
-    const moneyElement = document.getElementById('money');
-    const levelElement = document.getElementById('level');
+    // Обновляем деньги
+    const moneyElements = document.querySelectorAll('#money');
+    moneyElements.forEach(el => el.textContent = gameData.money);
     
-    if (moneyElement) moneyElement.textContent = gameData.money;
-    if (levelElement) levelElement.textContent = gameData.level;
-    
-    // Обновляем в мобильном меню
-    const mobileLevel = document.getElementById('mobile-level');
-    if (mobileLevel) {
-        mobileLevel.textContent = gameData.level;
-    }
-    
-    // Обновляем баланс в гонках
-    const raceBalance = document.getElementById('race-balance');
-    if (raceBalance) {
-        raceBalance.textContent = gameData.money;
-    }
-    
-    // Обновляем текущую машину в гонках
-    const raceCurrentCar = document.getElementById('race-current-car');
-    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
-    }
+    // Обновляем статистику
+    document.getElementById('wins').textContent = gameData.stats.wins;
+    document.getElementById('losses').textContent = gameData.stats.losses;
+    document.getElementById('fuel').textContent = gameData.fuel;
+    document.getElementById('races').textContent = `${gameData.races}/${gameData.racesMax}`;
+    document.getElementById('repair').textContent = gameData.repair;
 }
 
 // Функции для экрана авторизации
@@ -1143,43 +540,29 @@ function showAuthScreen() {
 
 function showGame() {
     document.getElementById('auth-container').style.display = 'none';
-    document.querySelector('.game-container').style.display = 'block';
+    document.querySelector('.game-container').style.display = 'flex';
     
+    // Обновляем имя пользователя
     const usernameElement = document.getElementById('username');
     if (usernameElement && currentUser) {
         usernameElement.textContent = currentUser.username;
     }
     
-    // Обновляем информацию пользователя в мобильном меню
-    const mobileUsername = document.getElementById('mobile-username');
-    const welcomeUsername = document.getElementById('welcome-username');
-    
-    if (mobileUsername && currentUser) {
-        mobileUsername.textContent = currentUser.username;
-    }
-    
-    if (welcomeUsername && currentUser) {
-        welcomeUsername.textContent = currentUser.username;
-    }
-    
-    // Обновляем аватары
-    const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
-    avatars.forEach(avatar => {
-        if (currentUser) {
-            avatar.src = `https://ui-avatars.com/api/?name=${currentUser.username}&background=4ecdc4&color=1a1a1a&size=100`;
-        }
-    });
-    
     updatePlayerInfo();
-    updateQuickStats();
-    
-    navigationHistory = [];
-    currentScreen = 'main-menu';
-    showMainMenu(false);
+    showMainMenu();
 }
 
 // Инициализация игры
 window.onload = async function() {
+    // Скрываем экран загрузки
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+    }, 1000);
+    
+    // Проверяем авторизацию
     if (await checkAuth()) {
         showGame();
     } else {
