@@ -1610,3 +1610,8 @@ async function startRace(opponentIndex) {
     // Далее идет остальная логика гонки как у вас было...
     // [остальной код функции startRace остается без изменений]
 }
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON' && !e.target.type) {
+        e.preventDefault();
+    }
+});
