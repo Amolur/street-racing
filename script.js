@@ -57,21 +57,8 @@ const opponents = [
     { name: "Новичок Вася", car: "Lada 2107", difficulty: 0.8, reward: 200 },
     { name: "Уличный гонщик Макс", car: "BMW E36", difficulty: 1.0, reward: 500 },
     { name: "Профи Алекс", car: "Nissan Skyline", difficulty: 1.3, reward: 1000 },
-    { name: "Легенда Владимир", car: "MBW M5 F90", difficulty: 1.6, reward: 2000 }
+    { name: "Легенда Дима", car: "Toyota Supra", difficulty: 1.6, reward: 2000 }
 ];
-
-// Мобильное меню
-function toggleMobileMenu() {
-    const menu = document.getElementById('mobile-menu');
-    menu.classList.toggle('active');
-    
-    // Блокируем скролл основного контента при открытом меню
-    if (menu.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
-}
 
 // Функция для запуска автосохранения
 function startAutoSave() {
@@ -101,15 +88,8 @@ function stopAutoSave() {
     }
 }
 
-// Улучшенная навигация
+// Улучшенная навигация (без мобильного меню)
 function navigateTo(screenId) {
-    // Закрываем мобильное меню
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenu) {
-        mobileMenu.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
     // Скрываем все экраны
     hideAllScreens();
     
@@ -119,9 +99,6 @@ function navigateTo(screenId) {
         screen.classList.add('active');
         navigateToScreen(screenId);
     }
-    
-    // Обновляем активную кнопку в нижней навигации
-    updateBottomNav(screenId);
     
     // Обновляем данные экрана если нужно
     switch(screenId) {
@@ -140,28 +117,6 @@ function navigateTo(screenId) {
         case 'leaderboard-screen':
             updateLeaderboard();
             break;
-    }
-}
-
-// Обновление активной кнопки в нижней навигации
-function updateBottomNav(screenId) {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Находим соответствующую кнопку
-    const screenMap = {
-        'main-menu': 0,
-        'race-menu-screen': 1,
-        'garage-screen': 2,
-        'shop-screen': 3,
-        'profile-screen': 4
-    };
-    
-    const index = screenMap[screenId];
-    if (index !== undefined && navItems[index]) {
-        navItems[index].classList.add('active');
     }
 }
 
@@ -330,13 +285,13 @@ function showRaceResultScreen() {
     document.getElementById('race-result-screen').classList.add('active');
 }
 
-// Обновление информации игрока
+// Обновление информации игрока (обновлено для новых элементов)
 function updatePlayerInfo() {
-    // Обновляем деньги во всех местах
+    // Обновляем деньги
     const moneyElements = [
-        document.getElementById('money'),
         document.getElementById('money-mobile'),
-        document.getElementById('race-balance')
+        document.getElementById('race-balance'),
+        document.getElementById('player-money') // Новый элемент на главной
     ];
     
     moneyElements.forEach(element => {
@@ -345,18 +300,20 @@ function updatePlayerInfo() {
     
     // Обновляем уровень
     const levelElements = [
-        document.getElementById('level'),
-        document.getElementById('mobile-level'),
-        document.getElementById('profile-level')
+        document.getElementById('level-mobile'),
+        document.getElementById('profile-level'),
+        document.getElementById('player-level') // Новый элемент на главной
     ];
     
     levelElements.forEach(element => {
         if (element) element.textContent = gameData.level;
     });
     
-    // Обновляем количество побед в header
-    const winsHeader = document.getElementById('wins-header');
-    if (winsHeader) winsHeader.textContent = gameData.stats.wins;
+    // Обновляем имя игрока
+    const playerNameElement = document.getElementById('player-name');
+    if (playerNameElement && currentUser) {
+        playerNameElement.textContent = currentUser.username;
+    }
     
     // Обновляем текущую машину в гонках
     const raceCurrentCar = document.getElementById('race-current-car');
@@ -1129,25 +1086,36 @@ function showAuthScreen() {
     document.getElementById('register-password-confirm').value = '';
 }
 
+// Обновленная функция showGame для главной страницы
 function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
     
-    // Обновляем информацию пользователя
-    const usernameElements = [
-        document.getElementById('mobile-username'),
-        document.getElementById('welcome-username'),
-        document.getElementById('profile-username')
-    ];
+    // Обновляем информацию пользователя на главной странице
+    const playerNameElement = document.getElementById('player-name');
+    const playerLevelElement = document.getElementById('player-level');
+    const playerMoneyElement = document.getElementById('player-money');
     
-    usernameElements.forEach(element => {
-        if (element && currentUser) {
-            element.textContent = currentUser.username;
-        }
-    });
+    if (playerNameElement && currentUser) {
+        playerNameElement.textContent = currentUser.username;
+    }
+    
+    if (playerLevelElement) {
+        playerLevelElement.textContent = gameData.level;
+    }
+    
+    if (playerMoneyElement) {
+        playerMoneyElement.textContent = gameData.money;
+    }
+    
+    // Обновляем имя в профиле тоже
+    const profileUsername = document.getElementById('profile-username');
+    if (profileUsername && currentUser) {
+        profileUsername.textContent = currentUser.username;
+    }
     
     // Обновляем аватары
-    const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
+    const avatars = document.querySelectorAll('.player-avatar, .profile-avatar');
     avatars.forEach(avatar => {
         if (currentUser) {
             avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
@@ -1165,7 +1133,7 @@ function showGame() {
     showMainMenu(false);
 }
 
-// Обработка событий клавиатуры для авторизации
+// Обработка событий (без свайпов для мобильного меню)
 document.addEventListener('DOMContentLoaded', function() {
     // Enter для входа
     document.getElementById('login-password')?.addEventListener('keypress', function(e) {
@@ -1182,34 +1150,6 @@ document.addEventListener('DOMContentLoaded', function() {
             closeRacePreview();
         }
     });
-    
-    // Обработка свайпов для мобильного меню
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    document.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    document.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const menu = document.getElementById('mobile-menu');
-        
-        if (touchEndX < touchStartX - swipeThreshold && menu.classList.contains('active')) {
-            // Свайп влево - закрываем меню
-            toggleMobileMenu();
-        } else if (touchEndX > touchStartX + swipeThreshold && touchStartX < 50) {
-            // Свайп вправо от края - открываем меню
-            if (!menu.classList.contains('active')) {
-                toggleMobileMenu();
-            }
-        }
-    }
 });
 
 // Сохранение при закрытии/обновлении страницы

@@ -71,68 +71,46 @@
 
     <!-- Игровой контейнер -->
     <div class="game-container" style="display: none;">
-        <!-- Мобильный header -->
+        <!-- Упрощенный header без кнопки меню -->
         <header class="game-header">
             <div class="header-main">
-                <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
                 <div class="header-logo">STREET RACING</div>
                 <div class="header-stats-mobile">
                     <div class="stat-compact">
                         <span class="stat-icon">💰</span>
                         <span id="money-mobile">1000</span>
                     </div>
-                </div>
-            </div>
-            <!-- Desktop статистика -->
-            <div class="header-stats-desktop">
-                <div class="stat-item">
-                    <span class="stat-icon">💰</span>
-                    <span id="money">1000</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">⭐</span>
-                    <span id="level">1</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-icon">🏆</span>
-                    <span id="wins-header">0</span>
+                    <div class="stat-compact">
+                        <span class="stat-icon">⭐</span>
+                        <span id="level-mobile">1</span>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- Мобильное меню -->
-        <div id="mobile-menu" class="mobile-menu">
-            <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
-            <div class="mobile-menu-content">
-                <div class="mobile-menu-header">
-                    <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a" alt="Avatar" class="user-avatar">
-                    <div class="user-info">
-                        <h3 id="mobile-username">Игрок</h3>
-                        <p>Уровень <span id="mobile-level">1</span></p>
-                    </div>
-                    <button class="close-menu" onclick="toggleMobileMenu()">×</button>
-                </div>
-                <nav class="mobile-nav">
-                    <a href="#" onclick="navigateTo('main-menu')">🏠 Главная</a>
-                    <a href="#" onclick="navigateTo('race-menu-screen')">🏁 Гонки</a>
-                    <a href="#" onclick="navigateTo('garage-screen')">🚗 Гараж</a>
-                    <a href="#" onclick="navigateTo('shop-screen')">🛒 Магазин</a>
-                    <a href="#" onclick="navigateTo('profile-screen')">👤 Профиль</a>
-                    <a href="#" onclick="navigateTo('leaderboard-screen')">🏆 Рейтинг</a>
-                    <a href="#" onclick="logout()" class="logout-link">🚪 Выход</a>
-                </nav>
-            </div>
-        </div>
-
         <!-- Основной контент -->
         <main class="game-main">
-            <!-- Главная страница -->
+            <!-- Главная страница с расширенной навигацией -->
             <div id="main-menu" class="game-screen active">
-                <div class="welcome-section">
-                    <h2>Добро пожаловать, <span id="welcome-username">Гонщик</span>!</h2>
-                    <p class="welcome-subtitle">Выберите, чем займетесь сегодня</p>
+                <!-- Информация об игроке -->
+                <div class="player-info-card">
+                    <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a&size=80" alt="Avatar" class="player-avatar">
+                    <div class="player-details">
+                        <h2 id="player-name">Игрок</h2>
+                        <div class="player-stats-row">
+                            <span class="player-stat">
+                                <span class="stat-icon">⭐</span>
+                                Уровень <span id="player-level">1</span>
+                            </span>
+                            <span class="player-stat">
+                                <span class="stat-icon">💰</span>
+                                $<span id="player-money">1000</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Быстрая статистика -->
                 <div class="quick-stats">
                     <div class="quick-stat-card">
                         <span class="quick-stat-label">Побед</span>
@@ -148,8 +126,9 @@
                     </div>
                 </div>
 
+                <!-- Основное меню -->
                 <div class="menu-grid">
-                    <div class="menu-card" onclick="showRaceMenu()">
+                    <div class="menu-card primary" onclick="showRaceMenu()">
                         <div class="menu-card-icon">🏁</div>
                         <h3>Гонки</h3>
                         <p>Участвуйте в уличных гонках и зарабатывайте деньги</p>
@@ -170,11 +149,25 @@
                         <div class="menu-card-action">В магазин →</div>
                     </div>
                     
+                    <div class="menu-card" onclick="showProfileScreen()">
+                        <div class="menu-card-icon">👤</div>
+                        <h3>Профиль</h3>
+                        <p>Смотрите свою статистику и прогресс</p>
+                        <div class="menu-card-action">Открыть профиль →</div>
+                    </div>
+                    
                     <div class="menu-card" onclick="showLeaderboardScreen()">
                         <div class="menu-card-icon">🏆</div>
                         <h3>Рейтинг</h3>
                         <p>Сравните свои результаты с другими игроками</p>
                         <div class="menu-card-action">Смотреть рейтинг →</div>
+                    </div>
+                    
+                    <div class="menu-card logout" onclick="logout()">
+                        <div class="menu-card-icon">🚪</div>
+                        <h3>Выход</h3>
+                        <p>Выйти из аккаунта</p>
+                        <div class="menu-card-action">Выйти →</div>
                     </div>
                 </div>
             </div>
@@ -310,30 +303,6 @@
                 </div>
             </div>
         </main>
-
-        <!-- Нижняя навигация для мобильных -->
-        <nav class="bottom-nav">
-            <a href="#" onclick="navigateTo('main-menu')" class="nav-item active">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-label">Главная</span>
-            </a>
-            <a href="#" onclick="navigateTo('race-menu-screen')" class="nav-item">
-                <span class="nav-icon">🏁</span>
-                <span class="nav-label">Гонки</span>
-            </a>
-            <a href="#" onclick="navigateTo('garage-screen')" class="nav-item">
-                <span class="nav-icon">🚗</span>
-                <span class="nav-label">Гараж</span>
-            </a>
-            <a href="#" onclick="navigateTo('shop-screen')" class="nav-item">
-                <span class="nav-icon">🛒</span>
-                <span class="nav-label">Магазин</span>
-            </a>
-            <a href="#" onclick="navigateTo('profile-screen')" class="nav-item">
-                <span class="nav-icon">👤</span>
-                <span class="nav-label">Профиль</span>
-            </a>
-        </nav>
     </div>
 
     <script src="api.js"></script>
