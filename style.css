@@ -1909,4 +1909,64 @@ body {
     .upgrade-stats {
         font-size: 0.75rem;
     }
+}/* Стили для системы уровней */
+.xp-progress-bar {
+    background: var(--bg-tertiary);
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+    border: 1px solid var(--text-muted);
+}
+
+.xp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    transition: width 0.5s ease;
+}
+
+.xp-progress-section {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 5px;
+}
+
+.xp-gain {
+    color: var(--neon-yellow);
+    font-weight: 700;
+}
+
+/* Заблокированные машины */
+.car-shop-item.locked {
+    opacity: 0.6;
+    position: relative;
+}
+
+.level-requirement {
+    color: var(--neon-red);
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+/* Индикация сложности соперников */
+.opponent-difficulty {
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+.opponent-difficulty.easy {
+    color: var(--neon-green);
+}
+
+.opponent-difficulty.medium {
+    color: var(--neon-yellow);
+}
+
+.opponent-difficulty.hard {
+    color: var(--neon-orange);
+}
+
+.opponent-difficulty.extreme {
+    color: var(--neon-red);
 }

@@ -2,6 +2,7 @@
 let gameData = {
     money: 1000,
     level: 1,
+    experience: 0,
     currentCar: 0,
     skills: {
         driving: 1,
@@ -19,7 +20,7 @@ let gameData = {
     cars: [
         {
             id: 0,
-            name: "Honda Civic",
+            name: "Handa Civic",
             power: 50,
             speed: 60,
             handling: 70,
@@ -40,25 +41,145 @@ let currentScreen = 'main-menu';
 // Интервал автосохранения
 let autoSaveInterval = null;
 
-// Список всех доступных машин в игре
+// Система уровней
+const levelSystem = {
+    // Опыт необходимый для каждого уровня (прогрессивная шкала)
+    getRequiredXP: function(level) {
+        return Math.floor(100 * Math.pow(1.5, level - 1));
+    },
+    
+    // Награды за уровень
+    getLevelReward: function(level) {
+        const baseReward = 500;
+        return baseReward * level;
+    },
+    
+    // Проверка доступности машины по уровню
+    getCarRequiredLevel: function(carPrice) {
+        if (carPrice === 0) return 1;
+        if (carPrice <= 5000) return 1;
+        if (carPrice <= 15000) return 5;
+        if (carPrice <= 30000) return 10;
+        if (carPrice <= 50000) return 15;
+        if (carPrice <= 80000) return 20;
+        if (carPrice <= 150000) return 25;
+        return 30;
+    },
+    
+    // Расчет получаемого опыта
+    calculateXPGain: function(won, opponentDifficulty, betAmount) {
+        const baseXP = won ? 50 : 20;
+        const difficultyBonus = Math.floor(opponentDifficulty * 30);
+        const betBonus = Math.floor(betAmount / 100);
+        return baseXP + difficultyBonus + betBonus;
+    }
+};
+
+// Список всех доступных машин в игре (30 штук)
 const allCars = [
-    { id: 0, name: "Honda Civic", power: 50, speed: 60, handling: 70, acceleration: 55, price: 0 },
-    { id: 1, name: "Volkswagen Golf", power: 55, speed: 65, handling: 75, acceleration: 60, price: 5000 },
-    { id: 2, name: "Mazda MX-5", power: 60, speed: 70, handling: 85, acceleration: 65, price: 8000 },
-    { id: 3, name: "BMW 325i", power: 70, speed: 75, handling: 80, acceleration: 70, price: 15000 },
-    { id: 4, name: "Subaru WRX", power: 80, speed: 85, handling: 75, acceleration: 85, price: 25000 },
-    { id: 5, name: "Nissan 370Z", power: 85, speed: 90, handling: 70, acceleration: 80, price: 35000 },
-    { id: 6, name: "Porsche Cayman", power: 90, speed: 95, handling: 95, acceleration: 90, price: 50000 },
-    { id: 7, name: "Chevrolet Corvette", power: 95, speed: 98, handling: 85, acceleration: 95, price: 75000 }
+    // Начальные машины (0-5000$)
+    { id: 0, name: "Handa Civic", power: 50, speed: 60, handling: 70, acceleration: 55, price: 0 },
+    { id: 1, name: "Volks Golf", power: 55, speed: 65, handling: 75, acceleration: 60, price: 3000 },
+    { id: 2, name: "Toyata Corolla", power: 52, speed: 62, handling: 72, acceleration: 58, price: 3500 },
+    { id: 3, name: "Mazta MX-3", power: 60, speed: 70, handling: 85, acceleration: 65, price: 5000 },
+    
+    // Городские машины (5000-15000$) - требуют 5 уровень
+    { id: 4, name: "Nisan Altma", power: 65, speed: 72, handling: 78, acceleration: 68, price: 8000 },
+    { id: 5, name: "Handa Acord", power: 68, speed: 74, handling: 76, acceleration: 70, price: 9500 },
+    { id: 6, name: "Subare Impeza", power: 75, speed: 80, handling: 82, acceleration: 78, price: 12000 },
+    { id: 7, name: "Mitsu Lanser", power: 73, speed: 78, handling: 80, acceleration: 75, price: 13000 },
+    { id: 8, name: "Mazta 6", power: 70, speed: 76, handling: 83, acceleration: 72, price: 14000 },
+    
+    // Спортивные седаны (15000-30000$) - требуют 10 уровень
+    { id: 9, name: "BMV 330i", power: 78, speed: 82, handling: 85, acceleration: 80, price: 18000 },
+    { id: 10, name: "Audi S3", power: 80, speed: 84, handling: 83, acceleration: 82, price: 22000 },
+    { id: 11, name: "Merco C300", power: 82, speed: 86, handling: 81, acceleration: 79, price: 25000 },
+    { id: 12, name: "Lexas IS350", power: 85, speed: 88, handling: 79, acceleration: 83, price: 28000 },
+    
+    // Маслкары (30000-50000$) - требуют 15 уровень
+    { id: 13, name: "Dodger Chalenger", power: 88, speed: 85, handling: 75, acceleration: 86, price: 32000 },
+    { id: 14, name: "Fordo Mustag", power: 90, speed: 87, handling: 77, acceleration: 88, price: 35000 },
+    { id: 15, name: "Camaро SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
+    { id: 16, name: "Pontik Firebird", power: 87, speed: 83, handling: 76, acceleration: 85, price: 40000 },
+    
+    // Спорткары (50000-80000$) - требуют 20 уровень
+    { id: 17, name: "Nisan 370X", power: 85, speed: 90, handling: 88, acceleration: 87, price: 45000 },
+    { id: 18, name: "Toyata Supera", power: 88, speed: 92, handling: 86, acceleration: 89, price: 52000 },
+    { id: 19, name: "Mazta RX-8", power: 83, speed: 88, handling: 92, acceleration: 85, price: 55000 },
+    { id: 20, name: "Subaro BRX", power: 80, speed: 85, handling: 94, acceleration: 82, price: 58000 },
+    { id: 21, name: "Porshe Kayman", power: 90, speed: 94, handling: 95, acceleration: 91, price: 65000 },
+    { id: 22, name: "Corveta C7", power: 95, speed: 96, handling: 87, acceleration: 93, price: 75000 },
+    
+    // Суперкары (80000-150000$) - требуют 25 уровень
+    { id: 23, name: "Audi R7", power: 93, speed: 95, handling: 90, acceleration: 92, price: 85000 },
+    { id: 24, name: "BMV M8", power: 94, speed: 97, handling: 89, acceleration: 94, price: 95000 },
+    { id: 25, name: "Merco AMG GT", power: 96, speed: 98, handling: 88, acceleration: 95, price: 110000 },
+    { id: 26, name: "Nisan GT-X", power: 97, speed: 99, handling: 86, acceleration: 98, price: 125000 },
+    
+    // Гиперкары (150000+$) - требуют 30 уровень
+    { id: 27, name: "Lambo Hurican", power: 98, speed: 100, handling: 91, acceleration: 97, price: 180000 },
+    { id: 28, name: "Ferari 458", power: 99, speed: 100, handling: 93, acceleration: 96, price: 220000 },
+    { id: 29, name: "McLaran 720X", power: 100, speed: 100, handling: 95, acceleration: 99, price: 300000 }
 ];
 
-// Список возможных соперников
-const opponents = [
-    { name: "Новичок Вася", car: "Lada 2107", difficulty: 0.8, reward: 200 },
-    { name: "Уличный гонщик Макс", car: "BMW E36", difficulty: 1.0, reward: 500 },
-    { name: "Профи Алекс", car: "Nissan Skyline", difficulty: 1.3, reward: 1000 },
-    { name: "Легенда Владимир", car: "BMW M5 F90", difficulty: 1.6, reward: 2000 }
-];
+// Функция для генерации динамических соперников
+function generateDynamicOpponents() {
+    const playerLevel = gameData.level;
+    const baseOpponents = [];
+    
+    // Генерируем 4 соперника разной сложности
+    const difficulties = ['easy', 'medium', 'hard', 'extreme'];
+    const difficultySettings = {
+        easy: { 
+            diffMult: 0.8, 
+            rewardMult: 0.8,
+            names: ["Новичок", "Студент", "Таксист", "Курьер"]
+        },
+        medium: { 
+            diffMult: 1.0, 
+            rewardMult: 1.0,
+            names: ["Гонщик", "Дрифтер", "Стритрейсер", "Спидстер"]
+        },
+        hard: { 
+            diffMult: 1.3, 
+            rewardMult: 1.5,
+            names: ["Профи", "Мастер", "Чемпион", "Ветеран"]
+        },
+        extreme: { 
+            diffMult: 1.6, 
+            rewardMult: 2.0,
+            names: ["Легенда", "Призрак", "Босс", "Король"]
+        }
+    };
+    
+    const surnames = ["Иван", "Петр", "Алексей", "Максим", "Артем", "Денис", "Виктор", "Сергей"];
+    
+    difficulties.forEach(diff => {
+        const settings = difficultySettings[diff];
+        const randomName = settings.names[Math.floor(Math.random() * settings.names.length)];
+        const randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
+        
+        // Выбираем подходящую машину для соперника
+        const maxCarPrice = 5000 + (playerLevel * 5000);
+        const availableCars = allCars.filter(car => car.price <= maxCarPrice && car.price > 0);
+        const randomCar = availableCars[Math.floor(Math.random() * availableCars.length)] || allCars[1];
+        
+        // Расчет сложности и награды
+        const baseDifficulty = 0.7 + (playerLevel * 0.02);
+        const difficulty = Number((baseDifficulty * settings.diffMult).toFixed(2));
+        const baseReward = 200 + (playerLevel * 100);
+        const reward = Math.floor(baseReward * settings.rewardMult / 50) * 50;
+        
+        baseOpponents.push({
+            name: `${randomName} ${randomSurname}`,
+            car: randomCar.name,
+            difficulty: difficulty,
+            reward: reward
+        });
+    });
+    
+    return baseOpponents;
+}
 
 // Функция для запуска автосохранения
 function startAutoSave() {
@@ -128,6 +249,9 @@ async function register(username, password) {
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
         
+        // Добавляем поля опыта если их нет
+        if (!gameData.experience) gameData.experience = 0;
+        
         // Инициализируем улучшения для всех загруженных машин
         if (gameData.cars) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
@@ -148,6 +272,9 @@ async function login(username, password) {
         const data = await loginAPI(username, password);
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
+        
+        // Добавляем поля опыта если их нет
+        if (!gameData.experience) gameData.experience = 0;
         
         console.log('Загруженные данные с сервера:', gameData);
         
@@ -190,6 +317,9 @@ async function checkAuth() {
         // Сохраняем существующие улучшения перед перезаписью
         const oldGameData = gameData;
         gameData = data.gameData;
+        
+        // Добавляем поля опыта если их нет
+        if (!gameData.experience) gameData.experience = 0;
         
         // Восстанавливаем улучшения если они были
         if (oldGameData && oldGameData.cars && gameData.cars) {
@@ -334,7 +464,8 @@ function updatePlayerInfo() {
     const moneyElements = [
         document.getElementById('money-mobile'),
         document.getElementById('race-balance'),
-        document.getElementById('player-money') // Новый элемент на главной
+        document.getElementById('player-money'),
+        document.getElementById('upgrade-balance')
     ];
     
     moneyElements.forEach(element => {
@@ -345,7 +476,7 @@ function updatePlayerInfo() {
     const levelElements = [
         document.getElementById('level-mobile'),
         document.getElementById('profile-level'),
-        document.getElementById('player-level') // Новый элемент на главной
+        document.getElementById('player-level')
     ];
     
     levelElements.forEach(element => {
@@ -409,10 +540,16 @@ function updateGarageDisplay() {
     const carDisplay = document.getElementById('current-car-display');
     
     if (carDisplay && currentCar) {
+        const totalUpgradeLevel = currentCar.upgrades ? 
+            Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
+        
         carDisplay.innerHTML = `
-            <div class="car-emoji">🏎️</div>
+            <div class="car-emoji ${totalUpgradeLevel >= 25 ? 'car-glow' : ''}">🏎️</div>
             <h3>${currentCar.name}</h3>
-            <div class="car-power">Мощность: ${currentCar.power}</div>
+            <div class="car-upgrade-level">
+                <span class="upgrade-stars">${'⭐'.repeat(Math.floor(totalUpgradeLevel / 10))}</span>
+                <span class="upgrade-text">Уровень прокачки: ${totalUpgradeLevel}/50</span>
+            </div>
         `;
     }
     
@@ -422,36 +559,58 @@ function updateGarageDisplay() {
     // Обновляем статистику машины
     const statsDisplay = document.getElementById('car-stats-display');
     if (statsDisplay && currentCar) {
+        const totalStats = calculateTotalStats(currentCar);
+        
         statsDisplay.innerHTML = `
             <div class="stat-bar">
                 <label>Мощность</label>
                 <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.power}%"></div>
+                    <div class="stat-value base-stat" style="width: ${currentCar.power}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.power - currentCar.power}%"></div>
                 </div>
-                <span>${currentCar.power}</span>
+                <span>${totalStats.power} ${totalStats.power > currentCar.power ? `(+${totalStats.power - currentCar.power})` : ''}</span>
             </div>
             <div class="stat-bar">
                 <label>Скорость</label>
                 <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.speed}%"></div>
+                    <div class="stat-value base-stat" style="width: ${currentCar.speed}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.speed - currentCar.speed}%"></div>
                 </div>
-                <span>${currentCar.speed}</span>
+                <span>${totalStats.speed} ${totalStats.speed > currentCar.speed ? `(+${totalStats.speed - currentCar.speed})` : ''}</span>
             </div>
             <div class="stat-bar">
                 <label>Управление</label>
                 <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.handling}%"></div>
+                    <div class="stat-value base-stat" style="width: ${currentCar.handling}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.handling - currentCar.handling}%"></div>
                 </div>
-                <span>${currentCar.handling}</span>
+                <span>${totalStats.handling} ${totalStats.handling > currentCar.handling ? `(+${totalStats.handling - currentCar.handling})` : ''}</span>
             </div>
             <div class="stat-bar">
                 <label>Разгон</label>
                 <div class="progress-bar">
-                    <div class="stat-value" style="width: ${currentCar.acceleration}%"></div>
+                    <div class="stat-value base-stat" style="width: ${currentCar.acceleration}%"></div>
+                    <div class="stat-value upgrade-stat" style="width: ${totalStats.acceleration - currentCar.acceleration}%"></div>
                 </div>
-                <span>${currentCar.acceleration}</span>
+                <span>${totalStats.acceleration} ${totalStats.acceleration > currentCar.acceleration ? `(+${totalStats.acceleration - currentCar.acceleration})` : ''}</span>
             </div>
         `;
+    }
+    
+    // Обновляем общую статистику
+    const totalPower = document.getElementById('total-power');
+    const upgradeLevel = document.getElementById('upgrade-level');
+    
+    if (totalPower && currentCar) {
+        const totalStats = calculateTotalStats(currentCar);
+        const avgPower = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
+        totalPower.textContent = avgPower;
+    }
+    
+    if (upgradeLevel && currentCar) {
+        const totalUpgradeLevel = currentCar.upgrades ? 
+            Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
+        upgradeLevel.textContent = totalUpgradeLevel;
     }
 }
 
@@ -466,6 +625,26 @@ function updateProfileDisplay() {
     const profileLevel = document.getElementById('profile-level');
     if (profileLevel) {
         profileLevel.textContent = gameData.level;
+    }
+    
+    // Добавляем отображение опыта
+    const profileInfo = document.querySelector('.profile-info');
+    if (profileInfo && !document.getElementById('profile-xp-bar')) {
+        const currentXP = gameData.experience || 0;
+        const requiredXP = levelSystem.getRequiredXP(gameData.level);
+        const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
+        const progressXP = currentXP - requiredXP;
+        const neededXP = nextLevelXP - requiredXP;
+        const xpPercent = Math.floor((progressXP / neededXP) * 100);
+        
+        const xpDisplay = document.createElement('div');
+        xpDisplay.innerHTML = `
+            <p>Опыт: ${currentXP} / ${nextLevelXP}</p>
+            <div class="xp-progress-bar" id="profile-xp-bar">
+                <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
+            </div>
+        `;
+        profileInfo.appendChild(xpDisplay);
     }
     
     // Навыки
@@ -548,13 +727,24 @@ function updateShopDisplay() {
         
         allCars.forEach(car => {
             const owned = gameData.cars.some(c => c.id === car.id);
+            const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
+            const canBuy = gameData.level >= requiredLevel && gameData.money >= car.price;
+            
             if (!owned && car.price > 0) {
                 const carDiv = document.createElement('div');
                 carDiv.className = 'car-shop-item';
+                
+                // Добавляем класс для заблокированных машин
+                if (gameData.level < requiredLevel) {
+                    carDiv.classList.add('locked');
+                }
+                
                 carDiv.innerHTML = `
                     <div class="car-shop-emoji">🚗</div>
                     <div class="car-shop-info">
                         <h4>${car.name}</h4>
+                        ${gameData.level < requiredLevel ? 
+                            `<p class="level-requirement">🔒 Требуется ${requiredLevel} уровень</p>` : ''}
                         <div class="car-shop-stats">
                             <div class="shop-stat">
                                 <span class="shop-stat-label">Мощность:</span>
@@ -575,8 +765,9 @@ function updateShopDisplay() {
                         </div>
                         <p class="price">$${car.price.toLocaleString()}</p>
                     </div>
-                    <button class="btn-primary" onclick="buyCar(${car.id})" ${gameData.money < car.price ? 'disabled' : ''}>
-                        ${gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
+                    <button class="btn-primary" onclick="buyCar(${car.id})" ${!canBuy ? 'disabled' : ''}>
+                        ${gameData.level < requiredLevel ? `Нужен ${requiredLevel} уровень` : 
+                          gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
                     </button>
                 `;
                 carsForSale.appendChild(carDiv);
@@ -629,7 +820,9 @@ function updateShopDisplay() {
 // Функция покупки машины
 async function buyCar(carId) {
     const car = allCars.find(c => c.id === carId);
-    if (!car || gameData.money < car.price) return;
+    const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
+    
+    if (!car || gameData.money < car.price || gameData.level < requiredLevel) return;
     
     if (confirm(`Купить ${car.name} за ${car.price.toLocaleString()}?`)) {
         gameData.money -= car.price;
@@ -639,9 +832,6 @@ async function buyCar(carId) {
         const newCar = {...car, owned: true};
         initializeCarUpgrades(newCar);
         gameData.cars.push(newCar);
-        
-        // Проверяем достижение уровня
-        checkLevelUp();
         
         updatePlayerInfo();
         updateShopDisplay();
@@ -739,18 +929,33 @@ function displayOpponents() {
     
     opponentsList.innerHTML = '';
     
+    // Генерируем динамических соперников
+    const opponents = generateDynamicOpponents();
+    
     opponents.forEach((opponent, index) => {
-        const betAmount = opponent.reward / 2;
+        const betAmount = Math.floor(opponent.reward / 2);
         const canAfford = gameData.money >= betAmount;
         
         const opponentCard = document.createElement('div');
         opponentCard.className = 'opponent-card';
         opponentCard.style.opacity = canAfford ? '1' : '0.5';
         
+        // Добавляем цветовую индикацию сложности
+        let difficultyColor = '';
+        if (opponent.difficulty < 1.0) difficultyColor = 'easy';
+        else if (opponent.difficulty < 1.4) difficultyColor = 'medium';
+        else if (opponent.difficulty < 1.8) difficultyColor = 'hard';
+        else difficultyColor = 'extreme';
+        
         opponentCard.innerHTML = `
             <div class="opponent-info">
                 <h3>${opponent.name}</h3>
                 <p class="opponent-car">Машина: ${opponent.car}</p>
+                <p class="opponent-difficulty ${difficultyColor}">
+                    Сложность: ${opponent.difficulty < 1.0 ? '⭐' : 
+                                opponent.difficulty < 1.4 ? '⭐⭐' :
+                                opponent.difficulty < 1.8 ? '⭐⭐⭐' : '⭐⭐⭐⭐'}
+                </p>
                 <div class="opponent-stakes">
                     <span class="stake-item">
                         <span class="stake-label">Ставка:</span>
@@ -772,9 +977,10 @@ function displayOpponents() {
 
 // Показать превью гонки
 function showRacePreview(opponentIndex) {
+    const opponents = generateDynamicOpponents();
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
-    const betAmount = opponent.reward / 2;
+    const betAmount = Math.floor(opponent.reward / 2);
     
     const modal = document.createElement('div');
     modal.className = 'race-preview-modal';
@@ -869,14 +1075,21 @@ function confirmRace(opponentIndex) {
     }, 100);
 }
 
-// Проверка повышения уровня
+// Обновленная функция проверки повышения уровня
 function checkLevelUp() {
-    const totalStats = gameData.stats.wins * 100 + gameData.money + gameData.cars.length * 1000;
-    const newLevel = Math.floor(totalStats / 5000) + 1;
+    const currentXP = gameData.experience || 0;
+    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
+    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
     
-    if (newLevel > gameData.level) {
-        gameData.level = newLevel;
-        showError(`Поздравляем! Вы достигли уровня ${newLevel}!`);
+    if (currentXP >= nextLevelXP) {
+        gameData.level++;
+        const reward = levelSystem.getLevelReward(gameData.level);
+        gameData.money += reward;
+        
+        showError(`🎉 Поздравляем! Вы достигли ${gameData.level} уровня!\nНаграда: $${reward}`);
+        
+        // Проверяем еще раз, вдруг сразу несколько уровней
+        checkLevelUp();
     }
 }
 
@@ -921,13 +1134,14 @@ function calculateSkillGain(isWin) {
 
 // Старт гонки (БЕЗ ЗАГРУЗКИ - МГНОВЕННЫЙ РЕЗУЛЬТАТ)
 async function startRace(opponentIndex) {
+    const opponents = generateDynamicOpponents();
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
     
     // Инициализируем улучшения если их нет
     initializeCarUpgrades(currentCar);
     
-    const betAmount = opponent.reward / 2;
+    const betAmount = Math.floor(opponent.reward / 2);
     if (gameData.money < betAmount) {
         alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
         return;
@@ -973,6 +1187,10 @@ async function startRace(opponentIndex) {
     // Побеждает тот, у кого меньше время
     const won = playerTime < opponentTime;
     
+    // Расчет опыта
+    const xpGained = levelSystem.calculateXPGain(won, opponent.difficulty, betAmount);
+    gameData.experience = (gameData.experience || 0) + xpGained;
+    
     // Обновляем статистику
     gameData.stats.totalRaces++;
     if (won) {
@@ -1005,6 +1223,14 @@ async function startRace(opponentIndex) {
         skillsHTML += '</div>';
     }
     
+    // Отображение полоски опыта
+    const currentXP = gameData.experience || 0;
+    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
+    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
+    const progressXP = currentXP - currentLevelXP;
+    const neededXP = nextLevelXP - currentLevelXP;
+    const xpPercent = Math.floor((progressXP / neededXP) * 100);
+    
     if (won) {
         resultDiv.innerHTML = `
             <div class="result-container">
@@ -1027,7 +1253,15 @@ async function startRace(opponentIndex) {
                     
                     <div class="result-rewards">
                         <p class="reward-item">💰 Выигрыш: <span class="money-gain">+$${opponent.reward}</span></p>
+                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
                         <p class="balance">Баланс: $${gameData.money}</p>
+                    </div>
+                    
+                    <div class="xp-progress-section">
+                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
+                        <div class="xp-progress-bar">
+                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
+                        </div>
                     </div>
                     
                     ${skillsHTML}
@@ -1060,7 +1294,15 @@ async function startRace(opponentIndex) {
                     
                     <div class="result-rewards">
                         <p class="reward-item">💸 Проигрыш: <span class="money-loss">-$${betAmount}</span></p>
+                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
                         <p class="balance">Баланс: $${gameData.money}</p>
+                    </div>
+                    
+                    <div class="xp-progress-section">
+                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
+                        <div class="xp-progress-bar">
+                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
+                        </div>
                     </div>
                     
                     ${skillsHTML}
@@ -1526,7 +1768,7 @@ function updateUpgradesDisplay() {
                 <button class="btn-upgrade ${canUpgrade ? 'btn-primary' : 'btn-disabled'}" 
                         onclick="upgradeComponent('${upgradeType}')" 
                         ${!canUpgrade ? 'disabled' : ''}>
-                    ${canUpgrade ? `Улучшить ($${cost.toLocaleString()})` : 
+                    ${canUpgrade ? `Улучшить (${cost.toLocaleString()})` : 
                       gameData.money < cost ? 'Недостаточно денег' : 'Макс. уровень'}
                 </button>
             ` : '<p class="max-level">Максимальный уровень</p>'}
@@ -1643,6 +1885,20 @@ function getStatName(stat) {
         acceleration: "Разгон"
     };
     return statNames[stat] || stat;
+}
+
+// Проверка достижений за улучшения
+function checkUpgradeAchievements() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+    
+    if (totalUpgradeLevel === 10) {
+        showError("🏆 Достижение: Первые улучшения!");
+    } else if (totalUpgradeLevel === 25) {
+        showError("🏆 Достижение: Серьезный тюнинг!");
+    } else if (totalUpgradeLevel === 50) {
+        showError("🏆 Достижение: Максимальная прокачка!");
+    }
 }
 
 // Сохранение улучшений локально
