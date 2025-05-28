@@ -127,6 +127,12 @@ async function register(username, password) {
         const data = await registerAPI(username, password);
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
+        
+        // Инициализируем улучшения для всех загруженных машин
+        if (gameData.cars) {
+            gameData.cars.forEach(car => initializeCarUpgrades(car));
+        }
+        
         showLoading(false);
         return true;
     } catch (error) {
@@ -142,6 +148,12 @@ async function login(username, password) {
         const data = await loginAPI(username, password);
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
+        
+        // Инициализируем улучшения для всех загруженных машин
+        if (gameData.cars) {
+            gameData.cars.forEach(car => initializeCarUpgrades(car));
+        }
+        
         showLoading(false);
         return true;
     } catch (error) {
@@ -169,6 +181,12 @@ async function checkAuth() {
         const data = await loadGameData();
         currentUser = { username: data.username };
         gameData = data.gameData;
+        
+        // Инициализируем улучшения для всех загруженных машин
+        if (gameData.cars) {
+            gameData.cars.forEach(car => initializeCarUpgrades(car));
+        }
+        
         showLoading(false);
         return true;
     } catch (error) {
@@ -588,10 +606,14 @@ async function buyCar(carId) {
     const car = allCars.find(c => c.id === carId);
     if (!car || gameData.money < car.price) return;
     
-    if (confirm(`Купить ${car.name} за $${car.price.toLocaleString()}?`)) {
+    if (confirm(`Купить ${car.name} за ${car.price.toLocaleString()}?`)) {
         gameData.money -= car.price;
         gameData.stats.moneySpent += car.price;
-        gameData.cars.push({...car, owned: true});
+        
+        // Создаем копию машины и инициализируем улучшения
+        const newCar = {...car, owned: true};
+        initializeCarUpgrades(newCar);
+        gameData.cars.push(newCar);
         
         // Проверяем достижение уровня
         checkLevelUp();
@@ -1253,6 +1275,7 @@ const upgradeConfig = {
 
 // Обновляем структуру данных машин (добавляем в gameData.cars)
 function initializeCarUpgrades(car) {
+    // Инициализируем улучшения только если их нет
     if (!car.upgrades) {
         car.upgrades = {
             engine: 0,
@@ -1262,6 +1285,8 @@ function initializeCarUpgrades(car) {
             transmission: 0
         };
     }
+    
+    // Инициализируем специальные детали только если их нет
     if (!car.specialParts) {
         car.specialParts = {
             nitro: false,
@@ -1269,6 +1294,9 @@ function initializeCarUpgrades(car) {
             ecuTune: false
         };
     }
+    
+    // Возвращаем машину для удобства
+    return car;
 }
 
 // Инициализируем улучшения для всех существующих машин
