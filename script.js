@@ -149,9 +149,15 @@ async function login(username, password) {
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
         
+        console.log('Загруженные данные с сервера:', gameData);
+        
         // Инициализируем улучшения для всех загруженных машин
         if (gameData.cars) {
-            gameData.cars.forEach(car => initializeCarUpgrades(car));
+            gameData.cars.forEach(car => {
+                console.log('Машина до инициализации:', car);
+                initializeCarUpgrades(car);
+                console.log('Машина после инициализации:', car);
+            });
         }
         
         showLoading(false);
@@ -180,9 +186,23 @@ async function checkAuth() {
         showLoading(true);
         const data = await loadGameData();
         currentUser = { username: data.username };
+        
+        // Сохраняем существующие улучшения перед перезаписью
+        const oldGameData = gameData;
         gameData = data.gameData;
         
-        // Инициализируем улучшения для всех загруженных машин
+        // Восстанавливаем улучшения если они были
+        if (oldGameData && oldGameData.cars && gameData.cars) {
+            gameData.cars.forEach((car, index) => {
+                // Если у старой машины были улучшения, восстанавливаем их
+                if (oldGameData.cars[index] && oldGameData.cars[index].upgrades) {
+                    car.upgrades = oldGameData.cars[index].upgrades;
+                    car.specialParts = oldGameData.cars[index].specialParts;
+                }
+            });
+        }
+        
+        // Инициализируем улучшения для всех машин
         if (gameData.cars) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
         }
@@ -221,6 +241,11 @@ function showLoading(show) {
 async function autoSave() {
     if (currentUser) {
         try {
+            // Убеждаемся, что все машины имеют структуру улучшений перед сохранением
+            if (gameData.cars) {
+                gameData.cars.forEach(car => initializeCarUpgrades(car));
+            }
+            
             await saveGameData(gameData);
             console.log('Игра сохранена на сервере');
         } catch (error) {
@@ -1127,6 +1152,9 @@ function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
     
+    // Загружаем улучшения из локального хранилища
+    loadUpgradesLocally();
+    
     // Обновляем информацию пользователя на главной странице
     const playerNameElement = document.getElementById('player-name');
     const playerLevelElement = document.getElementById('player-level');
@@ -1299,8 +1327,11 @@ function initializeCarUpgrades(car) {
     return car;
 }
 
-// Инициализируем улучшения для всех существующих машин
-gameData.cars.forEach(car => initializeCarUpgrades(car));
+// Инициализируем улучшения для всех существующих машин при загрузке скрипта
+// Эта строка выполнится только если gameData уже загружен
+if (gameData && gameData.cars) {
+    gameData.cars.forEach(car => initializeCarUpgrades(car));
+}
 
 // Функция переключения вкладок в гараже
 function showGarageTab(tab) {
@@ -1562,6 +1593,9 @@ async function upgradeComponent(type) {
         gameData.stats.moneySpent += cost;
         currentCar.upgrades[type]++;
         
+        console.log('Улучшение применено:', type, 'уровень:', currentCar.upgrades[type]);
+        console.log('Текущие данные машины:', currentCar);
+        
         updatePlayerInfo();
         updateGarageDisplay();
         updateUpgradesDisplay();
@@ -1611,15 +1645,36 @@ function getStatName(stat) {
     return statNames[stat] || stat;
 }
 
-// Проверка достижений
-function checkUpgradeAchievements() {
-    const currentCar = gameData.cars[gameData.currentCar];
-    const totalUpgrades = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
-    
-    if (totalUpgrades === 25) {
-        showError("🏆 Достижение: Механик! Машина прокачана наполовину!");
-    } else if (totalUpgrades === 50) {
-        showError("🏆 Достижение: Инженер! Машина полностью прокачана!");
+// Сохранение улучшений локально
+function saveUpgradesLocally() {
+    if (gameData.cars) {
+        const upgrades = gameData.cars.map(car => ({
+            id: car.id,
+            upgrades: car.upgrades,
+            specialParts: car.specialParts
+        }));
+        storage.setItem('carUpgrades', JSON.stringify(upgrades));
+    }
+}
+
+// Загрузка улучшений из локального хранилища
+function loadUpgradesLocally() {
+    const savedUpgrades = storage.getItem('carUpgrades');
+    if (savedUpgrades) {
+        try {
+            const upgrades = JSON.parse(savedUpgrades);
+            if (gameData.cars && upgrades) {
+                gameData.cars.forEach(car => {
+                    const savedCar = upgrades.find(u => u.id === car.id);
+                    if (savedCar) {
+                        car.upgrades = savedCar.upgrades || {};
+                        car.specialParts = savedCar.specialParts || {};
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки локальных улучшений:', e);
+        }
     }
 }
 
