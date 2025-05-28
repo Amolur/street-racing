@@ -1564,3 +1564,112 @@ body {
     padding: 3rem;
     font-size: 1.2rem;
 }
+
+/* Стили для системы топлива */
+.car-fuel-display {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+.fuel-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.fuel-icon {
+    font-size: 1.2rem;
+}
+
+.fuel-text {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-weight: 700;
+}
+
+.fuel-timer {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.fuel-bar {
+    background: var(--bg-tertiary);
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.fuel-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    transition: width 0.5s ease;
+}
+
+.fuel-status {
+    color: var(--neon-yellow);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.fuel-cost {
+    color: var(--neon-orange) !important;
+}
+
+.fuel-spent-info {
+    background: var(--bg-secondary);
+    padding: 0.8rem;
+    margin: 1rem 0;
+    border-radius: 10px;
+    border-left: 3px solid var(--neon-yellow);
+}
+
+.fuel-spent-info p {
+    margin: 0.3rem 0;
+    color: var(--text-secondary);
+}
+
+/* Обновленные стили для банера гонок */
+.race-info-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.race-info-banner p {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.race-info-banner strong {
+    color: var(--neon-cyan);
+}
+
+/* Обновленные стили для карточек соперников */
+.opponent-stakes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 320px) {
+    .opponent-stakes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stake-item:last-child {
+        grid-column: 1 / -1;
+    }
+}
