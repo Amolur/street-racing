@@ -57,7 +57,7 @@ const opponents = [
     { name: "Новичок Вася", car: "Lada 2107", difficulty: 0.8, reward: 200 },
     { name: "Уличный гонщик Макс", car: "BMW E36", difficulty: 1.0, reward: 500 },
     { name: "Профи Алекс", car: "Nissan Skyline", difficulty: 1.3, reward: 1000 },
-    { name: "Легенда Дима", car: "Toyota Supra", difficulty: 1.6, reward: 2000 }
+    { name: "Легенда Владимир", car: "MBW M5 F90", difficulty: 1.6, reward: 2000 }
 ];
 
 // Мобильное меню
@@ -453,7 +453,7 @@ function updateGarageDisplay() {
             </div>
         `;
     }
-}// Продолжение script.js...
+}
 
 // Функция обновления профиля
 function updateProfileDisplay() {
@@ -848,7 +848,6 @@ function showRacePreview(opponentIndex) {
     
     document.body.appendChild(modal);
 }
-// Продолжение script.js (часть 3)...
 
 // Закрыть превью гонки
 function closeRacePreview() {
@@ -914,7 +913,7 @@ function calculateSkillGain(isWin) {
     return gainedSkills;
 }
 
-// Старт гонки
+// Старт гонки (БЕЗ ЗАГРУЗКИ - МГНОВЕННЫЙ РЕЗУЛЬТАТ)
 async function startRace(opponentIndex) {
     const opponent = opponents[opponentIndex];
     const currentCar = gameData.cars[gameData.currentCar];
@@ -925,149 +924,140 @@ async function startRace(opponentIndex) {
         return;
     }
     
-// Показываем индикатор загрузки
-    showLoading(true);
+    // Расчет параметров машины игрока (0-100)
+    const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
     
-    // Имитация гонки
-    setTimeout(async () => {
-        // Расчет параметров машины игрока (0-100)
-        const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
-        
-        // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-        const skillMultiplier = 1 + (
-            gameData.skills.driving * 0.002 +      // +0.2% за уровень
-            gameData.skills.speed * 0.002 +        // +0.2% за уровень
-            gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
-            gameData.skills.technique * 0.0015     // +0.15% за уровень
-        );
-        
-        // Общая эффективность игрока (с учетом навыков)
-        const playerEfficiency = carPower * skillMultiplier;
-        
-        // Расчет эффективности соперника (базовая 60 * сложность)
-        const opponentEfficiency = 60 * opponent.difficulty;
-        
-        // Базовое время трассы 60 секунд
-        const trackBaseTime = 60;
-        
-        // Добавляем элемент случайности (±5% от результата)
-        const playerRandomFactor = 0.95 + Math.random() * 0.1;
-        const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-        
-        // Расчет финального времени
-        const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
-        const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
-        
-        // Побеждает тот, у кого меньше время
-        const won = playerTime < opponentTime;
-        
-        // Обновляем статистику
-        gameData.stats.totalRaces++;
-        if (won) {
-            gameData.stats.wins++;
-            gameData.stats.moneyEarned += opponent.reward;
-            gameData.money += opponent.reward;
-        } else {
-            gameData.stats.losses++;
-            gameData.stats.moneySpent += betAmount;
-            gameData.money -= betAmount;
-        }
-        
-        // Получение навыков
-        const gainedSkills = calculateSkillGain(won);
-        
-        // Проверка повышения уровня
-        checkLevelUp();
-        
-        // Скрываем загрузку
-        showLoading(false);
-        
-        // Показываем результат
-        showRaceResultScreen();
-        
-        const resultDiv = document.getElementById('race-result');
-        let skillsHTML = '';
-        
-        if (gainedSkills.length > 0) {
-            skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
-            gainedSkills.forEach(skill => {
-                skillsHTML += `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`;
-            });
-            skillsHTML += '</div>';
-        }
-        
-        if (won) {
-            resultDiv.innerHTML = `
-                <div class="result-container">
-                    <h2 class="result-title win">🏆 ПОБЕДА!</h2>
-                    <div class="result-animation">🎉</div>
+    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
+    const skillMultiplier = 1 + (
+        gameData.skills.driving * 0.002 +      // +0.2% за уровень
+        gameData.skills.speed * 0.002 +        // +0.2% за уровень
+        gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
+        gameData.skills.technique * 0.0015     // +0.15% за уровень
+    );
+    
+    // Общая эффективность игрока (с учетом навыков)
+    const playerEfficiency = carPower * skillMultiplier;
+    
+    // Расчет эффективности соперника (базовая 60 * сложность)
+    const opponentEfficiency = 60 * opponent.difficulty;
+    
+    // Базовое время трассы 60 секунд
+    const trackBaseTime = 60;
+    
+    // Добавляем элемент случайности (±5% от результата)
+    const playerRandomFactor = 0.95 + Math.random() * 0.1;
+    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
+    
+    // Расчет финального времени
+    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
+    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
+    
+    // Побеждает тот, у кого меньше время
+    const won = playerTime < opponentTime;
+    
+    // Обновляем статистику
+    gameData.stats.totalRaces++;
+    if (won) {
+        gameData.stats.wins++;
+        gameData.stats.moneyEarned += opponent.reward;
+        gameData.money += opponent.reward;
+    } else {
+        gameData.stats.losses++;
+        gameData.stats.moneySpent += betAmount;
+        gameData.money -= betAmount;
+    }
+    
+    // Получение навыков
+    const gainedSkills = calculateSkillGain(won);
+    
+    // Проверка повышения уровня
+    checkLevelUp();
+    
+    // Сразу показываем результат
+    showRaceResultScreen();
+    
+    const resultDiv = document.getElementById('race-result');
+    let skillsHTML = '';
+    
+    if (gainedSkills.length > 0) {
+        skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
+        gainedSkills.forEach(skill => {
+            skillsHTML += `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`;
+        });
+        skillsHTML += '</div>';
+    }
+    
+    if (won) {
+        resultDiv.innerHTML = `
+            <div class="result-container">
+                <h2 class="result-title win">🏆 ПОБЕДА!</h2>
+                <div class="result-animation">🎉</div>
+                
+                <div class="result-info">
+                    <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
                     
-                    <div class="result-info">
-                        <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
-                        
-                        <div class="race-times">
-                            <div class="time-block player">
-                                <h4>Ваше время</h4>
-                                <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                            </div>
-                            <div class="time-block opponent">
-                                <h4>Время соперника</h4>
-                                <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                            </div>
+                    <div class="race-times">
+                        <div class="time-block player">
+                            <h4>Ваше время</h4>
+                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
                         </div>
-                        
-                        <div class="result-rewards">
-                            <p class="reward-item">💰 Выигрыш: <span class="money-gain">+$${opponent.reward}</span></p>
-                            <p class="balance">Баланс: $${gameData.money}</p>
+                        <div class="time-block opponent">
+                            <h4>Время соперника</h4>
+                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
                         </div>
-                        
-                        ${skillsHTML}
                     </div>
                     
-                    <div class="result-actions">
-                        <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-                        <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
+                    <div class="result-rewards">
+                        <p class="reward-item">💰 Выигрыш: <span class="money-gain">+$${opponent.reward}</span></p>
+                        <p class="balance">Баланс: $${gameData.money}</p>
                     </div>
+                    
+                    ${skillsHTML}
                 </div>
-            `;
-        } else {
-            resultDiv.innerHTML = `
-                <div class="result-container">
-                    <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
-                    
-                    <div class="result-info">
-                        <p><strong>${opponent.name}</strong> оказался быстрее!</p>
-                        
-                        <div class="race-times">
-                            <div class="time-block player">
-                                <h4>Ваше время</h4>
-                                <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                            </div>
-                            <div class="time-block opponent">
-                                <h4>Время соперника</h4>
-                                <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                            </div>
-                        </div>
-                        
-                        <div class="result-rewards">
-                            <p class="reward-item">💸 Проигрыш: <span class="money-loss">-$${betAmount}</span></p>
-                            <p class="balance">Баланс: $${gameData.money}</p>
-                        </div>
-                        
-                        ${skillsHTML}
-                    </div>
-                    
-                    <div class="result-actions">
-                        <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
-                        <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                    </div>
+                
+                <div class="result-actions">
+                    <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
+                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
                 </div>
-            `;
-        }
-        
-        updatePlayerInfo();
-        await autoSave();
-    }, 2000); // Задержка для эффекта
+            </div>
+        `;
+    } else {
+        resultDiv.innerHTML = `
+            <div class="result-container">
+                <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
+                
+                <div class="result-info">
+                    <p><strong>${opponent.name}</strong> оказался быстрее!</p>
+                    
+                    <div class="race-times">
+                        <div class="time-block player">
+                            <h4>Ваше время</h4>
+                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
+                        </div>
+                        <div class="time-block opponent">
+                            <h4>Время соперника</h4>
+                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-rewards">
+                        <p class="reward-item">💸 Проигрыш: <span class="money-loss">-$${betAmount}</span></p>
+                        <p class="balance">Баланс: $${gameData.money}</p>
+                    </div>
+                    
+                    ${skillsHTML}
+                </div>
+                
+                <div class="result-actions">
+                    <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
+                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    updatePlayerInfo();
+    await autoSave();
 }
 
 // Функции для экрана авторизации
@@ -1262,28 +1252,3 @@ window.onload = async function() {
         document.getElementById('loading-screen').style.display = 'none';
     }, 500);
 };
-        //Рассчет параметров машины игрока (0-100)
-        const carPower = (currentCar.power + currentCar.speed + currentCar.handling + currentCar.acceleration) / 4;
-        
-        // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-        const skillMultiplier = 1 + (
-            gameData.skills.driving * 0.002 +      // +0.2% за уровень
-            gameData.skills.speed * 0.002 +        // +0.2% за уровень
-            gameData.skills.reaction * 0.0015 +    // +0.15% за уровень
-            gameData.skills.technique * 0.0015     // +0.15% за уровень
-        );
-        
-        // Общая эффективность игрока (с учетом навыков)
-        const playerEfficiency = carPower * skillMultiplier;
-        
-        // Расчет эффективности соперника (базовая 60 * сложность)
-        const opponentEfficiency = 60 * opponent.difficulty;
-        
-        // Базовое время трассы 60 секунд
-        const trackBaseTime = 60;
-        
-        // Добавляем элемент случайности (±5% от результата)
-        const playerRandomFactor = 0.95 + Math.random() * 0.1;
-        const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-        
-        // Рас
