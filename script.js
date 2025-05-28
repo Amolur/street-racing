@@ -1421,12 +1421,15 @@ function showGame() {
     }
     
     // Обновляем аватары
-    const avatars = document.querySelectorAll('.player-avatar, .profile-avatar');
+    const avatars = document.querySelectorAll('.player-avatar, .profile-avatar, #header-avatar');
     avatars.forEach(avatar => {
         if (currentUser) {
             avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
         }
     });
+    
+    // Обновляем мини-полоску опыта
+    updateXPBar();
     
     updatePlayerInfo();
     updateQuickStats();
@@ -1439,24 +1442,176 @@ function showGame() {
     showMainMenu(false);
 }
 
-// Обработка событий (без свайпов для мобильного меню)
-document.addEventListener('DOMContentLoaded', function() {
-    // Enter для входа
-    document.getElementById('login-password')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleLogin();
+// Функция обновления полоски опыта
+function updateXPBar() {
+    const currentXP = gameData.experience || 0;
+    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
+    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
+    const progressXP = currentXP - currentLevelXP;
+    const neededXP = nextLevelXP - currentLevelXP;
+    const xpPercent = Math.floor((progressXP / neededXP) * 100);
+    
+    // Обновляем мини-полоску на главной
+    const xpMiniFill = document.getElementById('xp-mini-fill');
+    if (xpMiniFill) {
+        xpMiniFill.style.width = xpPercent + '%';
+    }
+    
+    // Обновляем полоску в профиле
+    const profileXPFill = document.getElementById('profile-xp-fill');
+    if (profileXPFill) {
+        profileXPFill.style.width = xpPercent + '%';
+    }
+    
+    // Обновляем текст в профиле
+    const profileXP = document.getElementById('profile-xp');
+    const profileXPNext = document.getElementById('profile-xp-next');
+    if (profileXP) profileXP.textContent = currentXP;
+    if (profileXPNext) profileXPNext.textContent = nextLevelXP;
+}
+
+// Обновление информации игрока (обновлено для новых элементов)
+function updatePlayerInfo() {
+    // Обновляем деньги
+    const moneyElements = [
+        document.getElementById('player-money'),
+        document.getElementById('race-balance'),
+        document.getElementById('upgrade-balance')
+    ];
+    
+    moneyElements.forEach(element => {
+        if (element) element.textContent = gameData.money;
     });
     
-    document.getElementById('register-password-confirm')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleRegister();
+    // Обновляем уровень
+    const levelElements = [
+        document.getElementById('player-level'),
+        document.getElementById('profile-level')
+    ];
+    
+    levelElements.forEach(element => {
+        if (element) element.textContent = gameData.level;
     });
     
-    // Закрытие модальных окон по Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeRacePreview();
-        }
-    });
-});
+    // Обновляем имя игрока
+    const playerNameElement = document.getElementById('player-name');
+    if (playerNameElement && currentUser) {
+        playerNameElement.textContent = currentUser.username;
+    }
+    
+    // Обновляем текущую машину в гонках
+    const raceCurrentCar = document.getElementById('race-current-car');
+    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
+        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
+    }
+    
+    // Обновляем полоску опыта
+    updateXPBar();
+    
+    // Обновляем быструю статистику
+    updateQuickStats();
+}
+
+// Функция обновления быстрой статистики (теперь в профиле)
+function updateQuickStats() {
+    const profileWins = document.getElementById('profile-wins');
+    const profileCars = document.getElementById('profile-cars');
+    const profileRating = document.getElementById('profile-rating');
+    
+    if (profileWins) profileWins.textContent = gameData.stats.wins;
+    if (profileCars) profileCars.textContent = gameData.cars.length;
+    if (profileRating) profileRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
+}
+
+// Функция обновления профиля
+function updateProfileDisplay() {
+    // Обновление имени пользователя в профиле
+    const profileUsername = document.getElementById('profile-username');
+    if (profileUsername && currentUser) {
+        profileUsername.textContent = currentUser.username;
+    }
+    
+    const profileLevel = document.getElementById('profile-level');
+    if (profileLevel) {
+        profileLevel.textContent = gameData.level;
+    }
+    
+    // Обновляем полоску опыта
+    updateXPBar();
+    
+    // Обновляем быструю статистику
+    updateQuickStats();
+    
+    // Навыки
+    const profileSkillsDisplay = document.getElementById('profile-skills-display');
+    if (profileSkillsDisplay) {
+        profileSkillsDisplay.innerHTML = `
+            <div class="skill-item">
+                <span class="skill-name">Вождение</span>
+                <div class="skill-bar">
+                    <div class="skill-progress" style="width: ${gameData.skills.driving * 10}%"></div>
+                </div>
+                <span class="skill-level">${gameData.skills.driving}</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-name">Скорость</span>
+                <div class="skill-bar">
+                    <div class="skill-progress" style="width: ${gameData.skills.speed * 10}%"></div>
+                </div>
+                <span class="skill-level">${gameData.skills.speed}</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-name">Реакция</span>
+                <div class="skill-bar">
+                    <div class="skill-progress" style="width: ${gameData.skills.reaction * 10}%"></div>
+                </div>
+                <span class="skill-level">${gameData.skills.reaction}</span>
+            </div>
+            <div class="skill-item">
+                <span class="skill-name">Техника</span>
+                <div class="skill-bar">
+                    <div class="skill-progress" style="width: ${gameData.skills.technique * 10}%"></div>
+                </div>
+                <span class="skill-level">${gameData.skills.technique}</span>
+            </div>
+        `;
+    }
+    
+    // Статистика
+    const profileStats = document.getElementById('profile-stats');
+    if (profileStats) {
+        const winRate = gameData.stats.totalRaces > 0 
+            ? ((gameData.stats.wins / gameData.stats.totalRaces) * 100).toFixed(1) 
+            : 0;
+            
+        profileStats.innerHTML = `
+            <div class="stat-row">
+                <span class="stat-label">Всего гонок:</span>
+                <span class="stat-value">${gameData.stats.totalRaces}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Побед:</span>
+                <span class="stat-value">${gameData.stats.wins}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Поражений:</span>
+                <span class="stat-value">${gameData.stats.losses}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Процент побед:</span>
+                <span class="stat-value">${winRate}%</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Заработано:</span>
+                <span class="stat-value">${gameData.stats.moneyEarned}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Потрачено:</span>
+                <span class="stat-value">${gameData.stats.moneySpent}</span>
+            </div>
+        `;
+    }
+}
 
 // Сохранение при закрытии/обновлении страницы
 window.addEventListener('beforeunload', async (e) => {

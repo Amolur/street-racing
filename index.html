@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a0a">
-    <title>Street Racing - Уличные гонки</title>
+    <title>Night Race - Ночные гонки</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <!-- Добавим иконки и шрифты -->
@@ -18,7 +18,7 @@
     <!-- Экран загрузки -->
     <div id="loading-screen" class="loading-screen">
         <div class="loading-content">
-            <h1 class="loading-title">STREET RACING</h1>
+            <h1 class="loading-title">NIGHT RACE</h1>
             <div class="loading-bar">
                 <div class="loading-progress"></div>
             </div>
@@ -31,8 +31,8 @@
         <div class="auth-background"></div>
         <div class="auth-box">
             <div class="logo-container">
-                <h1 class="game-logo">STREET<span>RACING</span></h1>
-                <p class="game-subtitle">Стань легендой улиц</p>
+                <h1 class="game-logo">NIGHT<span>RACE</span></h1>
+                <p class="game-subtitle">Стань легендой ночных улиц</p>
             </div>
             
             <div id="login-form" class="auth-form active">
@@ -71,157 +71,136 @@
 
     <!-- Игровой контейнер -->
     <div class="game-container" style="display: none;">
-        <!-- Упрощенный header без кнопки меню -->
+        <!-- Обновленный header -->
         <header class="game-header">
-            <div class="header-main">
-                <div class="header-logo">STREET RACING</div>
-                <div class="header-stats-mobile">
-                    <div class="stat-compact">
-                        <span class="stat-icon">💰</span>
-                        <span id="money-mobile">1000</span>
-                    </div>
-                    <div class="stat-compact">
-                        <span class="stat-icon">⭐</span>
-                        <span id="level-mobile">1</span>
-                    </div>
-                </div>
+            <div class="header-content">
+                <div class="header-logo" onclick="showMainMenu()">NIGHT RACE</div>
+                <button class="profile-button" onclick="showProfileScreen()">
+                    <img id="header-avatar" src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a&size=40" alt="Profile">
+                </button>
             </div>
         </header>
 
         <!-- Основной контент -->
         <main class="game-main">
-            <!-- Главная страница с расширенной навигацией -->
+            <!-- Главная страница - упрощенная -->
             <div id="main-menu" class="game-screen active">
-                <!-- Информация об игроке -->
-                <div class="player-info-card">
-                    <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a&size=80" alt="Avatar" class="player-avatar">
-                    <div class="player-details">
-                        <h2 id="player-name">Игрок</h2>
-                        <div class="player-stats-row">
-                            <span class="player-stat">
-                                <span class="stat-icon">⭐</span>
-                                Уровень <span id="player-level">1</span>
-                            </span>
-                            <span class="player-stat">
-                                <span class="stat-icon">💰</span>
-                                $<span id="player-money">1000</span>
-                            </span>
+                <!-- Информация об игроке - минималистичная -->
+                <div class="player-welcome">
+                    <h2>Добро пожаловать,</h2>
+                    <h1 id="player-name">Игрок</h1>
+                    <div class="player-level-info">
+                        <span class="level-badge">Уровень <span id="player-level">1</span></span>
+                        <div class="xp-mini-bar">
+                            <div class="xp-mini-fill" id="xp-mini-fill"></div>
                         </div>
+                    </div>
+                    <div class="player-balance">
+                        <span class="balance-icon">💰</span>
+                        <span class="balance-amount">$<span id="player-money">1000</span></span>
                     </div>
                 </div>
                 
-                <!-- Быстрая статистика -->
-                <div class="quick-stats">
-                    <div class="quick-stat-card">
-                        <span class="quick-stat-label">Побед</span>
-                        <span class="quick-stat-value" id="quick-wins">0</span>
-                    </div>
-                    <div class="quick-stat-card">
-                        <span class="quick-stat-label">Машин</span>
-                        <span class="quick-stat-value" id="quick-cars">1</span>
-                    </div>
-                    <div class="quick-stat-card">
-                        <span class="quick-stat-label">Рейтинг</span>
-                        <span class="quick-stat-value" id="quick-rating">#—</span>
-                    </div>
-                </div>
-
-                <!-- Основное меню -->
-                <div class="menu-grid">
-                    <div class="menu-card primary" onclick="showRaceMenu()">
-                        <div class="menu-card-icon">🏁</div>
-                        <h3>Гонки</h3>
-                        <p>Участвуйте в уличных гонках и зарабатывайте деньги</p>
-                        <div class="menu-card-action">Начать гонку →</div>
-                    </div>
+                <!-- Основное меню - вертикальный список -->
+                <div class="menu-list">
+                    <button class="menu-item primary" onclick="showRaceMenu()">
+                        <span class="menu-icon">🏁</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Начать гонку</span>
+                            <span class="menu-subtitle">Соревнуйся с соперниками</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                    </button>
                     
-                    <div class="menu-card" onclick="showGarageScreen()">
-                        <div class="menu-card-icon">🚗</div>
-                        <h3>Гараж</h3>
-                        <p>Управляйте своими машинами и улучшайте их</p>
-                        <div class="menu-card-action">Открыть гараж →</div>
-                    </div>
+                    <button class="menu-item" onclick="showGarageScreen()">
+                        <span class="menu-icon">🚗</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Гараж</span>
+                            <span class="menu-subtitle">Улучшай свои машины</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                    </button>
                     
-                    <div class="menu-card" onclick="showShopScreen()">
-                        <div class="menu-card-icon">🛒</div>
-                        <h3>Магазин</h3>
-                        <p>Покупайте новые машины для своей коллекции</p>
-                        <div class="menu-card-action">В магазин →</div>
-                    </div>
+                    <button class="menu-item" onclick="showShopScreen()">
+                        <span class="menu-icon">🛒</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Магазин</span>
+                            <span class="menu-subtitle">Покупай новые машины</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                    </button>
                     
-                    <div class="menu-card" onclick="showProfileScreen()">
-                        <div class="menu-card-icon">👤</div>
-                        <h3>Профиль</h3>
-                        <p>Смотрите свою статистику и прогресс</p>
-                        <div class="menu-card-action">Открыть профиль →</div>
-                    </div>
+                    <button class="menu-item" onclick="showLeaderboardScreen()">
+                        <span class="menu-icon">🏆</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Рейтинг</span>
+                            <span class="menu-subtitle">Таблица лидеров</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                    </button>
                     
-                    <div class="menu-card" onclick="showLeaderboardScreen()">
-                        <div class="menu-card-icon">🏆</div>
-                        <h3>Рейтинг</h3>
-                        <p>Сравните свои результаты с другими игроками</p>
-                        <div class="menu-card-action">Смотреть рейтинг →</div>
-                    </div>
-                    
-                    <div class="menu-card logout" onclick="logout()">
-                        <div class="menu-card-icon">🚪</div>
-                        <h3>Выход</h3>
-                        <p>Выйти из аккаунта</p>
-                        <div class="menu-card-action">Выйти →</div>
-                    </div>
+                    <button class="menu-item logout" onclick="logout()">
+                        <span class="menu-icon">🚪</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Выход</span>
+                            <span class="menu-subtitle">Выйти из аккаунта</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Экран гаража -->
             <div id="garage-screen" class="game-screen">
-    <div class="screen-header">
-        <button class="btn-back" onclick="goBack()">← Назад</button>
-        <h2>Гараж</h2>
-    </div>
-    
-    <div class="garage-container">
-        <div class="car-showcase">
-            <div id="current-car-display" class="current-car-display">
-                <!-- Отображение текущей машины -->
+                <div class="screen-header">
+                    <button class="btn-back" onclick="goBack()">← Назад</button>
+                    <h2>Гараж</h2>
+                </div>
+                
+                <div class="garage-container">
+                    <div class="car-showcase">
+                        <div id="current-car-display" class="current-car-display">
+                            <!-- Отображение текущей машины -->
+                        </div>
+                        <div class="car-controls">
+                            <button class="btn-secondary" onclick="previousCar()">←</button>
+                            <span class="car-selector">1 / 1</span>
+                            <button class="btn-secondary" onclick="nextCar()">→</button>
+                        </div>
+                    </div>
+                    
+                    <div class="garage-tabs">
+                        <button class="garage-tab active" onclick="showGarageTab('stats')">Характеристики</button>
+                        <button class="garage-tab" onclick="showGarageTab('upgrades')">Улучшения</button>
+                    </div>
+                    
+                    <!-- Вкладка характеристик -->
+                    <div id="garage-stats" class="garage-content active">
+                        <h3>Характеристики машины</h3>
+                        <div id="car-stats-display" class="stats-grid">
+                            <!-- Характеристики машины -->
+                        </div>
+                        <div class="car-total-stats">
+                            <p>Общая мощность: <span id="total-power">0</span></p>
+                            <p>Уровень прокачки: <span id="upgrade-level">0</span>/50</p>
+                        </div>
+                        <button class="btn-primary" onclick="showRaceMenu()">Выбрать для гонок</button>
+                    </div>
+                    
+                    <!-- Вкладка улучшений -->
+                    <div id="garage-upgrades" class="garage-content">
+                        <h3>Улучшения</h3>
+                        <div id="upgrades-list" class="upgrades-grid">
+                            <!-- Список улучшений -->
+                        </div>
+                        <div class="upgrade-info">
+                            <p class="upgrade-tip">💡 Улучшайте детали, чтобы повысить характеристики машины</p>
+                            <p class="upgrade-balance">Баланс: $<span id="upgrade-balance">0</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="car-controls">
-                <button class="btn-secondary" onclick="previousCar()">←</button>
-                <span class="car-selector">1 / 1</span>
-                <button class="btn-secondary" onclick="nextCar()">→</button>
-            </div>
-        </div>
-        
-        <div class="garage-tabs">
-            <button class="garage-tab active" onclick="showGarageTab('stats')">Характеристики</button>
-            <button class="garage-tab" onclick="showGarageTab('upgrades')">Улучшения</button>
-        </div>
-        
-        <!-- Вкладка характеристик -->
-        <div id="garage-stats" class="garage-content active">
-            <h3>Характеристики машины</h3>
-            <div id="car-stats-display" class="stats-grid">
-                <!-- Характеристики машины -->
-            </div>
-            <div class="car-total-stats">
-                <p>Общая мощность: <span id="total-power">0</span></p>
-                <p>Уровень прокачки: <span id="upgrade-level">0</span>/50</p>
-            </div>
-            <button class="btn-primary" onclick="showRaceMenu()">Выбрать для гонок</button>
-        </div>
-        
-        <!-- Вкладка улучшений -->
-        <div id="garage-upgrades" class="garage-content">
-            <h3>Улучшения</h3>
-            <div id="upgrades-list" class="upgrades-grid">
-                <!-- Список улучшений -->
-            </div>
-            <div class="upgrade-info">
-                <p class="upgrade-tip">💡 Улучшайте детали, чтобы повысить характеристики машины</p>
-                <p class="upgrade-balance">Баланс: $<span id="upgrade-balance">0</span></p>
-            </div>
-        </div>
-    </div>
-</div>
+
             <!-- Экран гонок -->
             <div id="race-menu-screen" class="game-screen">
                 <div class="screen-header">
@@ -246,7 +225,7 @@
                 </div>
             </div>
 
-            <!-- Экран профиля -->
+            <!-- Обновленный экран профиля -->
             <div id="profile-screen" class="game-screen">
                 <div class="screen-header">
                     <button class="btn-back" onclick="goBack()">← Назад</button>
@@ -258,13 +237,38 @@
                         <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a&size=100" alt="Avatar" class="profile-avatar">
                         <div class="profile-info">
                             <h3 id="profile-username">Игрок</h3>
-                            <p>Уровень <span id="profile-level">1</span></p>
+                            <p class="profile-level">Уровень <span id="profile-level">1</span></p>
+                            <div class="profile-xp-section">
+                                <p class="xp-text">Опыт: <span id="profile-xp">0</span> / <span id="profile-xp-next">150</span></p>
+                                <div class="xp-progress-bar">
+                                    <div class="xp-progress-fill" id="profile-xp-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Быстрая статистика в профиле -->
+                    <div class="profile-quick-stats">
+                        <div class="profile-stat-card">
+                            <span class="stat-icon">🏆</span>
+                            <span class="stat-label">Побед</span>
+                            <span class="stat-value" id="profile-wins">0</span>
+                        </div>
+                        <div class="profile-stat-card">
+                            <span class="stat-icon">🚗</span>
+                            <span class="stat-label">Машин</span>
+                            <span class="stat-value" id="profile-cars">1</span>
+                        </div>
+                        <div class="profile-stat-card">
+                            <span class="stat-icon">📊</span>
+                            <span class="stat-label">Рейтинг</span>
+                            <span class="stat-value" id="profile-rating">#—</span>
                         </div>
                     </div>
                     
                     <div class="profile-sections">
                         <div class="profile-section">
-                            <h3>📊 Статистика</h3>
+                            <h3>📊 Подробная статистика</h3>
                             <div id="profile-stats" class="stats-list">
                                 <!-- Статистика -->
                             </div>
@@ -315,7 +319,6 @@
                 <div class="leaderboard-container">
                     <div class="leaderboard-tabs">
                         <button class="tab-btn active">Общий рейтинг</button>
-                        <button class="tab-btn">За неделю</button>
                     </div>
                     
                     <div id="leaderboard-list" class="leaderboard-list">

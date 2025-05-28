@@ -1,7 +1,7 @@
 {
-  "name": "Street Racing",
-  "short_name": "Street Racing",
-  "description": "Уличные гонки - стань легендой улиц",
+  "name": "Night Race",
+  "short_name": "Night Race",
+  "description": "Ночные гонки - стань легендой ночных улиц",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

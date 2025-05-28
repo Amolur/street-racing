@@ -55,7 +55,8 @@
     
     /* Размеры */
     --header-height: 60px;
-    --container-width: 1200px;
+    --container-width: 100%;
+    --mobile-padding: 1rem;
     
     /* Тени и эффекты */
     --glow-cyan: 0 0 20px rgba(0, 255, 255, 0.5);
@@ -84,25 +85,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Кастомный скроллбар */
-::-webkit-scrollbar {
-    width: 8px;
-    background: var(--bg-primary);
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--neon-cyan);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--neon-pink);
-}
-
 /* Уведомления об ошибках */
 .error-notification {
     position: fixed;
@@ -111,8 +93,8 @@ body {
     transform: translateX(-50%);
     background: var(--neon-green);
     color: var(--bg-primary);
-    padding: 1rem 2rem;
-    border-radius: 5px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
     z-index: 9999;
     opacity: 0;
     transition: opacity 0.3s;
@@ -128,19 +110,19 @@ body {
     opacity: 1;
 }
 
-/* Индикатор загрузки для игровых действий */
+/* Индикатор загрузки */
 .loading-indicator {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
 }
 
 .loading-spinner {
@@ -156,14 +138,6 @@ body {
     border-top-color: var(--neon-cyan);
     border-radius: 50%;
     animation: spin 1s linear infinite;
-}
-
-.loading-spinner p {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    text-shadow: var(--glow-cyan);
-    letter-spacing: 2px;
-    text-transform: uppercase;
 }
 
 /* Экран загрузки */
@@ -186,7 +160,7 @@ body {
 
 .loading-title {
     font-family: 'Orbitron', monospace;
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 900;
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
@@ -223,38 +197,17 @@ body {
     justify-content: center;
     background: var(--bg-primary);
     z-index: 1000;
-    padding: 1rem;
+    padding: var(--mobile-padding);
 }
 
 .auth-box {
     background: var(--bg-card);
-    padding: 2rem;
+    padding: 2rem var(--mobile-padding);
     border: 1px solid var(--neon-cyan);
     width: 100%;
-    max-width: 400px;
-    position: relative;
+    max-width: 380px;
+    border-radius: 20px;
     box-shadow: var(--glow-cyan), inset 0 0 50px rgba(0, 255, 255, 0.1);
-}
-
-.auth-box::before,
-.auth-box::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-    animation: scan 3s linear infinite;
-}
-
-.auth-box::before {
-    top: 0;
-    left: 0;
-}
-
-.auth-box::after {
-    bottom: 0;
-    left: 0;
-    animation-delay: 1.5s;
 }
 
 .logo-container {
@@ -264,7 +217,7 @@ body {
 
 .game-logo {
     font-family: 'Orbitron', monospace;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 900;
     color: var(--neon-cyan);
     text-shadow: var(--glow-cyan);
@@ -280,7 +233,7 @@ body {
 .game-subtitle {
     color: var(--text-secondary);
     font-size: 0.9rem;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
 }
 
 .auth-form {
@@ -295,22 +248,24 @@ body {
 .auth-form h2 {
     font-family: 'Orbitron', monospace;
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     color: var(--text-primary);
     font-weight: 700;
     letter-spacing: 2px;
+    font-size: 1.3rem;
 }
 
 .input-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     position: relative;
 }
 
 .input-group input {
     width: 100%;
-    padding: 1rem 3rem 1rem 1.5rem;
+    padding: 1rem 3rem 1rem 1rem;
     background: var(--bg-secondary);
     border: 1px solid var(--text-muted);
+    border-radius: 10px;
     color: var(--text-primary);
     font-size: 1rem;
     font-family: 'Rajdhani', sans-serif;
@@ -346,43 +301,19 @@ body {
     transition: all 0.3s;
     border: none;
     outline: none;
-    position: relative;
-    overflow: hidden;
-    min-height: 44px;
-    touch-action: manipulation;
+    border-radius: 10px;
+    width: 100%;
+    font-size: 1rem;
+    min-height: 50px;
 }
 
 .btn-primary {
-    width: 100%;
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     color: var(--bg-primary);
-    font-size: 1.1rem;
 }
 
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.2);
-    transition: left 0.5s;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
-}
-
-.btn-primary:hover::before {
-    left: 100%;
-}
-
-.btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+.btn-primary:active {
+    transform: scale(0.98);
 }
 
 .btn-secondary {
@@ -391,27 +322,16 @@ body {
     color: var(--neon-cyan);
 }
 
-.btn-secondary:hover {
-    background: var(--neon-cyan);
-    color: var(--bg-primary);
-    box-shadow: var(--glow-cyan);
-}
-
 .btn-back {
     background: none;
     border: none;
     color: var(--neon-yellow);
     font-size: 1.1rem;
     cursor: pointer;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     transition: all 0.3s;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
-}
-
-.btn-back:hover {
-    text-shadow: var(--glow-yellow);
-    transform: translateX(-5px);
 }
 
 .auth-switch {
@@ -423,11 +343,6 @@ body {
 .auth-switch a {
     color: var(--neon-cyan);
     text-decoration: none;
-    transition: all 0.3s;
-}
-
-.auth-switch a:hover {
-    text-shadow: var(--glow-cyan);
 }
 
 /* Игровой контейнер */
@@ -435,769 +350,263 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    position: relative;
-}
-
-/* Убираем стили мобильного меню и нижней навигации */
-.menu-toggle,
-.mobile-menu,
-.mobile-menu-overlay,
-.mobile-nav,
-.bottom-nav {
-    display: none !important;
 }
 
 /* Обновленный header */
 .game-header {
     position: sticky;
     top: 0;
-    height: 60px;
+    height: var(--header-height);
     background: var(--bg-secondary);
     border-bottom: 2px solid var(--neon-cyan);
     z-index: 100;
     box-shadow: 0 2px 20px rgba(0, 255, 255, 0.3);
 }
 
-.header-main {
+.header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 1rem;
+    padding: 0 var(--mobile-padding);
     height: 100%;
 }
 
 .header-logo {
     font-family: 'Orbitron', monospace;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 900;
     background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: 2px;
+    cursor: pointer;
+    transition: transform 0.3s;
 }
 
-.header-stats-mobile {
-    display: flex;
-    gap: 1.5rem;
+.header-logo:active {
+    transform: scale(0.95);
 }
 
-.stat-compact {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: 'Orbitron', monospace;
-    font-weight: 700;
+.profile-button {
+    background: none;
+    border: 2px solid var(--neon-cyan);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s;
 }
 
-.stat-compact .stat-icon {
-    font-size: 1.2rem;
-    color: var(--neon-yellow);
+.profile-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-button:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
 /* Основной контент */
 .game-main {
+    flex: 1;
     padding-top: 0;
-    padding-bottom: 1rem;
-    min-height: calc(100vh - 60px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .game-screen {
     display: none;
-    padding: 1rem;
+    padding: var(--mobile-padding);
     animation: fadeIn 0.3s ease;
+    min-height: calc(100vh - var(--header-height));
 }
 
 .game-screen.active {
     display: block;
 }
 
-/* Карточка информации об игроке на главной */
-.player-info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--neon-cyan);
-    padding: 1.5rem;
-    margin: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    box-shadow: var(--glow-cyan);
-}
-
-.player-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 3px solid var(--neon-cyan);
-}
-
-.player-details {
-    flex: 1;
-}
-
-.player-details h2 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-}
-
-.player-stats-row {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.player-stat {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-secondary);
-}
-
-.player-stat .stat-icon {
-    color: var(--neon-yellow);
-}
-
-/* Быстрая статистика */
-.quick-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin: 1rem;
-}
-
-.quick-stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1rem;
+/* Главное меню - новый дизайн */
+.player-welcome {
     text-align: center;
-    transition: all 0.3s;
+    padding: 2rem 0;
+    background: var(--bg-card);
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    border: 1px solid var(--text-muted);
 }
 
-.quick-stat-card:hover {
-    border-color: var(--neon-cyan);
-    transform: translateY(-2px);
-}
-
-.quick-stat-label {
-    font-size: 0.8rem;
+.player-welcome h2 {
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 1rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
 }
 
-.quick-stat-value {
+.player-welcome h1 {
     font-family: 'Orbitron', monospace;
-    font-size: 1.5rem;
-    font-weight: 700;
     color: var(--neon-cyan);
-    display: block;
-    margin-top: 0.5rem;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
-/* Сетка меню */
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+.player-level-info {
+    margin-bottom: 1rem;
+}
+
+.level-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, var(--neon-yellow), var(--neon-orange));
+    color: var(--bg-primary);
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.xp-mini-bar {
+    width: 150px;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.xp-mini-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    transition: width 0.5s ease;
+}
+
+.player-balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.balance-icon {
+    font-size: 1.5rem;
+}
+
+.balance-amount {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+}
+
+/* Вертикальное меню */
+.menu-list {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
-    padding: 0 1rem;
 }
 
-.menu-card {
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     background: var(--bg-card);
     border: 1px solid var(--text-muted);
-    padding: 1.5rem;
+    border-radius: 15px;
+    padding: 1.2rem;
     cursor: pointer;
     transition: all 0.3s;
+    text-align: left;
+    width: 100%;
     position: relative;
     overflow: hidden;
-    animation: fadeIn 0.3s ease backwards;
 }
 
-.menu-card:nth-child(1) { animation-delay: 0.1s; }
-.menu-card:nth-child(2) { animation-delay: 0.2s; }
-.menu-card:nth-child(3) { animation-delay: 0.3s; }
-.menu-card:nth-child(4) { animation-delay: 0.4s; }
-.menu-card:nth-child(5) { animation-delay: 0.5s; }
-.menu-card:nth-child(6) { animation-delay: 0.6s; }
-
-.menu-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
+.menu-item:active {
+    transform: scale(0.98);
 }
 
-.menu-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--neon-cyan);
-    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
-}
-
-.menu-card:hover::before {
-    left: 100%;
-}
-
-/* Выделение главной карточки */
-.menu-card.primary {
-    grid-column: 1 / -1;
+.menu-item.primary {
     background: linear-gradient(135deg, var(--bg-card), rgba(0, 255, 255, 0.1));
     border-color: var(--neon-cyan);
 }
 
-.menu-card.primary:hover {
-    box-shadow: 0 5px 30px rgba(0, 255, 255, 0.5);
-}
-
-/* Стиль для кнопки выхода */
-.menu-card.logout {
+.menu-item.logout {
     border-color: var(--neon-red);
     background: rgba(255, 0, 64, 0.05);
 }
 
-.menu-card.logout .menu-card-icon {
-    color: var(--neon-red);
+.menu-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px currentColor);
 }
 
-.menu-card.logout:hover {
-    border-color: var(--neon-red);
-    box-shadow: 0 5px 20px rgba(255, 0, 64, 0.3);
+.menu-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.menu-card-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 10px currentColor);
-}
-
-.menu-card h3 {
+.menu-title {
     font-family: 'Orbitron', monospace;
-    font-size: 1.3rem;
-    margin-bottom: 0.5rem;
-    color: var(--neon-cyan);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 700;
 }
 
-.menu-card p {
-    color: var(--text-secondary);
+.menu-subtitle {
     font-size: 0.9rem;
-    margin-bottom: 1rem;
+    color: var(--text-secondary);
 }
 
-.menu-card-action {
-    color: var(--neon-yellow);
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.menu-card:hover .menu-card-action {
-    transform: translateX(5px);
+.menu-arrow {
+    color: var(--neon-cyan);
+    font-size: 1.5rem;
 }
 
 /* Заголовки экранов */
 .screen-header {
     display: flex;
     align-items: center;
-    margin-bottom: 2rem;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
 }
 
 .screen-header h2 {
     font-family: 'Orbitron', monospace;
-    font-size: 1.8rem;
-    color: var(--neon-cyan);
-    margin-left: 1rem;
-}
-
-/* Гараж */
-.garage-container {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.car-showcase {
-    background: var(--bg-card);
-    border: 1px solid var(--neon-cyan);
-    padding: 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.current-car-display {
-    margin-bottom: 1.5rem;
-}
-
-.car-emoji {
-    font-size: 5rem;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 20px var(--neon-cyan));
-}
-
-.current-car-display h3 {
-    font-family: 'Orbitron', monospace;
     font-size: 1.5rem;
-    color: var(--neon-yellow);
-    margin-bottom: 0.5rem;
-}
-
-.car-power {
-    color: var(--text-secondary);
-}
-
-.car-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-}
-
-.car-controls button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-}
-
-.car-selector {
-    font-family: 'Orbitron', monospace;
-    color: var(--text-primary);
-    min-width: 60px;
+    color: var(--neon-cyan);
+    flex: 1;
     text-align: center;
+    margin-right: -40px;
 }
 
-.car-details h3 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    margin-bottom: 1rem;
-}
-
-.stats-grid {
-    margin-bottom: 1.5rem;
-}
-
-.stat-bar {
-    margin-bottom: 1rem;
-}
-
-.stat-bar label {
-    display: block;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.3rem;
-}
-
-.progress-bar {
-    background: var(--bg-tertiary);
-    height: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid var(--text-muted);
-}
-
-.stat-value {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-    transition: width 0.5s ease;
-}
-
-/* Экран гонок */
-.race-info-banner {
-    background: var(--bg-card);
-    border: 1px solid var(--neon-cyan);
-    padding: 1rem;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.race-info-banner p {
-    margin: 0;
-}
-
-.race-info-banner strong {
-    color: var(--neon-cyan);
-}
-
-.opponents-list {
-    display: grid;
-    gap: 1rem;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.opponent-card {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1.5rem;
-    transition: all 0.3s;
-}
-
-.opponent-card:hover {
-    border-color: var(--neon-pink);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(255, 0, 255, 0.3);
-}
-
-.opponent-info h3 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-pink);
-    margin-bottom: 0.5rem;
-}
-
-.opponent-car {
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-}
-
-.opponent-stakes {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1rem;
-}
-
-.stake-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.stake-label {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-}
-
-.stake-value {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-green);
-    font-weight: 700;
-}
-
-.race-btn {
-    width: 100%;
-}
-
-/* Модальное окно превью гонки */
-.race-preview-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-    animation: fadeIn 0.3s ease;
-}
-
-.race-preview-content {
-    background: var(--bg-card);
-    border: 2px solid var(--neon-cyan);
-    width: 100%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-    animation: fadeIn 0.3s ease;
-}
-
-.close-modal {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: 1px solid var(--neon-red);
-    color: var(--neon-red);
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    z-index: 10;
-}
-
-.close-modal:hover {
-    background: var(--neon-red);
-    color: var(--bg-primary);
-}
-
-.race-preview-content h2 {
-    text-align: center;
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    padding: 1.5rem;
-    margin: 0;
-    border-bottom: 1px solid var(--text-muted);
-}
-
-.race-comparison {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    padding: 2rem 1rem;
-    gap: 1rem;
-}
-
-.racer-info {
-    text-align: center;
-}
-
-.racer-info h3 {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-}
-
-.racer-info.player h3 {
-    color: var(--neon-cyan);
-}
-
-.racer-info.opponent h3 {
-    color: var(--neon-pink);
-}
-
-.car-info {
-    margin-bottom: 1.5rem;
-}
-
-.car-image {
-    font-size: 4rem;
-    margin: 1rem 0;
-}
-
-.car-info h4 {
-    color: var(--text-primary);
-}
-
-.stats-section {
-    margin-bottom: 1.5rem;
-}
-
-.stats-section h5 {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-}
-
-.stat-comparison {
-    display: grid;
-    grid-template-columns: 60px 1fr 40px;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.stat-bar-comparison {
-    background: var(--bg-tertiary);
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.stat-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
-    transition: width 0.5s ease;
-}
-
-.stat-number {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    font-weight: 700;
-    text-align: right;
-}
-
-.vs-divider {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.vs-circle {
-    font-family: 'Orbitron', monospace;
-    font-size: 2rem;
-    font-weight: 900;
-    color: var(--neon-yellow);
-    text-shadow: var(--glow-yellow);
-    margin-bottom: 1rem;
-}
-
-.race-info p {
-    font-size: 0.9rem;
-    margin: 0.5rem 0;
-}
-
-.difficulty-bar {
-    background: var(--bg-tertiary);
-    height: 20px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 1rem 0;
-}
-
-.difficulty-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-red));
-}
-
-.difficulty-text {
-    color: var(--text-secondary);
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-top: 1px solid var(--text-muted);
-    justify-content: center;
-}
-
-.race-start-btn {
-    min-width: 200px;
-}
-
-/* Результаты гонки */
-.race-result {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.result-container {
-    background: var(--bg-card);
-    border: 1px solid var(--neon-cyan);
-    padding: 2rem;
-}
-
-.result-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.result-title.win {
-    color: var(--neon-green);
-    text-shadow: var(--glow-yellow);
-    animation: pulse 1s ease infinite;
-}
-
-.result-title.lose {
-    color: var(--neon-red);
-    text-shadow: 0 0 20px rgba(255, 0, 64, 0.5);
-}
-
-.result-animation {
-    font-size: 4rem;
-    animation: pulse 1s ease infinite;
-    margin-bottom: 1rem;
-}
-
-.race-times {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin: 1.5rem 0;
-}
-
-.time-block {
-    background: var(--bg-secondary);
-    padding: 1rem;
-    border: 1px solid var(--text-muted);
-}
-
-.time-block h4 {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.time-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--neon-cyan);
-}
-
-.result-rewards {
-    background: var(--bg-secondary);
-    padding: 1rem;
-    margin: 1.5rem 0;
-}
-
-.reward-item {
-    font-size: 1.1rem;
-    margin: 0.5rem 0;
-}
-
-.money-gain {
-    color: var(--neon-green);
-    font-weight: 700;
-}
-
-.money-loss {
-    color: var(--neon-red);
-    font-weight: 700;
-}
-
-.balance {
-    color: var(--text-secondary);
-}
-
-.skill-gain {
-    background: var(--bg-tertiary);
-    padding: 1rem;
-    margin: 1.5rem 0;
-    border-left: 3px solid var(--neon-yellow);
-}
-
-.skill-gain h4 {
-    color: var(--neon-yellow);
-    margin-bottom: 0.5rem;
-}
-
-.skill-gain-item {
-    color: var(--text-primary);
-    margin: 0.3rem 0;
-}
-
-.result-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2rem;
-}
-
-/* Профиль */
+/* Профиль - обновленный */
 .profile-container {
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 100%;
 }
 
 .profile-header {
     background: var(--bg-card);
     border: 1px solid var(--neon-cyan);
-    padding: 2rem;
+    border-radius: 20px;
+    padding: 1.5rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
 .profile-avatar {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     border: 3px solid var(--neon-cyan);
+    margin-bottom: 1rem;
 }
 
 .profile-info h3 {
@@ -1207,715 +616,26 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.profile-info p {
+.profile-level {
     color: var(--text-secondary);
-}
-
-.profile-sections {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.profile-section {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1.5rem;
-}
-
-.profile-section h3 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-yellow);
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.stats-list {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--bg-tertiary);
-}
-
-.stat-row:last-child {
-    border-bottom: none;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-}
-
-.stat-value {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    font-weight: 700;
-}
-
-.skills-list {
-    display: grid;
-    gap: 1rem;
-}
-
-.skill-item {
-    display: grid;
-    grid-template-columns: 100px 1fr 40px;
-    align-items: center;
-    gap: 1rem;
-}
-
-.skill-name {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.skill-bar {
-    background: var(--bg-tertiary);
-    height: 15px;
-    border-radius: 7px;
-    overflow: hidden;
-    border: 1px solid var(--text-muted);
-}
-
-.skill-progress {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-    transition: width 0.5s ease;
-}
-
-.skill-level {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    font-weight: 700;
-    text-align: right;
-}
-
-/* Магазин */
-.shop-tabs {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid var(--bg-tertiary);
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 1rem 2rem;
-    color: var(--text-secondary);
-    font-family: 'Orbitron', monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.tab-btn.active {
-    color: var(--neon-cyan);
-}
-
-.tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--neon-cyan);
-}
-
-.shop-content {
-    display: none;
-}
-
-.shop-content.active {
-    display: block;
-}
-
-.cars-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.car-shop-item {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1.5rem;
-    transition: all 0.3s;
-}
-
-.car-shop-item:hover {
-    border-color: var(--neon-green);
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0, 255, 0, 0.3);
-}
-
-.car-shop-emoji {
-    font-size: 3rem;
-    text-align: center;
     margin-bottom: 1rem;
 }
 
-.car-shop-info h4 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-yellow);
-    margin-bottom: 1rem;
-}
-
-.car-shop-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.shop-stat {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-}
-
-.shop-stat-label {
-    color: var(--text-secondary);
-}
-
-.shop-stat-value {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-    font-weight: 700;
-}
-
-.price {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.5rem;
-    color: var(--neon-green);
-    text-align: center;
-    margin: 1rem 0;
-}
-
-/* Таблица лидеров */
-.leaderboard-container {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.leaderboard-tabs {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    justify-content: center;
-}
-
-.leaderboard-list {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1rem;
-}
-
-.leaderboard-row {
-    display: grid;
-    grid-template-columns: 60px 1fr 60px 100px;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--bg-tertiary);
-    transition: all 0.3s;
-}
-
-.leaderboard-row:last-child {
-    border-bottom: none;
-}
-
-.leaderboard-row:hover {
-    background: var(--bg-secondary);
-}
-
-.leaderboard-row.current-user {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid var(--neon-cyan);
-}
-
-.lb-position {
-    font-family: 'Orbitron', monospace;
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-.lb-position.gold {
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-.lb-position.silver {
-    color: #c0c0c0;
-    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
-}
-
-.lb-position.bronze {
-    color: #cd7f32;
-    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
-}
-
-.lb-name {
-    font-weight: 600;
-}
-
-.lb-level {
-    color: var(--text-secondary);
-    text-align: center;
-}
-
-.lb-money {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-green);
-    text-align: right;
-}
-
-/* Утилиты */
-.loading {
-    text-align: center;
-    color: var(--text-secondary);
-    padding: 3rem;
-    font-size: 1.2rem;
-}
-
-.error {
-    color: var(--neon-red);
-    text-align: center;
-    padding: 3rem;
-    font-size: 1.2rem;
-}
-
-.no-data {
-    color: var(--text-secondary);
-    text-align: center;
-    padding: 3rem;
-    font-size: 1.2rem;
-}
-
-/* Адаптивность для мобильных */
-@media (max-width: 768px) {
-    .player-info-card {
-        flex-direction: column;
-        text-align: center;
-        padding: 1rem;
-    }
-    
-    .player-stats-row {
-        justify-content: center;
-        gap: 1rem;
-    }
-    
-    .menu-grid {
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-    }
-    
-    .header-logo {
-        font-size: 1rem;
-    }
-    
-    .quick-stats {
-        gap: 0.3rem;
-        margin: 0.5rem;
-    }
-    
-    .quick-stat-card {
-        padding: 0.5rem;
-    }
-    
-    .quick-stat-value {
-        font-size: 1.2rem;
-    }
-    
-    .game-logo {
-        font-size: 1.8rem;
-    }
-    
-    .loading-title {
-        font-size: 2rem;
-    }
-    
-    .auth-box {
-        padding: 1.5rem;
-    }
-    
-    .race-comparison {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    
-    .vs-divider {
-        padding: 1rem 0;
-        border-top: 1px solid var(--text-muted);
-        border-bottom: 1px solid var(--text-muted);
-    }
-    
-    .race-times {
-        grid-template-columns: 1fr;
-    }
-    
-    .result-actions {
-        flex-direction: column;
-    }
-    
-    .result-actions button {
-        width: 100%;
-    }
-    
-    .cars-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .shop-tabs {
-        justify-content: center;
-    }
-    
-    .tab-btn {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .leaderboard-row {
-        grid-template-columns: 40px 1fr 50px 80px;
-        font-size: 0.9rem;
-        padding: 0.75rem;
-    }
-    
-    .lb-position {
-        font-size: 1rem;
-    }
-}
-
-/* Очень маленькие экраны */
-@media (max-width: 320px) {
-    .game-logo {
-        font-size: 1.5rem;
-    }
-    
-    .header-logo {
-        font-size: 0.9rem;
-    }
-    
-    .stat-compact {
-        font-size: 0.9rem;
-    }
-    
-    .player-details h2 {
-        font-size: 1.2rem;
-    }
-}
-/* Добавьте эти стили в ваш style.css */
-
-/* Вкладки гаража */
-.garage-tabs {
-    display: flex;
-    gap: 1rem;
-    margin: 2rem 0 1rem;
-    border-bottom: 2px solid var(--bg-tertiary);
-}
-
-.garage-tab {
-    background: none;
-    border: none;
-    padding: 1rem 2rem;
-    color: var(--text-secondary);
-    font-family: 'Orbitron', monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-}
-
-.garage-tab.active {
-    color: var(--neon-cyan);
-}
-
-.garage-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--neon-cyan);
-}
-
-.garage-content {
-    display: none;
-}
-
-.garage-content.active {
-    display: block;
-}
-
-/* Улучшенное отображение машины */
-.car-upgrade-level {
-    margin-top: 1rem;
-}
-
-.upgrade-stars {
-    color: var(--neon-yellow);
-    font-size: 1.2rem;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.upgrade-text {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.car-emoji.car-glow {
-    animation: pulse 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 30px var(--neon-cyan)) drop-shadow(0 0 50px var(--neon-pink));
-}
-
-/* Статистика с улучшениями */
-.progress-bar {
-    position: relative;
-    display: flex;
-}
-
-.base-stat {
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
-}
-
-.upgrade-stat {
-    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
-    margin-left: 2px;
-}
-
-.car-total-stats {
-    background: var(--bg-tertiary);
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.car-total-stats p {
-    margin: 0.5rem 0;
-    font-family: 'Orbitron', monospace;
-}
-
-/* Сетка улучшений */
-.upgrades-grid {
-    display: grid;
-    gap: 1rem;
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-}
-
-.upgrade-item {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1.5rem;
-    transition: all 0.3s;
-}
-
-.upgrade-item:hover {
-    border-color: var(--neon-cyan);
-    transform: translateY(-2px);
-}
-
-.upgrade-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.upgrade-icon {
-    font-size: 2rem;
-}
-
-.upgrade-header h4 {
-    flex: 1;
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-cyan);
-}
-
-.upgrade-level {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.upgrade-description {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.upgrade-progress {
-    margin-bottom: 1rem;
-}
-
-.upgrade-progress-bar {
-    background: var(--bg-tertiary);
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-    border: 1px solid var(--text-muted);
-}
-
-.upgrade-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
-    transition: width 0.5s ease;
-}
-
-.upgrade-stats {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.upgrade-stat {
-    background: var(--bg-secondary);
-    padding: 0.3rem 0.8rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    color: var(--neon-green);
-}
-
-.btn-upgrade {
+.profile-xp-section {
     width: 100%;
-    padding: 0.8rem;
+}
+
+.xp-text {
     font-size: 0.9rem;
-}
-
-.btn-disabled {
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-    border: 1px solid var(--text-muted);
-    cursor: not-allowed;
-}
-
-.max-level {
-    text-align: center;
-    color: var(--neon-yellow);
-    font-weight: 600;
-    margin: 0;
-}
-
-/* Специальные детали */
-.special-parts-section {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 2px solid var(--bg-tertiary);
-}
-
-.special-parts-section h3 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-pink);
-    margin-bottom: 1rem;
-}
-
-.special-parts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.special-part {
-    background: var(--bg-card);
-    border: 1px solid var(--text-muted);
-    padding: 1rem;
-    text-align: center;
-    transition: all 0.3s;
-}
-
-.special-part:hover {
-    border-color: var(--neon-pink);
-    transform: translateY(-2px);
-}
-
-.special-part.owned {
-    border-color: var(--neon-green);
-    opacity: 0.7;
-}
-
-.special-icon {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.special-part h4 {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-pink);
-    margin-bottom: 0.5rem;
-}
-
-.special-part p {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.special-part button {
-    width: 100%;
-    font-size: 0.9rem;
-    padding: 0.6rem;
-}
-
-/* Информация об улучшениях */
-.upgrade-info {
-    background: var(--bg-tertiary);
-    padding: 1rem;
-    margin-top: 1rem;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.upgrade-tip {
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
 
-.upgrade-balance {
-    font-family: 'Orbitron', monospace;
-    color: var(--neon-green);
-    font-size: 1.1rem;
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-    .garage-tabs {
-        gap: 0.5rem;
-    }
-    
-    .garage-tab {
-        padding: 0.8rem 1rem;
-        font-size: 0.9rem;
-    }
-    
-    .upgrades-grid {
-        max-height: 400px;
-    }
-    
-    .special-parts-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .upgrade-stats {
-        font-size: 0.75rem;
-    }
-}/* Стили для системы уровней */
 .xp-progress-bar {
     background: var(--bg-tertiary);
     height: 20px;
     border-radius: 10px;
     overflow: hidden;
-    margin: 0.5rem 0;
     border: 1px solid var(--text-muted);
 }
 
@@ -1925,28 +645,89 @@ body {
     transition: width 0.5s ease;
 }
 
-.xp-progress-section {
-    background: var(--bg-secondary);
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 5px;
+/* Быстрая статистика в профиле */
+.profile-quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
 }
 
-.xp-gain {
-    color: var(--neon-yellow);
+.profile-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-stat-card .stat-icon {
+    font-size: 2rem;
+}
+
+.profile-stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.profile-stat-card .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
     font-weight: 700;
 }
 
-/* Заблокированные машины */
-.car-shop-item.locked {
-    opacity: 0.6;
-    position: relative;
+.profile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.level-requirement {
-    color: var(--neon-red);
-    font-weight: 600;
-    margin: 0.5rem 0;
+.profile-section {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+.profile-section h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+/* Гараж - мобильная оптимизация */
+.garage-container {
+    max-width: 100%;
+}
+
+.car-showcase {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 20px;
+    padding: 2rem 1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.car-emoji {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px var(--neon-cyan));
+}
+
+/* Остальные стили остаются прежними, но с адаптацией под мобильные */
+.opponents-list,
+.cars-grid,
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 /* Индикация сложности соперников */
@@ -1955,18 +736,37 @@ body {
     margin: 0.5rem 0;
 }
 
-.opponent-difficulty.easy {
-    color: var(--neon-green);
+.opponent-difficulty.easy { color: var(--neon-green); }
+.opponent-difficulty.medium { color: var(--neon-yellow); }
+.opponent-difficulty.hard { color: var(--neon-orange); }
+.opponent-difficulty.extreme { color: var(--neon-red); }
+
+/* Заблокированные машины */
+.car-shop-item.locked {
+    opacity: 0.6;
 }
 
-.opponent-difficulty.medium {
-    color: var(--neon-yellow);
-}
-
-.opponent-difficulty.hard {
-    color: var(--neon-orange);
-}
-
-.opponent-difficulty.extreme {
+.level-requirement {
     color: var(--neon-red);
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+/* Адаптация под очень маленькие экраны */
+@media (max-width: 320px) {
+    .game-logo {
+        font-size: 1.8rem;
+    }
+    
+    .header-logo {
+        font-size: 1rem;
+    }
+    
+    .menu-title {
+        font-size: 1rem;
+    }
+    
+    .menu-subtitle {
+        font-size: 0.8rem;
+    }
 }
