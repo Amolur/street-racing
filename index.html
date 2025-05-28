@@ -2,9 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Street Racing - Уличные гонки</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <!-- Добавим иконки и шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,38 +76,52 @@
             <div class="header-main">
                 <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
                 <div class="header-logo">STREET RACING</div>
-                <div class="header-stats">
-                    <div class="stat-item">
+                <div class="header-stats-mobile">
+                    <div class="stat-compact">
                         <span class="stat-icon">💰</span>
-                        <span id="money">1000</span>
+                        <span id="money-mobile">1000</span>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">⭐</span>
-                        <span id="level">1</span>
-                    </div>
+                </div>
+            </div>
+            <!-- Desktop статистика -->
+            <div class="header-stats-desktop">
+                <div class="stat-item">
+                    <span class="stat-icon">💰</span>
+                    <span id="money">1000</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <span id="wins-header">0</span>
                 </div>
             </div>
         </header>
 
         <!-- Мобильное меню -->
         <div id="mobile-menu" class="mobile-menu">
-            <div class="mobile-menu-header">
-                <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a" alt="Avatar" class="user-avatar">
-                <div class="user-info">
-                    <h3 id="mobile-username">Игрок</h3>
-                    <p>Уровень <span id="mobile-level">1</span></p>
+            <div class="mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+            <div class="mobile-menu-content">
+                <div class="mobile-menu-header">
+                    <img src="https://ui-avatars.com/api/?name=User&background=4ecdc4&color=1a1a1a" alt="Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <h3 id="mobile-username">Игрок</h3>
+                        <p>Уровень <span id="mobile-level">1</span></p>
+                    </div>
+                    <button class="close-menu" onclick="toggleMobileMenu()">×</button>
                 </div>
-                <button class="close-menu" onclick="toggleMobileMenu()">×</button>
+                <nav class="mobile-nav">
+                    <a href="#" onclick="navigateTo('main-menu')">🏠 Главная</a>
+                    <a href="#" onclick="navigateTo('race-menu-screen')">🏁 Гонки</a>
+                    <a href="#" onclick="navigateTo('garage-screen')">🚗 Гараж</a>
+                    <a href="#" onclick="navigateTo('shop-screen')">🛒 Магазин</a>
+                    <a href="#" onclick="navigateTo('profile-screen')">👤 Профиль</a>
+                    <a href="#" onclick="navigateTo('leaderboard-screen')">🏆 Рейтинг</a>
+                    <a href="#" onclick="logout()" class="logout-link">🚪 Выход</a>
+                </nav>
             </div>
-            <nav class="mobile-nav">
-                <a href="#" onclick="navigateTo('main-menu')">🏠 Главная</a>
-                <a href="#" onclick="navigateTo('race-menu-screen')">🏁 Гонки</a>
-                <a href="#" onclick="navigateTo('garage-screen')">🚗 Гараж</a>
-                <a href="#" onclick="navigateTo('shop-screen')">🛒 Магазин</a>
-                <a href="#" onclick="navigateTo('profile-screen')">👤 Профиль</a>
-                <a href="#" onclick="navigateTo('leaderboard-screen')">🏆 Рейтинг</a>
-                <a href="#" onclick="logout()" class="logout-link">🚪 Выход</a>
-            </nav>
         </div>
 
         <!-- Основной контент -->

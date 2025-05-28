@@ -1,9 +1,64 @@
 // API конфигурация
 const API_URL = 'https://street-racing-backend-wnse.onrender.com/api';
-let authToken = localStorage.getItem('authToken');
+
+// Безопасная работа с localStorage
+const storage = {
+    getItem: (key) => {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn('localStorage недоступен:', e);
+            return null;
+        }
+    },
+    setItem: (key, value) => {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn('Не удалось сохранить в localStorage:', e);
+        }
+    },
+    removeItem: (key) => {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn('Не удалось удалить из localStorage:', e);
+        }
+    }
+};
+
+let authToken = storage.getItem('authToken');
+
+// Проверка соединения
+function checkConnection() {
+    return navigator.onLine;
+}
+
+// Показать уведомление об ошибке
+function showError(message) {
+    let notification = document.getElementById('error-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'error-notification';
+        notification.className = 'error-notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 5000);
+}
 
 // Базовая функция для API запросов
 async function apiRequest(endpoint, options = {}) {
+    if (!checkConnection()) {
+        showError('Нет соединения с интернетом');
+        throw new Error('No internet connection');
+    }
+    
     const config = {
         ...options,
         headers: {
@@ -34,6 +89,9 @@ async function apiRequest(endpoint, options = {}) {
         return data;
     } catch (error) {
         console.error('API Error:', error);
+        if (error.message.includes('Failed to fetch')) {
+            showError('Сервер недоступен. Попробуйте позже.');
+        }
         throw error;
     }
 }
@@ -46,7 +104,7 @@ async function registerAPI(username, password) {
     });
     
     authToken = data.token;
-    localStorage.setItem('authToken', authToken);
+    storage.setItem('authToken', authToken);
     return data;
 }
 
@@ -57,13 +115,13 @@ async function loginAPI(username, password) {
     });
     
     authToken = data.token;
-    localStorage.setItem('authToken', authToken);
+    storage.setItem('authToken', authToken);
     return data;
 }
 
 function logoutAPI() {
     authToken = null;
-    localStorage.removeItem('authToken');
+    storage.removeItem('authToken');
 }
 
 // Игровые функции
@@ -81,3 +139,12 @@ async function saveGameData(gameData) {
 async function getLeaderboard() {
     return await apiRequest('/game/leaderboard', { method: 'GET' });
 }
+
+// Обработчики offline/online
+window.addEventListener('online', () => {
+    showError('Соединение восстановлено');
+});
+
+window.addEventListener('offline', () => {
+    showError('Нет соединения с интернетом');
+});
