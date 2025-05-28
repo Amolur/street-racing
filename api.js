@@ -1,5 +1,5 @@
 // API конфигурация
-const API_URL = 'https://street-racing-backend-wnse.onrender.com/api'; // Измените на ваш сервер
+const API_URL = 'https://street-racing-backend-wnse.onrender.com/api';
 let authToken = localStorage.getItem('authToken');
 
 // Базовая функция для API запросов
