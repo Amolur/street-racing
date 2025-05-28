@@ -1020,10 +1020,13 @@ async function startRace(opponentIndex) {
     
     const totalPower = carPower + skillBonus;
     
-    const playerPerformance = totalPower * (0.8 + Math.random() * 0.4);
-    const opponentPerformance = 60 * opponent.difficulty * (0.8 + Math.random() * 0.4);
-    
-    const won = playerPerformance > opponentPerformance;
+    // Расчет времени прохождения (чем больше сила, тем меньше время)
+    const baseTime = 100; // базовое время в секундах
+    const playerTime = baseTime / (totalPower * (0.8 + Math.random() * 0.4));
+    const opponentTime = baseTime / (60 * opponent.difficulty * (0.8 + Math.random() * 0.4));
+
+    // В гонках побеждает тот, у кого МЕНЬШЕ время!
+    const won = playerTime < opponentTime;
     
     gameData.stats.totalRaces++;
     if (won) {
@@ -1056,8 +1059,8 @@ async function startRace(opponentIndex) {
             <h3 style="color: #4ecdc4;">ПОБЕДА!</h3>
             <p>Вы обогнали ${opponent.name}!</p>
             <p>Выигрыш: +$${opponent.reward}</p>
-            <p>Ваш результат: ${playerPerformance.toFixed(1)}</p>
-            <p>Результат соперника: ${opponentPerformance.toFixed(1)}</p>
+            <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
+            <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
             <p>Баланс: $${gameData.money}</p>
             ${skillsHTML}
         `;
@@ -1066,8 +1069,8 @@ async function startRace(opponentIndex) {
             <h3 style="color: #ff6b6b;">ПОРАЖЕНИЕ</h3>
             <p>${opponent.name} оказался быстрее!</p>
             <p>Проигрыш: -$${betAmount}</p>
-            <p>Ваш результат: ${playerPerformance.toFixed(1)}</p>
-            <p>Результат соперника: ${opponentPerformance.toFixed(1)}</p>
+            <p>Ваше время: ${playerTime.toFixed(2)} сек</p>
+            <p>Время соперника: ${opponentTime.toFixed(2)} сек</p>
             <p>Баланс: $${gameData.money}</p>
             ${skillsHTML}
         `;
