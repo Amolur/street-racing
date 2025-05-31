@@ -31,8 +31,6 @@ let gameData = {
     ]
 };
 
-let currentCar = null;
-
 // Текущий пользователь
 let currentUser = null;
 
@@ -101,7 +99,7 @@ const allCars = [
     // Маслкары (30000-50000$) - требуют 15 уровень
     { id: 13, name: "Dodger Chalenger", power: 88, speed: 85, handling: 75, acceleration: 86, price: 32000 },
     { id: 14, name: "Fordo Mustag", power: 90, speed: 87, handling: 77, acceleration: 88, price: 35000 },
-    { id: 15, name: "Camaго SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
+    { id: 15, name: "Camaро SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
     { id: 16, name: "Pontik Firebird", power: 87, speed: 83, handling: 76, acceleration: 85, price: 40000 },
     
     // Спорткары (50000-80000$) - требуют 20 уровень
@@ -183,32 +181,25 @@ function generateDynamicOpponents() {
     return baseOpponents;
 }
 
-// Функция для запуска автосохранения
+// Упрощенное автосохранение (ТОЛЬКО сервер)
 function startAutoSave() {
     // Останавливаем предыдущий интервал если есть
     if (autoSaveInterval) {
         clearInterval(autoSaveInterval);
     }
     
-    // Сохраняем каждые 30 секунд
+    // Сохраняем каждые 60 секунд (увеличили интервал)
     autoSaveInterval = setInterval(async () => {
         if (currentUser) {
             try {
                 await saveGameData(gameData);
                 console.log('Автосохранение выполнено');
-                
-                // Дублируем в локальное хранилище
-                saveUpgradesLocally();
-                
             } catch (error) {
                 console.error('Ошибка автосохранения:', error);
-                
-                // Если сервер недоступен, сохраняем только локально
-                saveUpgradesLocally();
-                console.log('Данные сохранены локально (сервер недоступен)');
+                // Не показываем ошибку пользователю при автосохранении
             }
         }
-    }, 30000); // 30 секунд
+    }, 60000); // 60 секунд
 }
 
 // Функция для остановки автосохранения
@@ -319,37 +310,21 @@ function logout() {
 async function checkAuth() {
     const token = storage.getItem('authToken');
     if (!token) return false;
+    
     try {
         showLoading(true);
         const data = await loadGameData();
         currentUser = { username: data.username };
-        
-        // Сохраняем существующие улучшения перед перезаписью
-        const oldGameData = gameData;
         gameData = data.gameData;
         
         // Добавляем поля опыта если их нет
         if (!gameData.experience) gameData.experience = 0;
         
-        // Восстанавливаем улучшения если они были
-        if (oldGameData && oldGameData.cars && gameData.cars) {
-            gameData.cars.forEach((car, index) => {
-                // Если у старой машины были улучшения, восстанавливаем их
-                if (oldGameData.cars[index] && oldGameData.cars[index].upgrades) {
-                    car.upgrades = oldGameData.cars[index].upgrades;
-                    car.specialParts = oldGameData.cars[index].specialParts;
-                }
-            });
-        }
-        
         // Инициализируем улучшения для всех машин
         if (gameData.cars) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
-        await syncGameData();
-    
-        showLoading(false);
-        return true;
         }
+        
         showLoading(false);
         return true;
     } catch (error) {
@@ -414,6 +389,7 @@ function goBack() {
     } else {
         navigateTo('main-menu');
     }
+    
     // Показываем панель если вернулись на главный экран
     if (currentScreen === 'main-menu') {
         showPlayerInfoBar();
@@ -427,12 +403,13 @@ function hideAllScreens() {
     });
 }
 
+// Функции навигации
 function showMainMenu(addToHistory = true) {
     hideAllScreens();
     document.getElementById('main-menu').classList.add('active');
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
-
+    
     // Всегда показываем информационную панель на главном экране
     setTimeout(() => {
         showPlayerInfoBar();
@@ -440,7 +417,7 @@ function showMainMenu(addToHistory = true) {
 }
 
 function showGarageScreen(addToHistory = true) {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('garage-screen').classList.add('active');
     updateGarageDisplay();
@@ -448,7 +425,7 @@ function showGarageScreen(addToHistory = true) {
 }
 
 function showRaceMenu(addToHistory = true) {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('race-menu-screen').classList.add('active');
     displayOpponents();
@@ -456,7 +433,7 @@ function showRaceMenu(addToHistory = true) {
 }
 
 function showProfileScreen(addToHistory = true) {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('profile-screen').classList.add('active');
     updateProfileDisplay();
@@ -464,7 +441,7 @@ function showProfileScreen(addToHistory = true) {
 }
 
 function showShopScreen(addToHistory = true) {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('shop-screen').classList.add('active');
     updateShopDisplay();
@@ -472,7 +449,7 @@ function showShopScreen(addToHistory = true) {
 }
 
 async function showLeaderboardScreen(addToHistory = true) {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('leaderboard-screen').classList.add('active');
     if (addToHistory) navigateToScreen('leaderboard-screen');
@@ -480,7 +457,7 @@ async function showLeaderboardScreen(addToHistory = true) {
 }
 
 function showRaceResultScreen() {
-    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
+    hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('race-result-screen').classList.add('active');
 }
@@ -537,7 +514,6 @@ function previousCar() {
     if (gameData.currentCar > 0) {
         gameData.currentCar--;
         updateGarageDisplay();
-        updateCarSelector();
     }
 }
 
@@ -545,7 +521,6 @@ function nextCar() {
     if (gameData.currentCar < gameData.cars.length - 1) {
         gameData.currentCar++;
         updateGarageDisplay();
-        updateCarSelector();
     }
 }
 
@@ -556,7 +531,6 @@ function updateCarSelector() {
     }
 }
 
-// Обновленное отображение гаража
 // Обновленное отображение гаража
 function updateGarageDisplay() {
     // Проверяем, что данные загружены
@@ -580,7 +554,6 @@ function updateGarageDisplay() {
     }
 }
 
-// Отображение превью машин
 // Отображение превью машин
 function updateCarsPreview() {
     const carsList = document.getElementById('cars-list');
@@ -621,6 +594,7 @@ function updateCarsPreview() {
     updateNavigationButtons();
 }
 
+// Обновление кнопок навигации
 function updateNavigationButtons() {
     const navButtons = document.querySelectorAll('.nav-btn');
     if (navButtons.length < 2) return;
@@ -817,97 +791,37 @@ function updateSpecialPartsDisplay() {
     });
 }
 
-// Переключение вкладок гаража
+// Переключение вкладок гаража (БЕЗ рекурсии)
 function showGarageTab(tab) {
     // Обновляем кнопки вкладок
     document.querySelectorAll('.garage-tab-modern').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.garage-tab-content').forEach(content => content.classList.remove('active'));
     
     if (tab === 'upgrades') {
-        document.querySelector('.garage-tab-modern:first-child').classList.add('active');
-        document.getElementById('garage-upgrades-modern').classList.add('active');
-        updateUpgradesDisplay();
-    } else if (tab === 'parts') {
-        document.querySelector('.garage-tab-modern:last-child').classList.add('active');
-        document.getElementById('garage-parts-modern').classList.add('active');
-        updateSpecialPartsDisplay();
-    }
-}
-
-// Обновленные функции навигации между машинами
-function previousCar() {
-    if (gameData.currentCar > 0) {
-        gameData.currentCar--;
-        updateGarageDisplay();
-    }
-}
-
-function nextCar() {
-    if (gameData.currentCar < gameData.cars.length - 1) {
-        gameData.currentCar++;
-        updateGarageDisplay();
-    }
-}
-    
-    // Обновляем селектор
-    updateCarSelector();
-    
-    // Обновляем статистику машины
-    const statsDisplay = document.getElementById('car-stats-display');
-    if (statsDisplay && currentCar) {
-        const totalStats = calculateTotalStats(currentCar);
+        const upgradesTab = document.querySelector('.garage-tab-modern:first-child');
+        const upgradesContent = document.getElementById('garage-upgrades-modern');
         
-        statsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Мощность</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.power}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.power - currentCar.power}%"></div>
-                </div>
-                <span>${totalStats.power} ${totalStats.power > currentCar.power ? `(+${totalStats.power - currentCar.power})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.speed}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.speed - currentCar.speed}%"></div>
-                </div>
-                <span>${totalStats.speed} ${totalStats.speed > currentCar.speed ? `(+${totalStats.speed - currentCar.speed})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Управление</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.handling}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.handling - currentCar.handling}%"></div>
-                </div>
-                <span>${totalStats.handling} ${totalStats.handling > currentCar.handling ? `(+${totalStats.handling - currentCar.handling})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Разгон</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.acceleration}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.acceleration - currentCar.acceleration}%"></div>
-                </div>
-                <span>${totalStats.acceleration} ${totalStats.acceleration > currentCar.acceleration ? `(+${totalStats.acceleration - currentCar.acceleration})` : ''}</span>
-            </div>
-        `;
+        if (upgradesTab) upgradesTab.classList.add('active');
+        if (upgradesContent) upgradesContent.classList.add('active');
+        
+        // Задержка для избежания конфликтов
+        setTimeout(() => {
+            updateUpgradesDisplay();
+        }, 10);
+        
+    } else if (tab === 'parts') {
+        const partsTab = document.querySelector('.garage-tab-modern:last-child');
+        const partsContent = document.getElementById('garage-parts-modern');
+        
+        if (partsTab) partsTab.classList.add('active');
+        if (partsContent) partsContent.classList.add('active');
+        
+        // Задержка для избежания конфликтов
+        setTimeout(() => {
+            updateSpecialPartsDisplay();
+        }, 10);
     }
-    
-    // Обновляем общую статистику
-    const totalPower = document.getElementById('total-power');
-    const upgradeLevel = document.getElementById('upgrade-level');
-    
-    if (totalPower && currentCar) {
-        const totalStats = calculateTotalStats(currentCar);
-        const avgPower = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
-        totalPower.textContent = avgPower;
-    }
-    
-    if (upgradeLevel && currentCar) {
-        const totalUpgradeLevel = currentCar.upgrades ? 
-            Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
-        upgradeLevel.textContent = totalUpgradeLevel;
-    }
+}
 
 // Функция обновления профиля
 function updateProfileDisplay() {
@@ -1112,27 +1026,62 @@ function updateShopDisplay() {
     }
 }
 
-// Функция покупки машины
+// Функция покупки машины (ТОЛЬКО сервер)
 async function buyCar(carId) {
     const car = allCars.find(c => c.id === carId);
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
-    if (!car || gameData.money < car.price || gameData.level < requiredLevel) return;
+    if (!car || gameData.money < car.price || gameData.level < requiredLevel) {
+        showError('Невозможно купить эту машину!');
+        return;
+    }
     
-    if (confirm(`Купить ${car.name} за ${car.price.toLocaleString()}?`)) {
-        gameData.money -= car.price;
-        gameData.stats.moneySpent += car.price;
+    if (!confirm(`Купить ${car.name} за $${car.price.toLocaleString()}?`)) {
+        return;
+    }
+    
+    // Сохраняем старые значения для отката
+    const oldMoney = gameData.money;
+    const oldSpent = gameData.stats.moneySpent;
+    const oldCars = [...gameData.cars];
+    
+    // Применяем изменения локально (для UI)
+    gameData.money -= car.price;
+    gameData.stats.moneySpent += car.price;
+    
+    const newCar = {...car, owned: true};
+    initializeCarUpgrades(newCar);
+    gameData.cars.push(newCar);
+    
+    // Обновляем интерфейс сразу
+    updatePlayerInfo();
+    updateShopDisplay();
+    
+    // Показываем индикатор загрузки
+    showLoading(true);
+    
+    try {
+        // Сохраняем на сервер
+        await saveGameData(gameData);
+        showLoading(false);
         
-        // Создаем копию машины и инициализируем улучшения
-        const newCar = {...car, owned: true};
-        initializeCarUpgrades(newCar);
-        gameData.cars.push(newCar);
+        console.log('Покупка машины успешно сохранена на сервер');
+        showError(`✅ Вы купили ${car.name}!`);
         
+    } catch (error) {
+        showLoading(false);
+        console.error('Ошибка сохранения покупки машины:', error);
+        
+        // ОТКАТЫВАЕМ изменения при ошибке
+        gameData.money = oldMoney;
+        gameData.stats.moneySpent = oldSpent;
+        gameData.cars = oldCars;
+        
+        // Обновляем интерфейс
         updatePlayerInfo();
         updateShopDisplay();
-        await autoSave();
         
-        showError(`Вы купили ${car.name}!`);
+        showError('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.');
     }
 }
 
@@ -1157,9 +1106,14 @@ async function sellCar(index) {
         
         updatePlayerInfo();
         updateShopDisplay();
-        await autoSave();
         
-        showError(`${car.name} продана за $${sellPrice.toLocaleString()}`);
+        try {
+            await saveGameData(gameData);
+            showError(`${car.name} продана за $${sellPrice.toLocaleString()}`);
+        } catch (error) {
+            console.error('Ошибка сохранения продажи:', error);
+            showError('⚠️ Продажа может не сохраниться. Проверьте соединение.');
+        }
     }
 }
 
@@ -1664,7 +1618,15 @@ async function startRace(opponentIndex) {
     }
     
     updatePlayerInfo();
-    await autoSave();
+    
+    // Сохраняем результат гонки на сервер
+    try {
+        await saveGameData(gameData);
+        console.log('Результат гонки сохранен на сервер');
+    } catch (error) {
+        console.error('Ошибка сохранения результата гонки:', error);
+        showError('⚠️ Результат гонки может не сохраниться. Проверьте соединение.');
+    }
 }
 
 // Функции для экрана авторизации
@@ -1741,25 +1703,13 @@ function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
     
-    // Загружаем улучшения из локального хранилища
-    loadUpgradesLocally();
-    
-    // Обновляем имя в профиле тоже
-    const profileUsername = document.getElementById('profile-username');
-    if (profileUsername && currentUser) {
-        profileUsername.textContent = currentUser.username;
-    }
-    
     // Обновляем аватары
     const avatars = document.querySelectorAll('.player-avatar, .profile-avatar');
     avatars.forEach(avatar => {
-    if (currentUser) {
-        avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
-    }
-});
-    
-    // Обновляем мини-полоску опыта
-    updateXPBar();
+        if (currentUser) {
+            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
+        }
+    });
     
     updatePlayerInfo();
     updateQuickStats();
@@ -1770,11 +1720,14 @@ function showGame() {
     // Запускаем обновление топлива
     startFuelUpdates();
     
+    // Запускаем обновление информационной панели
+    startInfoBarUpdates();
+    
     navigationHistory = [];
     currentScreen = 'main-menu';
     showMainMenu(false);
+    
     showPlayerInfoBar();
-    startInfoBarUpdates();
 }
 
 // Функция обновления полоски опыта
@@ -2069,38 +2022,6 @@ if (gameData && gameData.cars) {
     gameData.cars.forEach(car => initializeCarUpgrades(car));
 }
 
-// Переключение вкладок гаража (БЕЗ рекурсии)
-function showGarageTab(tab) {
-    // Обновляем кнопки вкладок
-    document.querySelectorAll('.garage-tab-modern').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.garage-tab-content').forEach(content => content.classList.remove('active'));
-    
-    if (tab === 'upgrades') {
-        const upgradesTab = document.querySelector('.garage-tab-modern:first-child');
-        const upgradesContent = document.getElementById('garage-upgrades-modern');
-        
-        if (upgradesTab) upgradesTab.classList.add('active');
-        if (upgradesContent) upgradesContent.classList.add('active');
-        
-        // Задержка для избежания конфликтов
-        setTimeout(() => {
-            updateUpgradesDisplay();
-        }, 10);
-        
-    } else if (tab === 'parts') {
-        const partsTab = document.querySelector('.garage-tab-modern:last-child');
-        const partsContent = document.getElementById('garage-parts-modern');
-        
-        if (partsTab) partsTab.classList.add('active');
-        if (partsContent) partsContent.classList.add('active');
-        
-        // Задержка для избежания конфликтов
-        setTimeout(() => {
-            updateSpecialPartsDisplay();
-        }, 10);
-    }
-}
-
 // Расчет стоимости улучшения
 function getUpgradeCost(type, currentLevel) {
     const config = upgradeConfig[type];
@@ -2148,137 +2069,102 @@ function calculateTotalStats(car) {
     return totalStats;
 }
 
-// Отображение списка улучшений
-function updateUpgradesDisplay() {
+// Функция улучшения компонента (ТОЛЬКО сервер)
+async function upgradeComponent(type) {
     const currentCar = gameData.cars[gameData.currentCar];
-    const upgradesList = document.getElementById('upgrades-list');
-    const upgradeBalance = document.getElementById('upgrade-balance');
+    const currentLevel = currentCar.upgrades[type];
+    const cost = getUpgradeCost(type, currentLevel);
     
-    if (upgradeBalance) {
-        upgradeBalance.textContent = gameData.money;
+    // Валидация
+    if (currentLevel >= 10) {
+        showError('Достигнут максимальный уровень улучшения!');
+        return;
     }
     
-    if (!upgradesList) return;
-    
-    upgradesList.innerHTML = '';
-    
-    // Ограничения по уровню машины
-    let maxUpgradeLevel = 10;
-    if (currentCar.price === 0 || currentCar.price <= 8000) {
-        maxUpgradeLevel = 5;
-    } else if (currentCar.price <= 35000) {
-        maxUpgradeLevel = 7;
+    if (gameData.money < cost) {
+        showError('Недостаточно денег!');
+        return;
     }
     
-    // Отображаем улучшения
-    Object.keys(upgradeConfig).forEach(upgradeType => {
-        const config = upgradeConfig[upgradeType];
-        const currentLevel = currentCar.upgrades[upgradeType];
-        const cost = getUpgradeCost(upgradeType, currentLevel);
-        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
+    // Сохраняем старые значения для отката
+    const oldMoney = gameData.money;
+    const oldSpent = gameData.stats.moneySpent;
+    const oldLevel = currentCar.upgrades[type];
+    
+    // Применяем изменения локально (для UI)
+    gameData.money -= cost;
+    gameData.stats.moneySpent += cost;
+    currentCar.upgrades[type]++;
+    
+    // Обновляем интерфейс сразу
+    updatePlayerInfo();
+    updateGarageDisplay();
+    
+    // Показываем индикатор загрузки
+    showLoading(true);
+    
+    try {
+        // Сохраняем на сервер
+        await saveGameData(gameData);
+        showLoading(false);
         
-        const upgradeDiv = document.createElement('div');
-        upgradeDiv.className = 'upgrade-item';
-        upgradeDiv.innerHTML = `
-            <div class="upgrade-header">
-                <span class="upgrade-icon">${config.icon}</span>
-                <h4>${config.name}</h4>
-                <span class="upgrade-level">Ур. ${currentLevel}/${maxUpgradeLevel}</span>
-            </div>
-            <p class="upgrade-description">${config.description}</p>
-            <div class="upgrade-progress">
-                <div class="upgrade-progress-bar">
-                    <div class="upgrade-progress-fill" style="width: ${(currentLevel / maxUpgradeLevel) * 100}%"></div>
-                </div>
-            </div>
-            <div class="upgrade-stats">
-                ${Object.entries(config.affects).map(([stat, value]) => 
-                    `<span class="upgrade-stat">+${value} ${getStatName(stat)}</span>`
-                ).join('')}
-            </div>
-            ${currentLevel < maxUpgradeLevel ? `
-                <button class="btn-upgrade ${canUpgrade ? 'btn-primary' : 'btn-disabled'}" 
-                        onclick="upgradeComponent('${upgradeType}')" 
-                        ${!canUpgrade ? 'disabled' : ''}>
-                    ${canUpgrade ? `Улучшить (${cost.toLocaleString()})` : 
-                      gameData.money < cost ? 'Недостаточно денег' : 'Макс. уровень'}
-                </button>
-            ` : '<p class="max-level">Максимальный уровень</p>'}
-        `;
+        console.log('Улучшение успешно сохранено на сервер');
+        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
         
-        upgradesList.appendChild(upgradeDiv);
-    });
-    
-    // Специальные детали
-    const specialPartsDiv = document.createElement('div');
-    specialPartsDiv.className = 'special-parts-section';
-    specialPartsDiv.innerHTML = `
-        <h3>Специальные детали</h3>
-        <div class="special-parts-grid">
-            ${!currentCar.specialParts.nitro ? `
-                <div class="special-part">
-                    <span class="special-icon">🚀</span>
-                    <h4>Нитро</h4>
-                    <p>+20% к скорости (шанс 30%)</p>
-                    <button class="btn-primary" onclick="buySpecialPart('nitro', 15000)" 
-                            ${gameData.money < 15000 ? 'disabled' : ''}>
-                        Купить ($15,000)
-                    </button>
-                </div>
-            ` : '<div class="special-part owned"><span>🚀</span><p>Нитро установлено</p></div>'}
-            
-            ${!currentCar.specialParts.bodyKit ? `
-                <div class="special-part">
-                    <span class="special-icon">🎨</span>
-                    <h4>Спортивный обвес</h4>
-                    <p>+10 ко всем характеристикам</p>
-                    <button class="btn-primary" onclick="buySpecialPart('bodyKit', 25000)" 
-                            ${gameData.money < 25000 ? 'disabled' : ''}>
-                        Купить ($25,000)
-                    </button>
-                </div>
-            ` : '<div class="special-part owned"><span>🎨</span><p>Обвес установлен</p></div>'}
-            
-            ${!currentCar.specialParts.ecuTune ? `
-                <div class="special-part">
-                    <span class="special-icon">💻</span>
-                    <h4>Чип-тюнинг</h4>
-                    <p>+15% к эффективности</p>
-                    <button class="btn-primary" onclick="buySpecialPart('ecuTune', 20000)" 
-                            ${gameData.money < 20000 ? 'disabled' : ''}>
-                        Купить ($20,000)
-                    </button>
-                </div>
-            ` : '<div class="special-part owned"><span>💻</span><p>Чип установлен</p></div>'}
-        </div>
-    `;
-    
-    upgradesList.appendChild(specialPartsDiv);
-}
-async function buySpecialPart(type, cost) {
-    const currentCar = gameData.cars[gameData.currentCar];
-    
-    if (gameData.money >= cost) {
-        gameData.money -= cost;
-        gameData.stats.moneySpent += cost;
-        currentCar.specialParts[type] = true;
+        checkUpgradeAchievements();
+        
+    } catch (error) {
+        showLoading(false);
+        console.error('Ошибка сохранения улучшения:', error);
+        
+        // ОТКАТЫВАЕМ изменения при ошибке
+        gameData.money = oldMoney;
+        gameData.stats.moneySpent = oldSpent;
+        currentCar.upgrades[type] = oldLevel;
         
         // Обновляем интерфейс
         updatePlayerInfo();
         updateGarageDisplay();
         
-        // ПРИНУДИТЕЛЬНО сохраняем на сервер
-        try {
-            await saveGameData(gameData);
-            console.log('Специальная деталь сохранена на сервер');
-        } catch (error) {
-            console.error('Ошибка сохранения детали:', error);
-            showError('Ошибка сохранения! Попробуйте еще раз.');
-            return;
-        }
-        
-        // Также сохраняем локально
-        saveUpgradesLocally();
+        showError('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.');
+    }
+}
+
+// Покупка специальных деталей (ТОЛЬКО сервер)
+async function buySpecialPart(type, cost) {
+    const currentCar = gameData.cars[gameData.currentCar];
+    
+    if (gameData.money < cost) {
+        showError('Недостаточно денег!');
+        return;
+    }
+    
+    if (currentCar.specialParts[type]) {
+        showError('Эта деталь уже установлена!');
+        return;
+    }
+    
+    // Сохраняем старые значения для отката
+    const oldMoney = gameData.money;
+    const oldSpent = gameData.stats.moneySpent;
+    const oldPart = currentCar.specialParts[type];
+    
+    // Применяем изменения локально (для UI)
+    gameData.money -= cost;
+    gameData.stats.moneySpent += cost;
+    currentCar.specialParts[type] = true;
+    
+    // Обновляем интерфейс сразу
+    updatePlayerInfo();
+    updateGarageDisplay();
+    
+    // Показываем индикатор загрузки
+    showLoading(true);
+    
+    try {
+        // Сохраняем на сервер
+        await saveGameData(gameData);
+        showLoading(false);
         
         const partNames = {
             nitro: "Нитро",
@@ -2286,115 +2172,181 @@ async function buySpecialPart(type, cost) {
             ecuTune: "Чип-тюнинг"
         };
         
+        console.log('Специальная деталь успешно сохранена на сервер');
         showError(`${partNames[type]} установлен!`);
-    }
-}
-// Функция улучшения компонента
-async function upgradeComponent(type) {
-    const currentCar = gameData.cars[gameData.currentCar];
-    const currentLevel = currentCar.upgrades[type];
-    const cost = getUpgradeCost(type, currentLevel);
-    
-    if (gameData.money >= cost) {
-        gameData.money -= cost;
-        gameData.stats.moneySpent += cost;
-        currentCar.upgrades[type]++;
         
-        console.log('Улучшение применено:', type, 'уровень:', currentCar.upgrades[type]);
-        console.log('Текущие данные машины:', currentCar);
+    } catch (error) {
+        showLoading(false);
+        console.error('Ошибка сохранения детали:', error);
+        
+        // ОТКАТЫВАЕМ изменения при ошибке
+        gameData.money = oldMoney;
+        gameData.stats.moneySpent = oldSpent;
+        currentCar.specialParts[type] = oldPart;
         
         // Обновляем интерфейс
         updatePlayerInfo();
         updateGarageDisplay();
         
-        // ПРИНУДИТЕЛЬНО сохраняем на сервер
-        try {
-            await saveGameData(gameData);
-            console.log('Улучшения сохранены на сервер');
-        } catch (error) {
-            console.error('Ошибка сохранения улучшений:', error);
-            showError('Ошибка сохранения! Попробуйте еще раз.');
-            return;
-        }
-        
-        // Также сохраняем локально как резервную копию
-        saveUpgradesLocally();
-        
-        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
-        
-        // Проверяем достижения
-        checkUpgradeAchievements();
+        showError('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.');
     }
 }
 
-// Сохранение улучшений локально
-function saveUpgradesLocally() {
-    if (gameData.cars) {
-        const upgrades = gameData.cars.map(car => ({
-            id: car.id,
-            upgrades: car.upgrades || {},
-            specialParts: car.specialParts || {},
-            fuel: car.fuel,
-            maxFuel: car.maxFuel,
-            lastFuelUpdate: car.lastFuelUpdate
-        }));
-        
-        const saveData = {
-            upgrades: upgrades,
-            timestamp: new Date().toISOString(),
-            gameData: {
-                money: gameData.money,
-                level: gameData.level,
-                experience: gameData.experience,
-                stats: gameData.stats
-            }
-        };
-        
-        storage.setItem('carUpgrades', JSON.stringify(saveData));
-        console.log('Улучшения сохранены локально:', saveData);
+// Получение названия характеристики
+function getStatName(stat) {
+    const statNames = {
+        power: "Мощность",
+        speed: "Скорость",
+        handling: "Управление",
+        acceleration: "Разгон"
+    };
+    return statNames[stat] || stat;
+}
+
+// Проверка достижений за улучшения
+function checkUpgradeAchievements() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+    
+    if (totalUpgradeLevel === 10) {
+        showError("🏆 Достижение: Первые улучшения!");
+    } else if (totalUpgradeLevel === 25) {
+        showError("🏆 Достижение: Серьезный тюнинг!");
+    } else if (totalUpgradeLevel === 50) {
+        showError("🏆 Достижение: Максимальная прокачка!");
     }
 }
 
-// Загрузка улучшений из локального хранилища
-function loadUpgradesLocally() {
-    const savedData = storage.getItem('carUpgrades');
-    if (savedData) {
-        try {
-            const data = JSON.parse(savedData);
-            console.log('Загружаем локальные улучшения:', data);
-            
-            if (gameData.cars && data.upgrades) {
-                gameData.cars.forEach(car => {
-                    const savedCar = data.upgrades.find(u => u.id === car.id);
-                    if (savedCar) {
-                        car.upgrades = savedCar.upgrades || {};
-                        car.specialParts = savedCar.specialParts || {};
-                        car.fuel = savedCar.fuel || 30;
-                        car.maxFuel = savedCar.maxFuel || 30;
-                        car.lastFuelUpdate = savedCar.lastFuelUpdate || new Date().toISOString();
-                        
-                        // Инициализируем недостающие поля
-                        initializeCarUpgrades(car);
-                    }
-                });
-                
-                // Восстанавливаем игровые данные если они новее
-                if (data.gameData && data.timestamp) {
-                    const savedTime = new Date(data.timestamp);
-                    const currentTime = new Date();
-                    
-                    // Если данные свежие (менее часа), восстанавливаем их
-                    if (currentTime - savedTime < 3600000) {
-                        console.log('Восстанавливаем свежие локальные данные');
-                        if (data.gameData.money !== undefined) gameData.money = data.gameData.money;
-                        if (data.gameData.stats) gameData.stats = data.gameData.stats;
-                    }
-                }
-            }
-        } catch (e) {
-            console.error('Ошибка загрузки локальных улучшений:', e);
+// Функции информационной панели игрока
+function showPlayerInfoBar() {
+    const infoBar = document.getElementById('player-info-bar');
+    if (infoBar) {
+        infoBar.style.display = 'flex';
+        updatePlayerInfoBar();
+    }
+}
+
+function hidePlayerInfoBar() {
+    const infoBar = document.getElementById('player-info-bar');
+    if (infoBar) {
+        infoBar.style.display = 'none';
+    }
+}
+
+// Обновление данных в информационной панели (БЕЗ рекурсии)
+function updatePlayerInfoBar() {
+    // Показываем панель если мы на главном экране и есть данные пользователя
+    if (currentScreen === 'main-menu' && currentUser && gameData) {
+        const infoBar = document.getElementById('player-info-bar');
+        if (infoBar) {
+            infoBar.style.display = 'flex';
         }
     }
+    
+    if (!currentUser || !gameData) return;
+    
+    // Обновляем имя пользователя
+    const usernameEl = document.getElementById('info-username');
+    if (usernameEl) {
+        usernameEl.textContent = currentUser.username;
+    }
+    
+    // Обновляем уровень
+    const levelEl = document.getElementById('info-level');
+    if (levelEl) {
+        levelEl.textContent = gameData.level;
+    }
+    
+    // Обновляем деньги с анимацией
+    const moneyEl = document.getElementById('info-money');
+    if (moneyEl) {
+        const oldMoney = parseInt(moneyEl.textContent.replace(/,/g, '')) || 0;
+        const newMoney = gameData.money;
+        
+        if (oldMoney !== newMoney) {
+            moneyEl.parentElement.classList.add('updating');
+            setTimeout(() => {
+                moneyEl.parentElement.classList.remove('updating');
+            }, 300);
+        }
+        
+        moneyEl.textContent = newMoney.toLocaleString();
+    }
+    
+    // Обновляем топливо (БЕЗ вызова updateFuelInfoBar)
+    updateFuelInfoBarDirect();
+}
+
+// Прямое обновление топлива БЕЗ рекурсии
+function updateFuelInfoBarDirect() {
+    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return;
+    
+    const currentCar = gameData.cars[gameData.currentCar];
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    const maxFuel = currentCar.maxFuel || 30;
+    
+    const fuelEl = document.getElementById('info-fuel');
+    const fuelTimerEl = document.getElementById('info-fuel-timer');
+    
+    if (fuelEl) {
+        fuelEl.textContent = `${currentFuel}/${maxFuel}`;
+        
+        // Меняем цвет в зависимости от количества топлива
+        const fuelPercent = currentFuel / maxFuel;
+        if (fuelPercent <= 0.2) {
+            fuelEl.style.color = 'var(--neon-red)';
+        } else if (fuelPercent <= 0.5) {
+            fuelEl.style.color = 'var(--neon-orange)';
+        } else {
+            fuelEl.style.color = 'var(--neon-yellow)';
+        }
+    }
+    
+    // Обновляем таймер восстановления топлива
+    if (fuelTimerEl && currentFuel < maxFuel) {
+        updateFuelTimerMini(currentCar, fuelTimerEl);
+    } else if (fuelTimerEl) {
+        fuelTimerEl.textContent = '';
+    }
+}
+
+// Мини-таймер топлива для информационной панели
+function updateFuelTimerMini(car, timerElement) {
+    const update = () => {
+        const now = new Date();
+        const lastUpdate = new Date(car.lastFuelUpdate || now);
+        const minutesPassed = (now - lastUpdate) / 60000;
+        const minutesUntilNextFuel = fuelSystem.regenRate - (minutesPassed % fuelSystem.regenRate);
+        
+        if (minutesUntilNextFuel > 0) {
+            const minutes = Math.floor(minutesUntilNextFuel);
+            const seconds = Math.floor((minutesUntilNextFuel - minutes) * 60);
+            timerElement.textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+        } else {
+            timerElement.textContent = '';
+        }
+    };
+    
+    update();
+    
+    // Обновляем каждую секунду
+    if (window.miniTimerInterval) clearInterval(window.miniTimerInterval);
+    window.miniTimerInterval = setInterval(update, 1000);
+}
+
+// Автоматическое обновление информационной панели (с защитой от переполнения)
+function startInfoBarUpdates() {
+    // Останавливаем предыдущий интервал если есть
+    if (window.infoBarUpdateInterval) {
+        clearInterval(window.infoBarUpdateInterval);
+    }
+    
+    window.infoBarUpdateInterval = setInterval(() => {
+        if (currentScreen === 'main-menu' && currentUser && gameData) {
+            // Обновляем только топливо и таймер, остальное по событиям
+            updateFuelInfoBarDirect();
+        }
+    }, 5000); // Увеличиваем интервал до 5 секунд
 }
 
 // Предотвращение обновления страницы при клике на кнопки
@@ -2402,7 +2354,9 @@ document.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' && !e.target.type) {
         e.preventDefault();
     }
-});function showPlayerInfoBar() {
+});
+
+function showPlayerInfoBar() {
     const infoBar = document.getElementById('player-info-bar');
     if (infoBar) {
         infoBar.style.display = 'flex';
@@ -2583,9 +2537,6 @@ function updateFuelTimerMini(car, timerElement) {
             if (localTime > serverTime) {
                 console.log('Локальные данные новее, синхронизируем с сервером');
                 
-                // Применяем локальные улучшения
-                loadUpgradesLocally();
-                
                 // Сохраняем на сервер
                 await saveGameData(gameData);
                 console.log('Локальные изменения синхронизированы с сервером');
@@ -2594,7 +2545,5 @@ function updateFuelTimerMini(car, timerElement) {
         
     } catch (error) {
         console.error('Ошибка синхронизации:', error);
-        // Если сервер недоступен, используем локальные данные
-        loadUpgradesLocally();
     }
 }
