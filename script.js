@@ -542,24 +542,247 @@ function updateCarSelector() {
     }
 }
 
-// Обновление отображения гаража
+// Обновленное отображение гаража
 function updateGarageDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
-    const carDisplay = document.getElementById('current-car-display');
+    updateCarsPreview();
+    updateCurrentCarStats();
+    updateUpgradesDisplay();
+    updateSpecialPartsDisplay();
+}
+
+// Отображение превью машин
+function updateCarsPreview() {
+    const carsList = document.getElementById('cars-list');
+    const carCounter = document.getElementById('car-counter');
     
-    if (carDisplay && currentCar) {
-        const totalUpgradeLevel = currentCar.upgrades ? 
-            Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
+    if (!carsList) return;
+    
+    carsList.innerHTML = '';
+    
+    gameData.cars.forEach((car, index) => {
+        initializeCarUpgrades(car);
+        const totalUpgrades = Object.values(car.upgrades).reduce((sum, level) => sum + level, 0);
         
-        carDisplay.innerHTML = `
-            <div class="car-emoji ${totalUpgradeLevel >= 25 ? 'car-glow' : ''}">🏎️</div>
-            <h3>${currentCar.name}</h3>
-            <div class="car-upgrade-level">
-                <span class="upgrade-stars">${'⭐'.repeat(Math.floor(totalUpgradeLevel / 10))}</span>
-                <span class="upgrade-text">Уровень прокачки: ${totalUpgradeLevel}/50</span>
+        const carCard = document.createElement('div');
+        carCard.className = `car-card ${index === gameData.currentCar ? 'active' : ''}`;
+        
+        carCard.innerHTML = `
+            <div class="car-emoji-big">🏎️</div>
+            <div class="car-name">${car.name}</div>
+            ${totalUpgrades > 0 ? `<div class="car-upgrade-badge">+${totalUpgrades}</div>` : ''}
+        `;
+        
+        carsList.appendChild(carCard);
+    });
+    
+    // Обновляем позицию карусели
+    const currentIndex = gameData.currentCar;
+    carsList.style.transform = `translateX(-${currentIndex * 100}%)`;
+    
+    // Обновляем счетчик
+    if (carCounter) {
+        carCounter.textContent = `${gameData.currentCar + 1} / ${gameData.cars.length}`;
+    }
+    
+    // Обновляем кнопки навигации
+    updateNavigationButtons();
+}
+
+// Обновление кнопок навигации
+function updateNavigationButtons() {
+    const prevBtn = document.querySelector('.nav-btn:first-child');
+    const nextBtn = document.querySelector('.nav-btn:last-child');
+    
+    if (prevBtn) {
+        prevBtn.disabled = gameData.currentCar === 0;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = gameData.currentCar === gameData.cars.length - 1;
+    }
+}
+
+// Обновление статистики текущей машины
+function updateCurrentCarStats() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    if (!currentCar) return;
+    
+    initializeCarUpgrades(currentCar);
+    const totalStats = calculateTotalStats(currentCar);
+    const totalUpgrades = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+    
+    // Обновляем статистики
+    const powerEl = document.getElementById('garage-power');
+    const speedEl = document.getElementById('garage-speed');
+    const handlingEl = document.getElementById('garage-handling');
+    const accelerationEl = document.getElementById('garage-acceleration');
+    
+    if (powerEl) powerEl.textContent = totalStats.power;
+    if (speedEl) speedEl.textContent = totalStats.speed;
+    if (handlingEl) handlingEl.textContent = totalStats.handling;
+    if (accelerationEl) accelerationEl.textContent = totalStats.acceleration;
+    
+    // Обновляем счетчик улучшений
+    const totalUpgradesEl = document.getElementById('total-upgrades');
+    if (totalUpgradesEl) {
+        totalUpgradesEl.textContent = totalUpgrades;
+    }
+    
+    // Рассчитываем рейтинг машины
+    const avgStat = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
+    const carRatingEl = document.getElementById('car-rating');
+    if (carRatingEl) {
+        let rating = 'D';
+        if (avgStat >= 90) rating = 'S';
+        else if (avgStat >= 80) rating = 'A';
+        else if (avgStat >= 70) rating = 'B';
+        else if (avgStat >= 60) rating = 'C';
+        
+        carRatingEl.textContent = rating;
+        carRatingEl.style.color = 
+            rating === 'S' ? 'var(--neon-pink)' :
+            rating === 'A' ? 'var(--neon-yellow)' :
+            rating === 'B' ? 'var(--neon-green)' :
+            rating === 'C' ? 'var(--neon-cyan)' : 'var(--text-secondary)';
+    }
+}
+
+// Обновленное отображение улучшений
+function updateUpgradesDisplay() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const upgradesGrid = document.getElementById('upgrades-grid');
+    
+    if (!upgradesGrid || !currentCar) return;
+    
+    upgradesGrid.innerHTML = '';
+    
+    // Ограничения по уровню машины
+    let maxUpgradeLevel = 10;
+    if (currentCar.price === 0 || currentCar.price <= 8000) {
+        maxUpgradeLevel = 5;
+    } else if (currentCar.price <= 35000) {
+        maxUpgradeLevel = 7;
+    }
+    
+    Object.keys(upgradeConfig).forEach(upgradeType => {
+        const config = upgradeConfig[upgradeType];
+        const currentLevel = currentCar.upgrades[upgradeType];
+        const cost = getUpgradeCost(upgradeType, currentLevel);
+        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
+        
+        const upgradeCard = document.createElement('div');
+        upgradeCard.className = 'upgrade-card-compact';
+        
+        upgradeCard.innerHTML = `
+            <div class="upgrade-icon-big">${config.icon}</div>
+            <div class="upgrade-info">
+                <div class="upgrade-name">${config.name}</div>
+                <div class="upgrade-level-bar">
+                    <div class="upgrade-progress-mini">
+                        <div class="upgrade-progress-fill-mini" style="width: ${(currentLevel / maxUpgradeLevel) * 100}%"></div>
+                    </div>
+                    <span class="upgrade-level-text">${currentLevel}/${maxUpgradeLevel}</span>
+                </div>
+                <div class="upgrade-effects">
+                    ${Object.entries(config.affects).map(([stat, value]) => 
+                        `+${value} ${getStatName(stat)}`
+                    ).join(', ')}
+                </div>
+            </div>
+            <div class="upgrade-action">
+                <button class="btn-upgrade-mini" 
+                        onclick="upgradeComponent('${upgradeType}')" 
+                        ${!canUpgrade ? 'disabled' : ''}>
+                    ${currentLevel >= maxUpgradeLevel ? 'МАКС' :
+                      gameData.money < cost ? `$${cost.toLocaleString()}` : 
+                      `$${cost.toLocaleString()}`}
+                </button>
             </div>
         `;
+        
+        upgradesGrid.appendChild(upgradeCard);
+    });
+}
+
+// Отображение специальных деталей
+function updateSpecialPartsDisplay() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    const partsGrid = document.getElementById('special-parts-grid');
+    
+    if (!partsGrid || !currentCar) return;
+    
+    const specialParts = [
+        { type: 'nitro', name: 'Нитро', icon: '🚀', desc: '+20% к скорости (шанс 30%)', price: 15000 },
+        { type: 'bodyKit', name: 'Спорт. обвес', icon: '🎨', desc: '+10 ко всем характеристикам', price: 25000 },
+        { type: 'ecuTune', name: 'Чип-тюнинг', icon: '💻', desc: '+15% к эффективности', price: 20000 }
+    ];
+    
+    partsGrid.innerHTML = '';
+    
+    specialParts.forEach(part => {
+        const isOwned = currentCar.specialParts[part.type];
+        const canBuy = !isOwned && gameData.money >= part.price;
+        
+        const partCard = document.createElement('div');
+        partCard.className = `special-part-card ${isOwned ? 'owned' : ''}`;
+        
+        partCard.innerHTML = `
+            <div class="special-icon-big">${part.icon}</div>
+            <div class="special-part-info">
+                <div class="special-part-name">${part.name}</div>
+                <div class="special-part-desc">${part.desc}</div>
+                ${isOwned ? 
+                    '<div class="special-part-owned">✅ Установлено</div>' :
+                    `<div class="special-part-price">$${part.price.toLocaleString()}</div>`
+                }
+            </div>
+            <div class="special-part-action">
+                ${isOwned ? 
+                    '<span class="special-part-owned">КУПЛЕНО</span>' :
+                    `<button class="btn-upgrade-mini" 
+                            onclick="buySpecialPart('${part.type}', ${part.price})" 
+                            ${!canBuy ? 'disabled' : ''}>
+                        ${canBuy ? 'КУПИТЬ' : 'НЕТ $'}
+                    </button>`
+                }
+            </div>
+        `;
+        
+        partsGrid.appendChild(partCard);
+    });
+}
+
+// Переключение вкладок гаража
+function showGarageTab(tab) {
+    // Обновляем кнопки вкладок
+    document.querySelectorAll('.garage-tab-modern').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.garage-tab-content').forEach(content => content.classList.remove('active'));
+    
+    if (tab === 'upgrades') {
+        document.querySelector('.garage-tab-modern:first-child').classList.add('active');
+        document.getElementById('garage-upgrades-modern').classList.add('active');
+        updateUpgradesDisplay();
+    } else if (tab === 'parts') {
+        document.querySelector('.garage-tab-modern:last-child').classList.add('active');
+        document.getElementById('garage-parts-modern').classList.add('active');
+        updateSpecialPartsDisplay();
     }
+}
+
+// Обновленные функции навигации между машинами
+function previousCar() {
+    if (gameData.currentCar > 0) {
+        gameData.currentCar--;
+        updateGarageDisplay();
+    }
+}
+
+function nextCar() {
+    if (gameData.currentCar < gameData.cars.length - 1) {
+        gameData.currentCar++;
+        updateGarageDisplay();
+    }
+}
     
     // Обновляем селектор
     updateCarSelector();
@@ -620,7 +843,6 @@ function updateGarageDisplay() {
             Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
         upgradeLevel.textContent = totalUpgradeLevel;
     }
-}
 
 // Функция обновления профиля
 function updateProfileDisplay() {

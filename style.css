@@ -664,22 +664,380 @@ body {
 
 /* Гараж - мобильная оптимизация */
 .garage-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     max-width: 100%;
 }
 
-.car-showcase {
+/* Превью машин */
+.cars-preview-section {
     background: var(--bg-card);
     border: 1px solid var(--neon-cyan);
-    border-radius: 20px;
-    padding: 2rem 1rem;
-    text-align: center;
-    margin-bottom: 1.5rem;
+    border-radius: 15px;
+    padding: 1rem;
+    overflow: hidden;
 }
 
-.car-emoji {
-    font-size: 4rem;
+.cars-carousel {
+    overflow: hidden;
     margin-bottom: 1rem;
-    filter: drop-shadow(0 0 20px var(--neon-cyan));
+}
+
+.cars-list {
+    display: flex;
+    transition: transform 0.3s ease;
+    gap: 1rem;
+}
+
+.car-card {
+    min-width: 100%;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+    position: relative;
+}
+
+.car-card.active {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.car-emoji-big {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 10px var(--neon-cyan));
+}
+
+.car-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.car-upgrade-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.car-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+}
+
+.nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.car-counter {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Информация о машине */
+.current-car-info {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.car-main-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-compact {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+}
+
+.stat-label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.car-upgrades-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.upgrades-count {
+    color: var(--neon-yellow);
+}
+
+.car-power-rating {
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Современные вкладки */
+.garage-tabs-modern {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.garage-tab-modern {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.garage-tab-modern.active {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 255, 255, 0.1);
+    color: var(--neon-cyan);
+}
+
+.tab-icon {
+    font-size: 1.2rem;
+}
+
+.tab-text {
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.garage-tab-content {
+    display: none;
+}
+
+.garage-tab-content.active {
+    display: block;
+}
+
+/* Сетка улучшений */
+.upgrades-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.upgrade-card-compact {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+}
+
+.upgrade-card-compact:hover {
+    border-color: var(--neon-cyan);
+}
+
+.upgrade-icon-big {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px currentColor);
+    flex-shrink: 0;
+}
+
+.upgrade-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.upgrade-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.upgrade-level-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.upgrade-progress-mini {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.upgrade-progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.3s ease;
+}
+
+.upgrade-level-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.upgrade-effects {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.upgrade-action {
+    flex-shrink: 0;
+}
+
+.btn-upgrade-mini {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-upgrade-mini:hover {
+    background: var(--neon-green);
+}
+
+.btn-upgrade-mini:disabled {
+    background: var(--text-muted);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Специальные детали */
+.special-parts-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.special-part-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.special-part-card.owned {
+    border-color: var(--neon-green);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.special-icon-big {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.special-part-info {
+    flex: 1;
+}
+
+.special-part-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.special-part-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.special-part-price {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+.special-part-owned {
+    color: var(--neon-green);
+    font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 320px) {
+    .car-main-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .upgrade-card-compact {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .upgrade-level-bar {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
 }
 
 /* Остальные стили остаются прежними, но с адаптацией под мобильные */
