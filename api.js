@@ -72,6 +72,7 @@ async function apiRequest(endpoint, options = {}) {
     }
     
     try {
+        console.log(`[API] Запрос: ${endpoint}`, config);
         const response = await fetch(`${API_URL}${endpoint}`, config);
         
         // Проверяем, что получили JSON
@@ -81,6 +82,7 @@ async function apiRequest(endpoint, options = {}) {
         }
         
         const data = await response.json();
+        console.log(`[API] Ответ:`, data);
         
         if (!response.ok) {
             throw new Error(data.error || 'Ошибка сервера');
@@ -91,6 +93,8 @@ async function apiRequest(endpoint, options = {}) {
         console.error('API Error:', error);
         if (error.message.includes('Failed to fetch')) {
             showError('Сервер недоступен. Попробуйте позже.');
+        } else {
+            showError(error.message);
         }
         throw error;
     }
