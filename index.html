@@ -80,7 +80,30 @@
                 </button>
             </div>
         </header>
-
+<div id="player-info-bar" class="player-info-bar" style="display: none;">
+    <div class="info-item">
+        <span class="info-icon">👤</span>
+        <span class="info-text" id="info-username">Игрок</span>
+    </div>
+    
+    <div class="info-item">
+        <span class="info-icon">⭐</span>
+        <span class="info-text">Ур. <span id="info-level">1</span></span>
+    </div>
+    
+    <div class="info-item">
+        <span class="info-icon">💰</span>
+        <span class="info-text">$<span id="info-money">1000</span></span>
+    </div>
+    
+    <div class="info-item fuel-item">
+        <span class="info-icon">⛽</span>
+        <span class="info-text">
+            <span id="info-fuel">30/30</span>
+            <span id="info-fuel-timer" class="fuel-timer-mini"></span>
+        </span>
+    </div>
+</div>
         <!-- Основной контент -->
         <main class="game-main">
             <!-- Главная страница - упрощенная -->

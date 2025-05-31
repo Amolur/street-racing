@@ -411,15 +411,18 @@ function hideAllScreens() {
     });
 }
 
-// Функции навигации
 function showMainMenu(addToHistory = true) {
     hideAllScreens();
     document.getElementById('main-menu').classList.add('active');
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
+    
+    // Показываем информационную панель только на главном экране
+    showPlayerInfoBar();
 }
 
 function showGarageScreen(addToHistory = true) {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('garage-screen').classList.add('active');
     updateGarageDisplay();
@@ -427,6 +430,7 @@ function showGarageScreen(addToHistory = true) {
 }
 
 function showRaceMenu(addToHistory = true) {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('race-menu-screen').classList.add('active');
     displayOpponents();
@@ -434,6 +438,7 @@ function showRaceMenu(addToHistory = true) {
 }
 
 function showProfileScreen(addToHistory = true) {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('profile-screen').classList.add('active');
     updateProfileDisplay();
@@ -441,6 +446,7 @@ function showProfileScreen(addToHistory = true) {
 }
 
 function showShopScreen(addToHistory = true) {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('shop-screen').classList.add('active');
     updateShopDisplay();
@@ -448,6 +454,7 @@ function showShopScreen(addToHistory = true) {
 }
 
 async function showLeaderboardScreen(addToHistory = true) {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('leaderboard-screen').classList.add('active');
     if (addToHistory) navigateToScreen('leaderboard-screen');
@@ -455,6 +462,7 @@ async function showLeaderboardScreen(addToHistory = true) {
 }
 
 function showRaceResultScreen() {
+    hidePlayerInfoBar(); // ДОБАВЬТЕ ЭТУ СТРОКУ
     hideAllScreens();
     document.getElementById('race-result-screen').classList.add('active');
 }
@@ -498,6 +506,7 @@ function updatePlayerInfo() {
     
     // Обновляем быструю статистику
     updateQuickStats();
+    updatePlayerInfoBar();
 }
 
 // Функция обновления быстрой статистики на главной
@@ -1711,7 +1720,8 @@ function updateFuelDisplay() {
         if (currentFuel < maxFuel) {
             updateFuelTimer(car);
         }
-    }
+            updateFuelInfoBar();
+}
     
     // Обновляем топливо в списке соперников
     const raceCarFuel = document.getElementById('race-car-fuel');
@@ -2077,4 +2087,112 @@ document.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' && !e.target.type) {
         e.preventDefault();
     }
-});
+});function showPlayerInfoBar() {
+    const infoBar = document.getElementById('player-info-bar');
+    if (infoBar) {
+        infoBar.style.display = 'flex';
+        updatePlayerInfoBar();
+    }
+}
+
+// Функция скрытия информационной панели
+function hidePlayerInfoBar() {
+    const infoBar = document.getElementById('player-info-bar');
+    if (infoBar) {
+        infoBar.style.display = 'none';
+    }
+}
+
+// Обновление данных в информационной панели
+function updatePlayerInfoBar() {
+    if (!currentUser || !gameData) return;
+    
+    // Обновляем имя пользователя
+    const usernameEl = document.getElementById('info-username');
+    if (usernameEl) {
+        usernameEl.textContent = currentUser.username;
+    }
+    
+    // Обновляем уровень
+    const levelEl = document.getElementById('info-level');
+    if (levelEl) {
+        levelEl.textContent = gameData.level;
+    }
+    
+    // Обновляем деньги с анимацией
+    const moneyEl = document.getElementById('info-money');
+    if (moneyEl) {
+        const oldMoney = parseInt(moneyEl.textContent) || 0;
+        const newMoney = gameData.money;
+        
+        if (oldMoney !== newMoney) {
+            moneyEl.parentElement.classList.add('updating');
+            setTimeout(() => {
+                moneyEl.parentElement.classList.remove('updating');
+            }, 300);
+        }
+        
+        moneyEl.textContent = newMoney.toLocaleString();
+    }
+    
+    // Обновляем топливо
+    updateFuelInfoBar();
+    updatePlayerInfoBar();
+}
+
+// Обновление информации о топливе в панели
+function updateFuelInfoBar() {
+    const currentCar = gameData.cars[gameData.currentCar];
+    if (!currentCar) return;
+    
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    const maxFuel = currentCar.maxFuel || 30;
+    
+    const fuelEl = document.getElementById('info-fuel');
+    const fuelTimerEl = document.getElementById('info-fuel-timer');
+    
+    if (fuelEl) {
+        fuelEl.textContent = `${currentFuel}/${maxFuel}`;
+        
+        // Меняем цвет в зависимости от количества топлива
+        const fuelPercent = currentFuel / maxFuel;
+        if (fuelPercent <= 0.2) {
+            fuelEl.style.color = 'var(--neon-red)';
+        } else if (fuelPercent <= 0.5) {
+            fuelEl.style.color = 'var(--neon-orange)';
+        } else {
+            fuelEl.style.color = 'var(--neon-yellow)';
+        }
+    }
+    
+    // Обновляем таймер восстановления топлива
+    if (fuelTimerEl && currentFuel < maxFuel) {
+        updateFuelTimerMini(currentCar, fuelTimerEl);
+    } else if (fuelTimerEl) {
+        fuelTimerEl.textContent = '';
+    }
+}
+
+// Мини-таймер топлива для информационной панели
+function updateFuelTimerMini(car, timerElement) {
+    const update = () => {
+        const now = new Date();
+        const lastUpdate = new Date(car.lastFuelUpdate || now);
+        const minutesPassed = (now - lastUpdate) / 60000;
+        const minutesUntilNextFuel = fuelSystem.regenRate - (minutesPassed % fuelSystem.regenRate);
+        
+        if (minutesUntilNextFuel > 0) {
+            const minutes = Math.floor(minutesUntilNextFuel);
+            const seconds = Math.floor((minutesUntilNextFuel - minutes) * 60);
+            timerElement.textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+        } else {
+            timerElement.textContent = '';
+        }
+    };
+    
+    update();
+    
+    // Обновляем каждую секунду
+    if (window.miniTimerInterval) clearInterval(window.miniTimerInterval);
+    window.miniTimerInterval = setInterval(update, 1000);
+}
