@@ -402,6 +402,10 @@ function goBack() {
     } else {
         navigateTo('main-menu');
     }
+    // Показываем панель если вернулись на главный экран
+    if (currentScreen === 'main-menu') {
+        showPlayerInfoBar();
+    }
 }
 
 // Функция скрытия всех экранов
@@ -416,9 +420,11 @@ function showMainMenu(addToHistory = true) {
     document.getElementById('main-menu').classList.add('active');
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
-    
-    // Показываем информационную панель только на главном экране
-    showPlayerInfoBar();
+
+    // Всегда показываем информационную панель на главном экране
+    setTimeout(() => {
+        showPlayerInfoBar();
+    }, 100);
 }
 
 function showGarageScreen(addToHistory = true) {
@@ -1505,6 +1511,8 @@ function showGame() {
     navigationHistory = [];
     currentScreen = 'main-menu';
     showMainMenu(false);
+    showPlayerInfoBar();
+    startInfoBarUpdates();
 }
 
 // Функция обновления полоски опыта
@@ -2105,6 +2113,14 @@ function hidePlayerInfoBar() {
 
 // Обновление данных в информационной панели
 function updatePlayerInfoBar() {
+    // Показываем панель если мы на главном экране и есть данные пользователя
+    if (currentScreen === 'main-menu' && currentUser && gameData) {
+        const infoBar = document.getElementById('player-info-bar');
+        if (infoBar) {
+            infoBar.style.display = 'flex';
+        }
+    }
+
     if (!currentUser || !gameData) return;
     
     // Обновляем имя пользователя
@@ -2122,7 +2138,7 @@ function updatePlayerInfoBar() {
     // Обновляем деньги с анимацией
     const moneyEl = document.getElementById('info-money');
     if (moneyEl) {
-        const oldMoney = parseInt(moneyEl.textContent) || 0;
+        const oldMoney = parseInt(moneyEl.textContent.replace(/,/g, '')) || 0;
         const newMoney = gameData.money;
         
         if (oldMoney !== newMoney) {
@@ -2138,6 +2154,7 @@ function updatePlayerInfoBar() {
     // Обновляем топливо
     updateFuelInfoBar();
     updatePlayerInfoBar();
+    updateFuelInfoBar();
 }
 
 // Обновление информации о топливе в панели
@@ -2195,4 +2212,11 @@ function updateFuelTimerMini(car, timerElement) {
     // Обновляем каждую секунду
     if (window.miniTimerInterval) clearInterval(window.miniTimerInterval);
     window.miniTimerInterval = setInterval(update, 1000);
+}
+    function startInfoBarUpdates() {
+    setInterval(() => {
+        if (currentScreen === 'main-menu' && currentUser && gameData) {
+            updatePlayerInfoBar();
+        }
+    }, 1000); // Обновляем каждую секунду
 }
