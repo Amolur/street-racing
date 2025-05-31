@@ -99,7 +99,7 @@ const allCars = [
     // Маслкары (30000-50000$) - требуют 15 уровень
     { id: 13, name: "Dodger Chalenger", power: 88, speed: 85, handling: 75, acceleration: 86, price: 32000 },
     { id: 14, name: "Fordo Mustag", power: 90, speed: 87, handling: 77, acceleration: 88, price: 35000 },
-    { id: 15, name: "Camaро SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
+    { id: 15, name: "Camaго SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
     { id: 16, name: "Pontik Firebird", power: 87, speed: 83, handling: 76, acceleration: 85, price: 40000 },
     
     // Спорткары (50000-80000$) - требуют 20 уровень
@@ -1161,6 +1161,12 @@ function calculateSkillGain(isWin) {
     return gainedSkills;
 }
 
+// Старт гонки (БЕЗ ЗАГРУЗКИ - МГНОВЕННЫЙ РЕЗУЛЬТАТ)
+async function startRace(opponentIndex) {
+    const opponents = generateDynamicOpponents();
+    const opponent = opponents[opponentIndex];
+    const currentCar = gameData.cars[gameData.currentCar];
+    
     // Инициализируем улучшения если их нет
     initializeCarUpgrades(currentCar);
     
@@ -1365,6 +1371,8 @@ function calculateSkillGain(isWin) {
     
     updatePlayerInfo();
     await autoSave();
+}
+
 // Функции для экрана авторизации
 function showLoginForm() {
     document.getElementById('login-form').classList.add('active');
@@ -1518,48 +1526,6 @@ function updateXPBar() {
     if (profileXPNext) profileXPNext.textContent = nextLevelXP;
 }
 
-// Обновление информации игрока (обновлено для новых элементов)
-function updatePlayerInfo() {
-    // Обновляем деньги
-    const moneyElements = [
-        document.getElementById('player-money'),
-        document.getElementById('race-balance'),
-        document.getElementById('upgrade-balance')
-    ];
-    
-    moneyElements.forEach(element => {
-        if (element) element.textContent = gameData.money;
-    });
-    
-    // Обновляем уровень
-    const levelElements = [
-        document.getElementById('player-level'),
-        document.getElementById('profile-level')
-    ];
-    
-    levelElements.forEach(element => {
-        if (element) element.textContent = gameData.level;
-    });
-    
-    // Обновляем имя игрока
-    const playerNameElement = document.getElementById('player-name');
-    if (playerNameElement && currentUser) {
-        playerNameElement.textContent = currentUser.username;
-    }
-    
-    // Обновляем текущую машину в гонках
-    const raceCurrentCar = document.getElementById('race-current-car');
-    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
-    }
-    
-    // Обновляем полоску опыта
-    updateXPBar();
-    
-    // Обновляем быструю статистику
-    updateQuickStats();
-}
-
 // Функция обновления быстрой статистики (теперь в профиле)
 function updateQuickStats() {
     const profileWins = document.getElementById('profile-wins');
@@ -1569,102 +1535,6 @@ function updateQuickStats() {
     if (profileWins) profileWins.textContent = gameData.stats.wins;
     if (profileCars) profileCars.textContent = gameData.cars.length;
     if (profileRating) profileRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
-}
-
-// Функция обновления профиля
-function updateProfileDisplay() {
-    // Обновление имени пользователя в профиле
-    const profileUsername = document.getElementById('profile-username');
-    if (profileUsername && currentUser) {
-        profileUsername.textContent = currentUser.username;
-    }
-    
-    const profileLevel = document.getElementById('profile-level');
-    if (profileLevel) {
-        profileLevel.textContent = gameData.level;
-    }
-    
-    // Обновляем полоску опыта
-    updateXPBar();
-    
-    // Обновляем быструю статистику
-    updateQuickStats();
-    
-    // Обновляем аватар
-    const profileAvatar = document.querySelector('.profile-avatar');
-    if (profileAvatar && currentUser) {
-        profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
-    }
-    
-    // Навыки
-    const profileSkillsDisplay = document.getElementById('profile-skills-display');
-    if (profileSkillsDisplay) {
-        profileSkillsDisplay.innerHTML = `
-            <div class="skill-item">
-                <span class="skill-name">Вождение</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.driving * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.driving}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Скорость</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.speed * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.speed}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Реакция</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.reaction * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.reaction}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Техника</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.technique * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.technique}</span>
-            </div>
-        `;
-    }
-    
-    // Статистика
-    const profileStats = document.getElementById('profile-stats');
-    if (profileStats) {
-        const winRate = gameData.stats.totalRaces > 0 
-            ? ((gameData.stats.wins / gameData.stats.totalRaces) * 100).toFixed(1) 
-            : 0;
-            
-        profileStats.innerHTML = `
-            <div class="stat-row">
-                <span class="stat-label">Всего гонок:</span>
-                <span class="stat-value">${gameData.stats.totalRaces}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Побед:</span>
-                <span class="stat-value">${gameData.stats.wins}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Поражений:</span>
-                <span class="stat-value">${gameData.stats.losses}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Процент побед:</span>
-                <span class="stat-value">${winRate}%</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Заработано:</span>
-                <span class="stat-value">${gameData.stats.moneyEarned}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Потрачено:</span>
-                <span class="stat-value">${gameData.stats.moneySpent}</span>
-            </div>
-        `;
-    }
 }
 
 // Сохранение при закрытии/обновлении страницы
@@ -1982,85 +1852,6 @@ function calculateTotalStats(car) {
     }
     
     return totalStats;
-}
-
-// Обновленная функция отображения гаража
-function updateGarageDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
-    initializeCarUpgrades(currentCar); // Убеждаемся, что улучшения инициализированы
-    
-    const carDisplay = document.getElementById('current-car-display');
-    
-    if (carDisplay && currentCar) {
-        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
-        
-        carDisplay.innerHTML = `
-            <div class="car-emoji ${totalUpgradeLevel >= 25 ? 'car-glow' : ''}">🏎️</div>
-            <h3>${currentCar.name}</h3>
-            <div class="car-upgrade-level">
-                <span class="upgrade-stars">${'⭐'.repeat(Math.floor(totalUpgradeLevel / 10))}</span>
-                <span class="upgrade-text">Уровень прокачки: ${totalUpgradeLevel}/50</span>
-            </div>
-        `;
-    }
-    
-    // Обновляем селектор
-    updateCarSelector();
-    
-    // Обновляем статистику машины с учетом улучшений
-    const totalStats = calculateTotalStats(currentCar);
-    const statsDisplay = document.getElementById('car-stats-display');
-    
-    if (statsDisplay) {
-        statsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Мощность</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.power}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.power - currentCar.power}%"></div>
-                </div>
-                <span>${totalStats.power} ${totalStats.power > currentCar.power ? `(+${totalStats.power - currentCar.power})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.speed}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.speed - currentCar.speed}%"></div>
-                </div>
-                <span>${totalStats.speed} ${totalStats.speed > currentCar.speed ? `(+${totalStats.speed - currentCar.speed})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Управление</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.handling}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.handling - currentCar.handling}%"></div>
-                </div>
-                <span>${totalStats.handling} ${totalStats.handling > currentCar.handling ? `(+${totalStats.handling - currentCar.handling})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Разгон</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.acceleration}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.acceleration - currentCar.acceleration}%"></div>
-                </div>
-                <span>${totalStats.acceleration} ${totalStats.acceleration > currentCar.acceleration ? `(+${totalStats.acceleration - currentCar.acceleration})` : ''}</span>
-            </div>
-        `;
-    }
-    
-    // Обновляем общую статистику
-    const totalPower = document.getElementById('total-power');
-    const upgradeLevel = document.getElementById('upgrade-level');
-    
-    if (totalPower) {
-        const avgPower = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
-        totalPower.textContent = avgPower;
-    }
-    
-    if (upgradeLevel) {
-        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
-        upgradeLevel.textContent = totalUpgradeLevel;
-    }
 }
 
 // Отображение списка улучшений
