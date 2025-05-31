@@ -477,9 +477,7 @@ function showRaceResultScreen() {
 function updatePlayerInfo() {
     // Обновляем деньги
     const moneyElements = [
-        document.getElementById('money-mobile'),
         document.getElementById('race-balance'),
-        document.getElementById('player-money'),
         document.getElementById('upgrade-balance')
     ];
     
@@ -487,22 +485,14 @@ function updatePlayerInfo() {
         if (element) element.textContent = gameData.money;
     });
     
-    // Обновляем уровень
+    // Обновляем уровень  
     const levelElements = [
-        document.getElementById('level-mobile'),
-        document.getElementById('profile-level'),
-        document.getElementById('player-level')
+        document.getElementById('profile-level')
     ];
     
     levelElements.forEach(element => {
         if (element) element.textContent = gameData.level;
     });
-    
-    // Обновляем имя игрока
-    const playerNameElement = document.getElementById('player-name');
-    if (playerNameElement && currentUser) {
-        playerNameElement.textContent = currentUser.username;
-    }
     
     // Обновляем текущую машину в гонках
     const raceCurrentCar = document.getElementById('race-current-car');
@@ -512,6 +502,8 @@ function updatePlayerInfo() {
     
     // Обновляем быструю статистику
     updateQuickStats();
+    
+    // Обновляем информационную панель
     updatePlayerInfoBar();
 }
 
@@ -1465,23 +1457,6 @@ function showGame() {
     // Загружаем улучшения из локального хранилища
     loadUpgradesLocally();
     
-    // Обновляем информацию пользователя на главной странице
-    const playerNameElement = document.getElementById('player-name');
-    const playerLevelElement = document.getElementById('player-level');
-    const playerMoneyElement = document.getElementById('player-money');
-    
-    if (playerNameElement && currentUser) {
-        playerNameElement.textContent = currentUser.username;
-    }
-    
-    if (playerLevelElement) {
-        playerLevelElement.textContent = gameData.level;
-    }
-    
-    if (playerMoneyElement) {
-        playerMoneyElement.textContent = gameData.money;
-    }
-    
     // Обновляем имя в профиле тоже
     const profileUsername = document.getElementById('profile-username');
     if (profileUsername && currentUser) {
@@ -1523,12 +1498,6 @@ function updateXPBar() {
     const progressXP = currentXP - currentLevelXP;
     const neededXP = nextLevelXP - currentLevelXP;
     const xpPercent = Math.floor((progressXP / neededXP) * 100);
-    
-    // Обновляем мини-полоску на главной
-    const xpMiniFill = document.getElementById('xp-mini-fill');
-    if (xpMiniFill) {
-        xpMiniFill.style.width = xpPercent + '%';
-    }
     
     // Обновляем полоску в профиле
     const profileXPFill = document.getElementById('profile-xp-fill');
