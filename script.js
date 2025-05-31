@@ -31,6 +31,8 @@ let gameData = {
     ]
 };
 
+let currentCar = null;
+
 // Текущий пользователь
 let currentUser = null;
 
@@ -543,25 +545,44 @@ function updateCarSelector() {
 }
 
 // Обновленное отображение гаража
+// Обновленное отображение гаража
 function updateGarageDisplay() {
+    // Проверяем, что данные загружены
+    if (!gameData || !gameData.cars || gameData.cars.length === 0) return;
+    
     updateCarsPreview();
     updateCurrentCarStats();
-    updateUpgradesDisplay();
-    updateSpecialPartsDisplay();
+    
+    // Проверяем, какая вкладка активна, и обновляем соответствующий контент
+    const activeTab = document.querySelector('.garage-tab-modern.active');
+    if (activeTab) {
+        const isUpgradesTab = activeTab.textContent.includes('Улучшения');
+        if (isUpgradesTab) {
+            updateUpgradesDisplay();
+        } else {
+            updateSpecialPartsDisplay();
+        }
+    } else {
+        // По умолчанию показываем улучшения
+        updateUpgradesDisplay();
+    }
 }
 
+// Отображение превью машин
 // Отображение превью машин
 function updateCarsPreview() {
     const carsList = document.getElementById('cars-list');
     const carCounter = document.getElementById('car-counter');
     
-    if (!carsList) return;
+    if (!carsList || !gameData.cars) return;
     
     carsList.innerHTML = '';
     
     gameData.cars.forEach((car, index) => {
+        // Инициализируем улучшения для каждой машины
         initializeCarUpgrades(car);
-        const totalUpgrades = Object.values(car.upgrades).reduce((sum, level) => sum + level, 0);
+        const totalUpgrades = car.upgrades ? 
+            Object.values(car.upgrades).reduce((sum, level) => sum + level, 0) : 0;
         
         const carCard = document.createElement('div');
         carCard.className = `car-card ${index === gameData.currentCar ? 'active' : ''}`;
@@ -588,10 +609,12 @@ function updateCarsPreview() {
     updateNavigationButtons();
 }
 
-// Обновление кнопок навигации
 function updateNavigationButtons() {
-    const prevBtn = document.querySelector('.nav-btn:first-child');
-    const nextBtn = document.querySelector('.nav-btn:last-child');
+    const navButtons = document.querySelectorAll('.nav-btn');
+    if (navButtons.length < 2) return;
+    
+    const prevBtn = navButtons[0];
+    const nextBtn = navButtons[1];
     
     if (prevBtn) {
         prevBtn.disabled = gameData.currentCar === 0;
@@ -604,12 +627,27 @@ function updateNavigationButtons() {
 
 // Обновление статистики текущей машины
 function updateCurrentCarStats() {
-    const currentCar = gameData.cars[gameData.currentCar];
-    if (!currentCar) return;
+    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return;
     
+    const currentCar = gameData.cars[gameData.currentCar];
     initializeCarUpgrades(currentCar);
-    const totalStats = calculateTotalStats(currentCar);
-    const totalUpgrades = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
+    
+    // Проверяем, что функция calculateTotalStats существует
+    let totalStats;
+    if (typeof calculateTotalStats === 'function') {
+        totalStats = calculateTotalStats(currentCar);
+    } else {
+        // Фаллбэк на базовые характеристики
+        totalStats = {
+            power: currentCar.power,
+            speed: currentCar.speed,
+            handling: currentCar.handling,
+            acceleration: currentCar.acceleration
+        };
+    }
+    
+    const totalUpgrades = currentCar.upgrades ? 
+        Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0) : 0;
     
     // Обновляем статистики
     const powerEl = document.getElementById('garage-power');
@@ -649,12 +687,20 @@ function updateCurrentCarStats() {
 
 // Обновленное отображение улучшений
 function updateUpgradesDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
     const upgradesGrid = document.getElementById('upgrades-grid');
     
-    if (!upgradesGrid || !currentCar) return;
+    if (!upgradesGrid || !gameData.cars || !gameData.cars[gameData.currentCar]) return;
+    
+    const currentCar = gameData.cars[gameData.currentCar];
+    initializeCarUpgrades(currentCar);
     
     upgradesGrid.innerHTML = '';
+    
+    // Проверяем, что upgradeConfig существует
+    if (typeof upgradeConfig === 'undefined') {
+        upgradesGrid.innerHTML = '<p>Система улучшений загружается...</p>';
+        return;
+    }
     
     // Ограничения по уровню машины
     let maxUpgradeLevel = 10;
@@ -666,8 +712,14 @@ function updateUpgradesDisplay() {
     
     Object.keys(upgradeConfig).forEach(upgradeType => {
         const config = upgradeConfig[upgradeType];
-        const currentLevel = currentCar.upgrades[upgradeType];
-        const cost = getUpgradeCost(upgradeType, currentLevel);
+        const currentLevel = currentCar.upgrades[upgradeType] || 0;
+        
+        // Проверяем, что функция getUpgradeCost существует
+        let cost = 1000;
+        if (typeof getUpgradeCost === 'function') {
+            cost = getUpgradeCost(upgradeType, currentLevel);
+        }
+        
         const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
         
         const upgradeCard = document.createElement('div');
@@ -684,9 +736,10 @@ function updateUpgradesDisplay() {
                     <span class="upgrade-level-text">${currentLevel}/${maxUpgradeLevel}</span>
                 </div>
                 <div class="upgrade-effects">
-                    ${Object.entries(config.affects).map(([stat, value]) => 
-                        `+${value} ${getStatName(stat)}`
-                    ).join(', ')}
+                    ${Object.entries(config.affects).map(([stat, value]) => {
+                        const statName = typeof getStatName === 'function' ? getStatName(stat) : stat;
+                        return `+${value} ${statName}`;
+                    }).join(', ')}
                 </div>
             </div>
             <div class="upgrade-action">
