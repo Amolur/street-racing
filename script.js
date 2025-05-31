@@ -1655,6 +1655,37 @@ window.onload = async function() {
     
     if (isAuthorized) {
         showGame();
+        function showAuthScreen() {
+    console.log('[Auth] Показываем экран авторизации');
+    
+    // Скрываем игровой контейнер
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer) {
+        gameContainer.style.display = 'none';
+    }
+    
+    // Показываем контейнер авторизации
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) {
+        authContainer.style.display = 'flex';
+    }
+    
+    // Очищаем поля ввода
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    const registerUsername = document.getElementById('register-username');
+    const registerPassword = document.getElementById('register-password');
+    const registerPasswordConfirm = document.getElementById('register-password-confirm');
+    
+    if (loginUsername) loginUsername.value = '';
+    if (loginPassword) loginPassword.value = '';
+    if (registerUsername) registerUsername.value = '';
+    if (registerPassword) registerPassword.value = '';
+    if (registerPasswordConfirm) registerPasswordConfirm.value = '';
+    
+    // Показываем форму входа по умолчанию
+    showLoginForm();
+}
     } else {
         showAuthScreen();
     }
