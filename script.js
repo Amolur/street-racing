@@ -1483,12 +1483,12 @@ function showGame() {
     }
     
     // Обновляем аватары
-    const avatars = document.querySelectorAll('.player-avatar, .profile-avatar, #header-avatar');
+    const avatars = document.querySelectorAll('.player-avatar, .profile-avatar');
     avatars.forEach(avatar => {
-        if (currentUser) {
-            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
-        }
-    });
+    if (currentUser) {
+        avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
+    }
+});
     
     // Обновляем мини-полоску опыта
     updateXPBar();
