@@ -477,7 +477,7 @@ function showRaceResultScreen() {
 
 // Обновление информации игрока (обновлено для новых элементов)
 function updatePlayerInfo() {
-    // Обновляем деньги
+    // Обновляем деньги (ТОЛЬКО в других экранах, не в info bar)
     const moneyElements = [
         document.getElementById('race-balance'),
         document.getElementById('upgrade-balance')
@@ -487,7 +487,7 @@ function updatePlayerInfo() {
         if (element) element.textContent = gameData.money;
     });
     
-    // Обновляем уровень  
+    // Обновляем уровень (ТОЛЬКО в других экранах)
     const levelElements = [
         document.getElementById('profile-level')
     ];
@@ -505,8 +505,10 @@ function updatePlayerInfo() {
     // Обновляем быструю статистику
     updateQuickStats();
     
-    // Обновляем информационную панель
-    updatePlayerInfoBar();
+    // Обновляем информационную панель ТОЛЬКО если мы на главном экране
+    if (currentScreen === 'main-menu') {
+        updatePlayerInfoBar();
+    }
 }
 
 // Функция обновления быстрой статистики на главной
@@ -1948,7 +1950,6 @@ function stopFuelUpdates() {
     }
 }
 
-// Обновление отображения топлива
 function updateFuelDisplay() {
     // Обновляем топливо текущей машины в гараже
     const fuelDisplay = document.getElementById('current-car-fuel');
@@ -1972,8 +1973,7 @@ function updateFuelDisplay() {
         if (currentFuel < maxFuel) {
             updateFuelTimer(car);
         }
-            updateFuelInfoBar();
-}
+    }
     
     // Обновляем топливо в списке соперников
     const raceCarFuel = document.getElementById('race-car-fuel');
@@ -1981,6 +1981,11 @@ function updateFuelDisplay() {
         const car = gameData.cars[gameData.currentCar];
         const currentFuel = fuelSystem.getCurrentFuel(car);
         raceCarFuel.innerHTML = `⛽ ${currentFuel}/${car.maxFuel || 30}`;
+    }
+    
+    // Обновляем информационную панель ТОЛЬКО если мы на главном экране
+    if (currentScreen === 'main-menu') {
+        updateFuelInfoBarDirect();
     }
 }
 
@@ -2054,18 +2059,35 @@ if (gameData && gameData.cars) {
     gameData.cars.forEach(car => initializeCarUpgrades(car));
 }
 
-// Функция переключения вкладок в гараже
+// Переключение вкладок гаража (БЕЗ рекурсии)
 function showGarageTab(tab) {
-    document.querySelectorAll('.garage-tab').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.garage-content').forEach(content => content.classList.remove('active'));
+    // Обновляем кнопки вкладок
+    document.querySelectorAll('.garage-tab-modern').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.garage-tab-content').forEach(content => content.classList.remove('active'));
     
-    if (tab === 'stats') {
-        document.querySelector('.garage-tab:first-child').classList.add('active');
-        document.getElementById('garage-stats').classList.add('active');
-    } else {
-        document.querySelector('.garage-tab:last-child').classList.add('active');
-        document.getElementById('garage-upgrades').classList.add('active');
-        updateUpgradesDisplay();
+    if (tab === 'upgrades') {
+        const upgradesTab = document.querySelector('.garage-tab-modern:first-child');
+        const upgradesContent = document.getElementById('garage-upgrades-modern');
+        
+        if (upgradesTab) upgradesTab.classList.add('active');
+        if (upgradesContent) upgradesContent.classList.add('active');
+        
+        // Задержка для избежания конфликтов
+        setTimeout(() => {
+            updateUpgradesDisplay();
+        }, 10);
+        
+    } else if (tab === 'parts') {
+        const partsTab = document.querySelector('.garage-tab-modern:last-child');
+        const partsContent = document.getElementById('garage-parts-modern');
+        
+        if (partsTab) partsTab.classList.add('active');
+        if (partsContent) partsContent.classList.add('active');
+        
+        // Задержка для избежания конфликтов
+        setTimeout(() => {
+            updateSpecialPartsDisplay();
+        }, 10);
     }
 }
 
@@ -2364,7 +2386,7 @@ function updatePlayerInfoBar() {
             infoBar.style.display = 'flex';
         }
     }
-
+    
     if (!currentUser || !gameData) return;
     
     // Обновляем имя пользователя
@@ -2396,9 +2418,7 @@ function updatePlayerInfoBar() {
     }
     
     // Обновляем топливо
-    updateFuelInfoBar();
-    updatePlayerInfoBar();
-    updateFuelInfoBar();
+    updateFuelInfoBarDirect();
 }
 
 // Обновление информации о топливе в панели
@@ -2434,6 +2454,37 @@ function updateFuelInfoBar() {
     }
 }
 
+function updateFuelInfoBarDirect() {
+    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return;
+    
+    const currentCar = gameData.cars[gameData.currentCar];
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    const maxFuel = currentCar.maxFuel || 30;
+    
+    const fuelEl = document.getElementById('info-fuel');
+    const fuelTimerEl = document.getElementById('info-fuel-timer');
+    
+    if (fuelEl) {
+        fuelEl.textContent = `${currentFuel}/${maxFuel}`;
+        
+        // Меняем цвет в зависимости от количества топлива
+        const fuelPercent = currentFuel / maxFuel;
+        if (fuelPercent <= 0.2) {
+            fuelEl.style.color = 'var(--neon-red)';
+        } else if (fuelPercent <= 0.5) {
+            fuelEl.style.color = 'var(--neon-orange)';
+        } else {
+            fuelEl.style.color = 'var(--neon-yellow)';
+        }
+    }
+    
+    // Обновляем таймер восстановления топлива
+    if (fuelTimerEl && currentFuel < maxFuel) {
+        updateFuelTimerMini(currentCar, fuelTimerEl);
+    } else if (fuelTimerEl) {
+        fuelTimerEl.textContent = '';
+    }
+}
 // Мини-таймер топлива для информационной панели
 function updateFuelTimerMini(car, timerElement) {
     const update = () => {
@@ -2458,9 +2509,15 @@ function updateFuelTimerMini(car, timerElement) {
     window.miniTimerInterval = setInterval(update, 1000);
 }
     function startInfoBarUpdates() {
-    setInterval(() => {
+    // Останавливаем предыдущий интервал если есть
+    if (window.infoBarUpdateInterval) {
+        clearInterval(window.infoBarUpdateInterval);
+    }
+    
+    window.infoBarUpdateInterval = setInterval(() => {
         if (currentScreen === 'main-menu' && currentUser && gameData) {
-            updatePlayerInfoBar();
+            // Обновляем только топливо и таймер, остальное по событиям
+            updateFuelInfoBarDirect();
         }
-    }, 1000); // Обновляем каждую секунду
+    }, 5000); // Увеличиваем интервал до 5 секунд
 }
