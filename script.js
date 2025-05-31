@@ -1,3 +1,4 @@
+// ===== НАЧАЛО script.js =====
 // Игровые данные
 let gameData = {
     money: 1000,
@@ -41,20 +42,57 @@ let currentScreen = 'main-menu';
 // Интервал автосохранения
 let autoSaveInterval = null;
 
+// ===== НОВЫЙ КОД: Инициализация новых систем =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем GameCore
+    if (window.GameCore) {
+        GameCore.init(gameData);
+        
+        // Создаем экземпляры менеджеров
+        window.gameSecurity = new GameSecurity();
+        window.raceManager = new RaceManager(GameCore, gameSecurity);
+        
+        // Подписываемся на события гонок
+        GameCore.EventBus.on('race:finished', async (result) => {
+            await handleRaceResult(result);
+        });
+        
+        // Подписываемся на изменения состояния
+        GameCore.Store.subscribe(['money', 'level', 'experience'], (state) => {
+            updatePlayerInfo();
+            updateXPBar();
+        });
+        
+        // Подписываемся на события навигации
+        GameCore.EventBus.on('ui:navigate', (data) => {
+            navigateTo(data.screen);
+        });
+        
+        // Подписываемся на ошибки
+        GameCore.EventBus.on('race:error', (data) => {
+            showError(data.message);
+        });
+        
+        // Подписываемся на специальные события
+        GameCore.EventBus.on('race:nitro', (data) => {
+            showError(data.message);
+        });
+        
+        console.log('[Game] Новые системы инициализированы');
+    }
+});
+
 // Система уровней
 const levelSystem = {
-    // Опыт необходимый для каждого уровня (прогрессивная шкала)
     getRequiredXP: function(level) {
         return Math.floor(100 * Math.pow(1.5, level - 1));
     },
     
-    // Награды за уровень
     getLevelReward: function(level) {
         const baseReward = 500;
         return baseReward * level;
     },
     
-    // Проверка доступности машины по уровню
     getCarRequiredLevel: function(carPrice) {
         if (carPrice === 0) return 1;
         if (carPrice <= 5000) return 1;
@@ -66,7 +104,6 @@ const levelSystem = {
         return 30;
     },
     
-    // Расчет получаемого опыта
     calculateXPGain: function(won, opponentDifficulty, betAmount) {
         const baseXP = won ? 50 : 20;
         const difficultyBonus = Math.floor(opponentDifficulty * 30);
@@ -99,7 +136,7 @@ const allCars = [
     // Маслкары (30000-50000$) - требуют 15 уровень
     { id: 13, name: "Dodger Chalenger", power: 88, speed: 85, handling: 75, acceleration: 86, price: 32000 },
     { id: 14, name: "Fordo Mustag", power: 90, speed: 87, handling: 77, acceleration: 88, price: 35000 },
-    { id: 15, name: "Camaро SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
+    { id: 15, name: "Camaго SS", power: 92, speed: 89, handling: 74, acceleration: 90, price: 38000 },
     { id: 16, name: "Pontik Firebird", power: 87, speed: 83, handling: 76, acceleration: 85, price: 40000 },
     
     // Спорткары (50000-80000$) - требуют 20 уровень
@@ -122,12 +159,110 @@ const allCars = [
     { id: 29, name: "McLaran 720X", power: 100, speed: 100, handling: 95, acceleration: 99, price: 300000 }
 ];
 
+// Конфигурация системы улучшений
+const upgradeConfig = {
+    engine: {
+        name: "Двигатель",
+        icon: "🔧",
+        affects: { power: 5, speed: 3 },
+        baseCost: 500,
+        costMultiplier: 2.5,
+        description: "Увеличивает мощность и скорость"
+    },
+    turbo: {
+        name: "Турбо",
+        icon: "💨",
+        affects: { acceleration: 4, power: 2 },
+        baseCost: 300,
+        costMultiplier: 2.3,
+        description: "Улучшает ускорение и мощность"
+    },
+    tires: {
+        name: "Шины",
+        icon: "🏁",
+        affects: { handling: 3, acceleration: 2 },
+        baseCost: 200,
+        costMultiplier: 2.2,
+        description: "Повышает управление и ускорение"
+    },
+    suspension: {
+        name: "Подвеска",
+        icon: "🔩",
+        affects: { handling: 5 },
+        baseCost: 400,
+        costMultiplier: 2.4,
+        description: "Значительно улучшает управление"
+    },
+    transmission: {
+        name: "Коробка передач",
+        icon: "⚙️",
+        affects: { speed: 3, acceleration: 3 },
+        baseCost: 600,
+        costMultiplier: 2.5,
+        description: "Увеличивает скорость и ускорение"
+    }
+};
+
+// Система топлива
+const fuelSystem = {
+    baseConsumption: 5,
+    difficultyMultiplier: {
+        easy: 1,
+        medium: 1.5,
+        hard: 2,
+        extreme: 2.5
+    },
+    regenRate: 10,
+    
+    calculateFuelCost: function(difficulty) {
+        let category = 'easy';
+        if (difficulty >= 1.0 && difficulty < 1.4) category = 'medium';
+        else if (difficulty >= 1.4 && difficulty < 1.8) category = 'hard';
+        else if (difficulty >= 1.8) category = 'extreme';
+        
+        return Math.ceil(this.baseConsumption * this.difficultyMultiplier[category]);
+    },
+    
+    getTimeUntilFull: function(currentFuel, maxFuel, lastUpdate) {
+        if (currentFuel >= maxFuel) return 0;
+        
+        const now = new Date();
+        const lastUpdateTime = new Date(lastUpdate);
+        const minutesPassed = (now - lastUpdateTime) / 60000;
+        const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
+        const currentActualFuel = Math.min(currentFuel + fuelRegenerated, maxFuel);
+        const fuelNeeded = maxFuel - currentActualFuel;
+        
+        return fuelNeeded * this.regenRate;
+    },
+    
+    getCurrentFuel: function(car) {
+        if (!car.lastFuelUpdate) return car.fuel || 30;
+        
+        const now = new Date();
+        const lastUpdate = new Date(car.lastFuelUpdate);
+        const minutesPassed = (now - lastUpdate) / 60000;
+        const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
+        
+        return Math.min((car.fuel || 0) + fuelRegenerated, car.maxFuel || 30);
+    }
+};
+
+// Интервал обновления топлива
+let fuelUpdateInterval = null;
+
 // Функция для генерации динамических соперников
 function generateDynamicOpponents() {
+    // НОВЫЙ КОД: Используем RaceManager если доступен
+    if (window.raceManager) {
+        const state = GameCore.Store.getState();
+        return raceManager.generateOpponents(state.level);
+    }
+    
+    // СТАРЫЙ КОД для обратной совместимости
     const playerLevel = gameData.level;
     const baseOpponents = [];
     
-    // Генерируем 4 соперника разной сложности
     const difficulties = ['easy', 'medium', 'hard', 'extreme'];
     const difficultySettings = {
         easy: { 
@@ -159,12 +294,10 @@ function generateDynamicOpponents() {
         const randomName = settings.names[Math.floor(Math.random() * settings.names.length)];
         const randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
         
-        // Выбираем подходящую машину для соперника
         const maxCarPrice = 5000 + (playerLevel * 5000);
         const availableCars = allCars.filter(car => car.price <= maxCarPrice && car.price > 0);
         const randomCar = availableCars[Math.floor(Math.random() * availableCars.length)] || allCars[1];
         
-        // Расчет сложности и награды
         const baseDifficulty = 0.7 + (playerLevel * 0.02);
         const difficulty = Number((baseDifficulty * settings.diffMult).toFixed(2));
         const baseReward = 200 + (playerLevel * 100);
@@ -183,12 +316,10 @@ function generateDynamicOpponents() {
 
 // Функция для запуска автосохранения
 function startAutoSave() {
-    // Останавливаем предыдущий интервал если есть
     if (autoSaveInterval) {
         clearInterval(autoSaveInterval);
     }
     
-    // Сохраняем каждые 30 секунд
     autoSaveInterval = setInterval(async () => {
         if (currentUser) {
             try {
@@ -198,7 +329,7 @@ function startAutoSave() {
                 console.error('Ошибка автосохранения:', error);
             }
         }
-    }, 30000); // 30 секунд
+    }, 30000);
 }
 
 // Функция для остановки автосохранения
@@ -209,19 +340,16 @@ function stopAutoSave() {
     }
 }
 
-// Улучшенная навигация (без мобильного меню)
+// Улучшенная навигация
 function navigateTo(screenId) {
-    // Скрываем все экраны
     hideAllScreens();
     
-    // Показываем нужный экран
     const screen = document.getElementById(screenId);
     if (screen) {
         screen.classList.add('active');
         navigateToScreen(screenId);
     }
     
-    // Обновляем данные экрана если нужно
     switch(screenId) {
         case 'garage-screen':
             updateGarageDisplay();
@@ -249,12 +377,15 @@ async function register(username, password) {
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
         
-        // Добавляем поля опыта если их нет
         if (!gameData.experience) gameData.experience = 0;
         
-        // Инициализируем улучшения для всех загруженных машин
         if (gameData.cars) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
+        }
+        
+        // НОВЫЙ КОД: Инициализируем Store
+        if (GameCore && GameCore.Store) {
+            GameCore.Store.setState(gameData);
         }
         
         showLoading(false);
@@ -273,18 +404,21 @@ async function login(username, password) {
         currentUser = { username: data.user.username };
         gameData = data.user.gameData;
         
-        // Добавляем поля опыта если их нет
         if (!gameData.experience) gameData.experience = 0;
         
         console.log('Загруженные данные с сервера:', gameData);
         
-        // Инициализируем улучшения для всех загруженных машин
         if (gameData.cars) {
             gameData.cars.forEach(car => {
                 console.log('Машина до инициализации:', car);
                 initializeCarUpgrades(car);
                 console.log('Машина после инициализации:', car);
             });
+        }
+        
+        // НОВЫЙ КОД: Инициализируем Store
+        if (GameCore && GameCore.Store) {
+            GameCore.Store.setState(gameData);
         }
         
         showLoading(false);
@@ -315,17 +449,13 @@ async function checkAuth() {
         const data = await loadGameData();
         currentUser = { username: data.username };
         
-        // Сохраняем существующие улучшения перед перезаписью
         const oldGameData = gameData;
         gameData = data.gameData;
         
-        // Добавляем поля опыта если их нет
         if (!gameData.experience) gameData.experience = 0;
         
-        // Восстанавливаем улучшения если они были
         if (oldGameData && oldGameData.cars && gameData.cars) {
             gameData.cars.forEach((car, index) => {
-                // Если у старой машины были улучшения, восстанавливаем их
                 if (oldGameData.cars[index] && oldGameData.cars[index].upgrades) {
                     car.upgrades = oldGameData.cars[index].upgrades;
                     car.specialParts = oldGameData.cars[index].specialParts;
@@ -333,9 +463,13 @@ async function checkAuth() {
             });
         }
         
-        // Инициализируем улучшения для всех машин
         if (gameData.cars) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
+        }
+        
+        // НОВЫЙ КОД: Инициализируем Store
+        if (GameCore && GameCore.Store) {
+            GameCore.Store.setState(gameData);
         }
         
         showLoading(false);
@@ -349,7 +483,6 @@ async function checkAuth() {
 
 // Показать/скрыть индикатор загрузки
 function showLoading(show) {
-    // Создаем индикатор загрузки если его нет
     let loadingIndicator = document.getElementById('loading-indicator');
     
     if (!loadingIndicator) {
@@ -372,7 +505,6 @@ function showLoading(show) {
 async function autoSave() {
     if (currentUser) {
         try {
-            // Убеждаемся, что все машины имеют структуру улучшений перед сохранением
             if (gameData.cars) {
                 gameData.cars.forEach(car => initializeCarUpgrades(car));
             }
@@ -457,10 +589,13 @@ async function showLeaderboardScreen(addToHistory = true) {
 function showRaceResultScreen() {
     hideAllScreens();
     document.getElementById('race-result-screen').classList.add('active');
-}
-
-// Обновление информации игрока (обновлено для новых элементов)
+}// Обновление информации игрока
 function updatePlayerInfo() {
+    // НОВЫЙ КОД: Используем Store если доступен
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
     // Обновляем деньги
     const moneyElements = [
         document.getElementById('money-mobile'),
@@ -470,7 +605,7 @@ function updatePlayerInfo() {
     ];
     
     moneyElements.forEach(element => {
-        if (element) element.textContent = gameData.money;
+        if (element) element.textContent = currentData.money;
     });
     
     // Обновляем уровень
@@ -481,7 +616,7 @@ function updatePlayerInfo() {
     ];
     
     levelElements.forEach(element => {
-        if (element) element.textContent = gameData.level;
+        if (element) element.textContent = currentData.level;
     });
     
     // Обновляем имя игрока
@@ -492,8 +627,8 @@ function updatePlayerInfo() {
     
     // Обновляем текущую машину в гонках
     const raceCurrentCar = document.getElementById('race-current-car');
-    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
+    if (raceCurrentCar && currentData.cars[currentData.currentCar]) {
+        raceCurrentCar.textContent = currentData.cars[currentData.currentCar].name;
     }
     
     // Обновляем быструю статистику
@@ -502,42 +637,70 @@ function updatePlayerInfo() {
 
 // Функция обновления быстрой статистики на главной
 function updateQuickStats() {
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
     const quickWins = document.getElementById('quick-wins');
     const quickCars = document.getElementById('quick-cars');
     const quickRating = document.getElementById('quick-rating');
     
-    if (quickWins) quickWins.textContent = gameData.stats.wins;
-    if (quickCars) quickCars.textContent = gameData.cars.length;
-    if (quickRating) quickRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
+    if (quickWins) quickWins.textContent = currentData.stats.wins;
+    if (quickCars) quickCars.textContent = currentData.cars.length;
+    if (quickRating) quickRating.textContent = '#—';
 }
 
 // Переключение между машинами в гараже
 function previousCar() {
-    if (gameData.currentCar > 0) {
-        gameData.currentCar--;
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    if (currentData.currentCar > 0) {
+        if (GameCore && GameCore.Store) {
+            GameCore.Store.setState({ currentCar: currentData.currentCar - 1 });
+        } else {
+            gameData.currentCar--;
+        }
         updateGarageDisplay();
         updateCarSelector();
     }
 }
 
 function nextCar() {
-    if (gameData.currentCar < gameData.cars.length - 1) {
-        gameData.currentCar++;
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    if (currentData.currentCar < currentData.cars.length - 1) {
+        if (GameCore && GameCore.Store) {
+            GameCore.Store.setState({ currentCar: currentData.currentCar + 1 });
+        } else {
+            gameData.currentCar++;
+        }
         updateGarageDisplay();
         updateCarSelector();
     }
 }
 
 function updateCarSelector() {
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
     const selector = document.querySelector('.car-selector');
     if (selector) {
-        selector.textContent = `${gameData.currentCar + 1} / ${gameData.cars.length}`;
+        selector.textContent = `${currentData.currentCar + 1} / ${currentData.cars.length}`;
     }
 }
 
 // Обновление отображения гаража
 function updateGarageDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentCar = currentData.cars[currentData.currentCar];
     const carDisplay = document.getElementById('current-car-display');
     
     if (carDisplay && currentCar) {
@@ -554,10 +717,8 @@ function updateGarageDisplay() {
         `;
     }
     
-    // Обновляем селектор
     updateCarSelector();
     
-    // Обновляем статистику машины
     const statsDisplay = document.getElementById('car-stats-display');
     if (statsDisplay && currentCar) {
         const totalStats = calculateTotalStats(currentCar);
@@ -598,7 +759,6 @@ function updateGarageDisplay() {
         `;
     }
     
-    // Обновляем общую статистику
     const totalPower = document.getElementById('total-power');
     const upgradeLevel = document.getElementById('upgrade-level');
     
@@ -617,7 +777,10 @@ function updateGarageDisplay() {
 
 // Функция обновления профиля
 function updateProfileDisplay() {
-    // Обновление имени пользователя в профиле
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
     const profileUsername = document.getElementById('profile-username');
     if (profileUsername && currentUser) {
         profileUsername.textContent = currentUser.username;
@@ -625,15 +788,14 @@ function updateProfileDisplay() {
     
     const profileLevel = document.getElementById('profile-level');
     if (profileLevel) {
-        profileLevel.textContent = gameData.level;
+        profileLevel.textContent = currentData.level;
     }
     
-    // Добавляем отображение опыта
     const profileInfo = document.querySelector('.profile-info');
     if (profileInfo && !document.getElementById('profile-xp-bar')) {
-        const currentXP = gameData.experience || 0;
-        const requiredXP = levelSystem.getRequiredXP(gameData.level);
-        const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
+        const currentXP = currentData.experience || 0;
+        const requiredXP = levelSystem.getRequiredXP(currentData.level);
+        const nextLevelXP = levelSystem.getRequiredXP(currentData.level + 1);
         const progressXP = currentXP - requiredXP;
         const neededXP = nextLevelXP - requiredXP;
         const xpPercent = Math.floor((progressXP / neededXP) * 100);
@@ -648,60 +810,58 @@ function updateProfileDisplay() {
         profileInfo.appendChild(xpDisplay);
     }
     
-    // Навыки
     const profileSkillsDisplay = document.getElementById('profile-skills-display');
     if (profileSkillsDisplay) {
         profileSkillsDisplay.innerHTML = `
             <div class="skill-item">
                 <span class="skill-name">Вождение</span>
                 <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.driving * 10}%"></div>
+                    <div class="skill-progress" style="width: ${currentData.skills.driving * 10}%"></div>
                 </div>
-                <span class="skill-level">${gameData.skills.driving}</span>
+                <span class="skill-level">${currentData.skills.driving}</span>
             </div>
             <div class="skill-item">
                 <span class="skill-name">Скорость</span>
                 <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.speed * 10}%"></div>
+                    <div class="skill-progress" style="width: ${currentData.skills.speed * 10}%"></div>
                 </div>
-                <span class="skill-level">${gameData.skills.speed}</span>
+                <span class="skill-level">${currentData.skills.speed}</span>
             </div>
             <div class="skill-item">
                 <span class="skill-name">Реакция</span>
                 <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.reaction * 10}%"></div>
+                    <div class="skill-progress" style="width: ${currentData.skills.reaction * 10}%"></div>
                 </div>
-                <span class="skill-level">${gameData.skills.reaction}</span>
+                <span class="skill-level">${currentData.skills.reaction}</span>
             </div>
             <div class="skill-item">
                 <span class="skill-name">Техника</span>
                 <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.technique * 10}%"></div>
+                    <div class="skill-progress" style="width: ${currentData.skills.technique * 10}%"></div>
                 </div>
-                <span class="skill-level">${gameData.skills.technique}</span>
+                <span class="skill-level">${currentData.skills.technique}</span>
             </div>
         `;
     }
     
-    // Статистика
     const profileStats = document.getElementById('profile-stats');
     if (profileStats) {
-        const winRate = gameData.stats.totalRaces > 0 
-            ? ((gameData.stats.wins / gameData.stats.totalRaces) * 100).toFixed(1) 
+        const winRate = currentData.stats.totalRaces > 0 
+            ? ((currentData.stats.wins / currentData.stats.totalRaces) * 100).toFixed(1) 
             : 0;
             
         profileStats.innerHTML = `
             <div class="stat-row">
                 <span class="stat-label">Всего гонок:</span>
-                <span class="stat-value">${gameData.stats.totalRaces}</span>
+                <span class="stat-value">${currentData.stats.totalRaces}</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">Побед:</span>
-                <span class="stat-value">${gameData.stats.wins}</span>
+                <span class="stat-value">${currentData.stats.wins}</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">Поражений:</span>
-                <span class="stat-value">${gameData.stats.losses}</span>
+                <span class="stat-value">${currentData.stats.losses}</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">Процент побед:</span>
@@ -709,11 +869,11 @@ function updateProfileDisplay() {
             </div>
             <div class="stat-row">
                 <span class="stat-label">Заработано:</span>
-                <span class="stat-value">$${gameData.stats.moneyEarned}</span>
+                <span class="stat-value">$${currentData.stats.moneyEarned}</span>
             </div>
             <div class="stat-row">
                 <span class="stat-label">Потрачено:</span>
-                <span class="stat-value">$${gameData.stats.moneySpent}</span>
+                <span class="stat-value">$${currentData.stats.moneySpent}</span>
             </div>
         `;
     }
@@ -721,22 +881,24 @@ function updateProfileDisplay() {
 
 // Функция обновления магазина
 function updateShopDisplay() {
-    // Машины для покупки
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
     const carsForSale = document.getElementById('cars-for-sale');
     if (carsForSale) {
         carsForSale.innerHTML = '';
         
         allCars.forEach(car => {
-            const owned = gameData.cars.some(c => c.id === car.id);
+            const owned = currentData.cars.some(c => c.id === car.id);
             const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
-            const canBuy = gameData.level >= requiredLevel && gameData.money >= car.price;
+            const canBuy = currentData.level >= requiredLevel && currentData.money >= car.price;
             
             if (!owned && car.price > 0) {
                 const carDiv = document.createElement('div');
                 carDiv.className = 'car-shop-item';
                 
-                // Добавляем класс для заблокированных машин
-                if (gameData.level < requiredLevel) {
+                if (currentData.level < requiredLevel) {
                     carDiv.classList.add('locked');
                 }
                 
@@ -744,7 +906,7 @@ function updateShopDisplay() {
                     <div class="car-shop-emoji">🚗</div>
                     <div class="car-shop-info">
                         <h4>${car.name}</h4>
-                        ${gameData.level < requiredLevel ? 
+                        ${currentData.level < requiredLevel ? 
                             `<p class="level-requirement">🔒 Требуется ${requiredLevel} уровень</p>` : ''}
                         <div class="car-shop-stats">
                             <div class="shop-stat">
@@ -767,8 +929,8 @@ function updateShopDisplay() {
                         <p class="price">$${car.price.toLocaleString()}</p>
                     </div>
                     <button class="btn-primary" onclick="buyCar(${car.id})" ${!canBuy ? 'disabled' : ''}>
-                        ${gameData.level < requiredLevel ? `Нужен ${requiredLevel} уровень` : 
-                          gameData.money < car.price ? 'Недостаточно денег' : 'Купить'}
+                        ${currentData.level < requiredLevel ? `Нужен ${requiredLevel} уровень` : 
+                          currentData.money < car.price ? 'Недостаточно денег' : 'Купить'}
                     </button>
                 `;
                 carsForSale.appendChild(carDiv);
@@ -780,12 +942,11 @@ function updateShopDisplay() {
         }
     }
     
-    // Машины для продажи
     const carsToSell = document.getElementById('cars-to-sell');
     if (carsToSell) {
         carsToSell.innerHTML = '';
         
-        gameData.cars.forEach((car, index) => {
+        currentData.cars.forEach((car, index) => {
             if (car.price > 0) {
                 const sellPrice = Math.floor(car.price * 0.7);
                 const carDiv = document.createElement('div');
@@ -823,16 +984,32 @@ async function buyCar(carId) {
     const car = allCars.find(c => c.id === carId);
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
-    if (!car || gameData.money < car.price || gameData.level < requiredLevel) return;
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
     
-    if (confirm(`Купить ${car.name} за ${car.price.toLocaleString()}?`)) {
-        gameData.money -= car.price;
-        gameData.stats.moneySpent += car.price;
-        
-        // Создаем копию машины и инициализируем улучшения
-        const newCar = {...car, owned: true};
-        initializeCarUpgrades(newCar);
-        gameData.cars.push(newCar);
+    if (!car || currentData.money < car.price || currentData.level < requiredLevel) return;
+    
+    if (confirm(`Купить ${car.name} за $${car.price.toLocaleString()}?`)) {
+        // НОВЫЙ КОД: Используем Store если доступен
+        if (GameCore && GameCore.Store) {
+            const newCar = GameCore.GameObjectFactory.createCar({...car, owned: true});
+            GameCore.Store.setState({
+                money: currentData.money - car.price,
+                cars: [...currentData.cars, newCar],
+                stats: {
+                    ...currentData.stats,
+                    moneySpent: currentData.stats.moneySpent + car.price
+                }
+            });
+        } else {
+            // СТАРЫЙ КОД для обратной совместимости
+            gameData.money -= car.price;
+            gameData.stats.moneySpent += car.price;
+            const newCar = {...car, owned: true};
+            initializeCarUpgrades(newCar);
+            gameData.cars.push(newCar);
+        }
         
         updatePlayerInfo();
         updateShopDisplay();
@@ -844,21 +1021,45 @@ async function buyCar(carId) {
 
 // Функция продажи машины
 async function sellCar(index) {
-    if (gameData.cars.length <= 1) {
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    if (currentData.cars.length <= 1) {
         alert('Нельзя продать последнюю машину!');
         return;
     }
     
-    const car = gameData.cars[index];
+    const car = currentData.cars[index];
     const sellPrice = Math.floor(car.price * 0.7);
     
     if (confirm(`Продать ${car.name} за $${sellPrice.toLocaleString()}?`)) {
-        gameData.money += sellPrice;
-        gameData.stats.moneyEarned += sellPrice;
-        gameData.cars.splice(index, 1);
-        
-        if (gameData.currentCar >= gameData.cars.length) {
-            gameData.currentCar = 0;
+        // НОВЫЙ КОД: Используем Store если доступен
+        if (GameCore && GameCore.Store) {
+            const newCars = currentData.cars.filter((_, i) => i !== index);
+            const updates = {
+                money: currentData.money + sellPrice,
+                cars: newCars,
+                stats: {
+                    ...currentData.stats,
+                    moneyEarned: currentData.stats.moneyEarned + sellPrice
+                }
+            };
+            
+            if (currentData.currentCar >= newCars.length) {
+                updates.currentCar = 0;
+            }
+            
+            GameCore.Store.setState(updates);
+        } else {
+            // СТАРЫЙ КОД для обратной совместимости
+            gameData.money += sellPrice;
+            gameData.stats.moneyEarned += sellPrice;
+            gameData.cars.splice(index, 1);
+            
+            if (gameData.currentCar >= gameData.cars.length) {
+                gameData.currentCar = 0;
+            }
         }
         
         updatePlayerInfo();
@@ -928,35 +1129,35 @@ function displayOpponents() {
     const opponentsList = document.getElementById('opponents-list');
     if (!opponentsList) return;
     
-    // Добавляем информацию о топливе текущей машины
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentCar = currentData.cars[currentData.currentCar];
     const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
-    // Обновляем баннер с топливом
     const raceInfoBanner = document.querySelector('.race-info-banner');
     if (raceInfoBanner) {
         raceInfoBanner.innerHTML = `
             <p>Ваша машина: <strong id="race-current-car">${currentCar.name}</strong></p>
             <p>Топливо: <strong id="race-car-fuel">⛽ ${currentFuel}/${currentCar.maxFuel || 30}</strong></p>
-            <p>Баланс: <strong>$<span id="race-balance">${gameData.money}</span></strong></p>
+            <p>Баланс: <strong>$<span id="race-balance">${currentData.money}</span></strong></p>
         `;
     }
     
     opponentsList.innerHTML = '';
     
-    // Генерируем динамических соперников
     const opponents = generateDynamicOpponents();
     
     opponents.forEach((opponent, index) => {
         const betAmount = Math.floor(opponent.reward / 2);
         const fuelCost = fuelSystem.calculateFuelCost(opponent.difficulty);
-        const canAfford = gameData.money >= betAmount && currentFuel >= fuelCost;
+        const canAfford = currentData.money >= betAmount && currentFuel >= fuelCost;
         
         const opponentCard = document.createElement('div');
         opponentCard.className = 'opponent-card';
         opponentCard.style.opacity = canAfford ? '1' : '0.5';
         
-        // Добавляем цветовую индикацию сложности
         let difficultyColor = '';
         if (opponent.difficulty < 1.0) difficultyColor = 'easy';
         else if (opponent.difficulty < 1.4) difficultyColor = 'medium';
@@ -975,11 +1176,11 @@ function displayOpponents() {
                 <div class="opponent-stakes">
                     <span class="stake-item">
                         <span class="stake-label">Ставка:</span>
-                        <span class="stake-value">${betAmount}</span>
+                        <span class="stake-value">$${betAmount}</span>
                     </span>
                     <span class="stake-item">
                         <span class="stake-label">Выигрыш:</span>
-                        <span class="stake-value">${opponent.reward}</span>
+                        <span class="stake-value">$${opponent.reward}</span>
                     </span>
                     <span class="stake-item">
                         <span class="stake-label">Топливо:</span>
@@ -989,575 +1190,12 @@ function displayOpponents() {
             </div>
             <button class="btn-primary race-btn" onclick="showRacePreview(${index}); return false;" 
                     ${!canAfford ? 'disabled' : ''}>
-                ${gameData.money < betAmount ? `Нужно ${betAmount}` : 
+                ${currentData.money < betAmount ? `Нужно $${betAmount}` : 
                   currentFuel < fuelCost ? `Нужно ⛽${fuelCost}` : 'Вызвать на гонку'}
             </button>
         `;
         opponentsList.appendChild(opponentCard);
     });
-}
-
-// Показать превью гонки
-function showRacePreview(opponentIndex) {
-    const opponents = generateDynamicOpponents();
-    const opponent = opponents[opponentIndex];
-    const currentCar = gameData.cars[gameData.currentCar];
-    const betAmount = Math.floor(opponent.reward / 2);
-    const fuelCost = fuelSystem.calculateFuelCost(opponent.difficulty);
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
-    
-    const modal = document.createElement('div');
-    modal.className = 'race-preview-modal';
-    modal.onclick = function(e) {
-        if (e.target === modal) closeRacePreview();
-    };
-    
-    modal.innerHTML = `
-        <div class="race-preview-content">
-            <button class="close-modal" onclick="closeRacePreview()">×</button>
-            <h2>Вызов на гонку</h2>
-            
-            <div class="race-comparison">
-                <div class="racer-info player">
-                    <h3>${currentUser.username}</h3>
-                    <div class="car-info">
-                        <div class="car-image">🚗</div>
-                        <h4>${currentCar.name}</h4>
-                        <p class="fuel-status">⛽ ${currentFuel}/${currentCar.maxFuel || 30}</p>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Характеристики</h5>
-                        <div class="stat-comparison">
-                            <span>Мощность</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.power}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.power}</span>
-                        </div>
-                        <div class="stat-comparison">
-                            <span>Скорость</span>
-                            <div class="stat-bar-comparison">
-                                <div class="stat-fill" style="width: ${currentCar.speed}%"></div>
-                            </div>
-                            <span class="stat-number">${currentCar.speed}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="vs-divider">
-                    <div class="vs-circle">VS</div>
-                    <div class="race-info">
-                        <p>Ставка: <strong>${betAmount}</strong></p>
-                        <p>Выигрыш: <strong>${opponent.reward}</strong></p>
-                        <p>Расход топлива: <strong>⛽ ${fuelCost}</strong></p>
-                    </div>
-                </div>
-                
-                <div class="racer-info opponent">
-                    <h3>${opponent.name}</h3>
-                    <div class="car-info">
-                        <div class="car-image">🏎️</div>
-                        <h4>${opponent.car}</h4>
-                    </div>
-                    
-                    <div class="stats-section">
-                        <h5>Уровень сложности</h5>
-                        <div class="difficulty-bar">
-                            <div class="difficulty-fill" style="width: ${opponent.difficulty * 60}%"></div>
-                        </div>
-                        <p class="difficulty-text">${
-                            opponent.difficulty < 1 ? 'Легко' :
-                            opponent.difficulty < 1.3 ? 'Средне' :
-                            opponent.difficulty < 1.5 ? 'Сложно' : 'Очень сложно'
-                        }</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button class="btn-primary race-start-btn" onclick="confirmRace(${opponentIndex}); return false;"
-                        ${currentFuel < fuelCost ? 'disabled' : ''}>
-                    ${currentFuel < fuelCost ? `Недостаточно топлива (нужно ${fuelCost})` : 'Начать гонку!'}
-                </button>
-                <button class="btn-secondary" onclick="closeRacePreview(); return false;">Отмена</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-}
-
-// Закрыть превью гонки
-function closeRacePreview() {
-    const modal = document.querySelector('.race-preview-modal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-// Подтвердить и начать гонку
-function confirmRace(opponentIndex) {
-    closeRacePreview();
-    setTimeout(() => {
-        startRace(opponentIndex);
-    }, 100);
-}
-
-// Обновленная функция проверки повышения уровня
-function checkLevelUp() {
-    const currentXP = gameData.experience || 0;
-    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
-    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
-    
-    if (currentXP >= nextLevelXP) {
-        gameData.level++;
-        const reward = levelSystem.getLevelReward(gameData.level);
-        gameData.money += reward;
-        
-        showError(`🎉 Поздравляем! Вы достигли ${gameData.level} уровня!\nНаграда: $${reward}`);
-        
-        // Проверяем еще раз, вдруг сразу несколько уровней
-        checkLevelUp();
-    }
-}
-
-// Функция расчета получения навыков после гонки
-function calculateSkillGain(isWin) {
-    const skillNames = ['driving', 'speed', 'reaction', 'technique'];
-    const skillNamesRu = {
-        driving: 'Вождение',
-        speed: 'Скорость',
-        reaction: 'Реакция',
-        technique: 'Техника'
-    };
-    
-    let gainedSkills = [];
-    
-    const attempts = Math.random() < 0.7 ? 1 : 2;
-    const baseChance = isWin ? 0.9 : 0.45;
-    
-    for (let i = 0; i < attempts; i++) {
-        const randomSkill = skillNames[Math.floor(Math.random() * skillNames.length)];
-        
-        if (gainedSkills.find(s => s.skill === randomSkill)) {
-            continue;
-        }
-        
-        const currentSkillLevel = gameData.skills[randomSkill];
-        const chance = baseChance / (1 + currentSkillLevel * 0.01);
-        
-        if (Math.random() < chance && currentSkillLevel < 10) {
-            gameData.skills[randomSkill]++;
-            gainedSkills.push({
-                skill: randomSkill,
-                name: skillNamesRu[randomSkill],
-                newLevel: gameData.skills[randomSkill],
-                chance: (chance * 100).toFixed(1)
-            });
-        }
-    }
-    
-    return gainedSkills;
-}
-
-// Старт гонки (БЕЗ ЗАГРУЗКИ - МГНОВЕННЫЙ РЕЗУЛЬТАТ)
-async function startRace(opponentIndex) {
-    const opponents = generateDynamicOpponents();
-    const opponent = opponents[opponentIndex];
-    const currentCar = gameData.cars[gameData.currentCar];
-    
-    // Инициализируем улучшения если их нет
-    initializeCarUpgrades(currentCar);
-    
-    const betAmount = Math.floor(opponent.reward / 2);
-    const fuelCost = fuelSystem.calculateFuelCost(opponent.difficulty);
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
-    
-    if (gameData.money < betAmount) {
-        alert(`Недостаточно денег для участия! Нужно минимум ${betAmount}`);
-        return;
-    }
-    
-    if (currentFuel < fuelCost) {
-        alert(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`);
-        return;
-    }
-    
-    // Тратим топливо
-    currentCar.fuel = currentFuel - fuelCost;
-    currentCar.lastFuelUpdate = new Date().toISOString();
-    
-    // Получаем характеристики с учетом улучшений
-    const totalStats = calculateTotalStats(currentCar);
-    
-    // Расчет параметров машины игрока (0-100)
-    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
-    
-    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-    const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +
-        gameData.skills.speed * 0.002 +
-        gameData.skills.reaction * 0.0015 +
-        gameData.skills.technique * 0.0015
-    );
-    
-    // Общая эффективность игрока (с учетом навыков)
-    let playerEfficiency = carPower * skillMultiplier;
-    
-    // Проверяем нитро
-    if (currentCar.specialParts && currentCar.specialParts.nitro && Math.random() < 0.3) {
-        playerEfficiency *= 1.2;
-        showError("🚀 Нитро активировано!");
-    }
-    
-    // Расчет эффективности соперника (базовая 60 * сложность)
-    const opponentEfficiency = 60 * opponent.difficulty;
-    
-    // Базовое время трассы 60 секунд
-    const trackBaseTime = 60;
-    
-    // Добавляем элемент случайности (±5% от результата)
-    const playerRandomFactor = 0.95 + Math.random() * 0.1;
-    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-    
-    // Расчет финального времени
-    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
-    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
-    
-    // Побеждает тот, у кого меньше время
-    const won = playerTime < opponentTime;
-    
-    // Расчет опыта
-    const xpGained = levelSystem.calculateXPGain(won, opponent.difficulty, betAmount);
-    gameData.experience = (gameData.experience || 0) + xpGained;
-    
-    // Обновляем статистику
-    gameData.stats.totalRaces++;
-    if (won) {
-        gameData.stats.wins++;
-        gameData.stats.moneyEarned += opponent.reward;
-        gameData.money += opponent.reward;
-    } else {
-        gameData.stats.losses++;
-        gameData.stats.moneySpent += betAmount;
-        gameData.money -= betAmount;
-    }
-    
-    // Получение навыков
-    const gainedSkills = calculateSkillGain(won);
-    
-    // Проверка повышения уровня
-    checkLevelUp();
-    
-    // Сразу показываем результат
-    showRaceResultScreen();
-    
-    const resultDiv = document.getElementById('race-result');
-    let skillsHTML = '';
-    
-    if (gainedSkills.length > 0) {
-        skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
-        gainedSkills.forEach(skill => {
-            skillsHTML += `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`;
-        });
-        skillsHTML += '</div>';
-    }
-    
-    // Отображение полоски опыта
-    const currentXP = gameData.experience || 0;
-    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
-    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
-    const progressXP = currentXP - currentLevelXP;
-    const neededXP = nextLevelXP - currentLevelXP;
-    const xpPercent = Math.floor((progressXP / neededXP) * 100);
-    
-    // Информация о топливе
-    const fuelInfo = `
-        <div class="fuel-spent-info">
-            <p>⛽ Потрачено топлива: ${fuelCost}</p>
-            <p>⛽ Осталось: ${currentCar.fuel}/${currentCar.maxFuel || 30}</p>
-        </div>
-    `;
-    
-    if (won) {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title win">🏆 ПОБЕДА!</h2>
-                <div class="result-animation">🎉</div>
-                
-                <div class="result-info">
-                    <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💰 Выигрыш: <span class="money-gain">+${opponent.reward}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: ${gameData.money}</p>
-                    </div>
-                    
-                    ${fuelInfo}
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
-                
-                <div class="result-info">
-                    <p><strong>${opponent.name}</strong> оказался быстрее!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💸 Проигрыш: <span class="money-loss">-${betAmount}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: ${gameData.money}</p>
-                    </div>
-                    
-                    ${fuelInfo}
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    updatePlayerInfo();
-    await autoSave();
-}
-//БЕЗ ЗАГРУЗКИ - МГНОВЕННЫЙ РЕЗУЛЬТАТ)
-async function startRace(opponentIndex) {
-    const opponents = generateDynamicOpponents();
-    const opponent = opponents[opponentIndex];
-    const currentCar = gameData.cars[gameData.currentCar];
-    
-    // Инициализируем улучшения если их нет
-    initializeCarUpgrades(currentCar);
-    
-    const betAmount = Math.floor(opponent.reward / 2);
-    if (gameData.money < betAmount) {
-        alert(`Недостаточно денег для участия! Нужно минимум $${betAmount}`);
-        return;
-    }
-    
-    // Получаем характеристики с учетом улучшений
-    const totalStats = calculateTotalStats(currentCar);
-    
-    // Расчет параметров машины игрока (0-100)
-    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
-    
-    // Расчет бонуса от навыков (каждый уровень дает небольшой процент)
-    const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +
-        gameData.skills.speed * 0.002 +
-        gameData.skills.reaction * 0.0015 +
-        gameData.skills.technique * 0.0015
-    );
-    
-    // Общая эффективность игрока (с учетом навыков)
-    let playerEfficiency = carPower * skillMultiplier;
-    
-    // Проверяем нитро
-    if (currentCar.specialParts && currentCar.specialParts.nitro && Math.random() < 0.3) {
-        playerEfficiency *= 1.2;
-        showError("🚀 Нитро активировано!");
-    }
-    
-    // Расчет эффективности соперника (базовая 60 * сложность)
-    const opponentEfficiency = 60 * opponent.difficulty;
-    
-    // Базовое время трассы 60 секунд
-    const trackBaseTime = 60;
-    
-    // Добавляем элемент случайности (±5% от результата)
-    const playerRandomFactor = 0.95 + Math.random() * 0.1;
-    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-    
-    // Расчет финального времени
-    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
-    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
-    
-    // Побеждает тот, у кого меньше время
-    const won = playerTime < opponentTime;
-    
-    // Расчет опыта
-    const xpGained = levelSystem.calculateXPGain(won, opponent.difficulty, betAmount);
-    gameData.experience = (gameData.experience || 0) + xpGained;
-    
-    // Обновляем статистику
-    gameData.stats.totalRaces++;
-    if (won) {
-        gameData.stats.wins++;
-        gameData.stats.moneyEarned += opponent.reward;
-        gameData.money += opponent.reward;
-    } else {
-        gameData.stats.losses++;
-        gameData.stats.moneySpent += betAmount;
-        gameData.money -= betAmount;
-    }
-    
-    // Получение навыков
-    const gainedSkills = calculateSkillGain(won);
-    
-    // Проверка повышения уровня
-    checkLevelUp();
-    
-    // Сразу показываем результат
-    showRaceResultScreen();
-    
-    const resultDiv = document.getElementById('race-result');
-    let skillsHTML = '';
-    
-    if (gainedSkills.length > 0) {
-        skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
-        gainedSkills.forEach(skill => {
-            skillsHTML += `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`;
-        });
-        skillsHTML += '</div>';
-    }
-    
-    // Отображение полоски опыта
-    const currentXP = gameData.experience || 0;
-    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
-    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
-    const progressXP = currentXP - currentLevelXP;
-    const neededXP = nextLevelXP - currentLevelXP;
-    const xpPercent = Math.floor((progressXP / neededXP) * 100);
-    
-    if (won) {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title win">🏆 ПОБЕДА!</h2>
-                <div class="result-animation">🎉</div>
-                
-                <div class="result-info">
-                    <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💰 Выигрыш: <span class="money-gain">+$${opponent.reward}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: $${gameData.money}</p>
-                    </div>
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
-                
-                <div class="result-info">
-                    <p><strong>${opponent.name}</strong> оказался быстрее!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💸 Проигрыш: <span class="money-loss">-$${betAmount}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: $${gameData.money}</p>
-                    </div>
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    }
-    
-    updatePlayerInfo();
-    await autoSave();
 }
 
 // Функции для экрана авторизации
@@ -1621,7 +1259,6 @@ function showAuthScreen() {
     document.getElementById('auth-container').style.display = 'flex';
     document.querySelector('.game-container').style.display = 'none';
     
-    // Очищаем поля
     document.getElementById('login-username').value = '';
     document.getElementById('login-password').value = '';
     document.getElementById('register-username').value = '';
@@ -1629,15 +1266,13 @@ function showAuthScreen() {
     document.getElementById('register-password-confirm').value = '';
 }
 
-// Обновленная функция showGame для главной страницы
+// Обновленная функция showGame
 function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
     
-    // Загружаем улучшения из локального хранилища
     loadUpgradesLocally();
     
-    // Обновляем информацию пользователя на главной странице
     const playerNameElement = document.getElementById('player-name');
     const playerLevelElement = document.getElementById('player-level');
     const playerMoneyElement = document.getElementById('player-money');
@@ -1654,13 +1289,11 @@ function showGame() {
         playerMoneyElement.textContent = gameData.money;
     }
     
-    // Обновляем имя в профиле тоже
     const profileUsername = document.getElementById('profile-username');
     if (profileUsername && currentUser) {
         profileUsername.textContent = currentUser.username;
     }
     
-    // Обновляем аватары
     const avatars = document.querySelectorAll('.player-avatar, .profile-avatar, #header-avatar');
     avatars.forEach(avatar => {
         if (currentUser) {
@@ -1668,16 +1301,11 @@ function showGame() {
         }
     });
     
-    // Обновляем мини-полоску опыта
     updateXPBar();
-    
     updatePlayerInfo();
     updateQuickStats();
     
-    // Запускаем автосохранение
     startAutoSave();
-    
-    // Запускаем обновление топлива
     startFuelUpdates();
     
     navigationHistory = [];
@@ -1687,395 +1315,35 @@ function showGame() {
 
 // Функция обновления полоски опыта
 function updateXPBar() {
-    const currentXP = gameData.experience || 0;
-    const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
-    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentXP = currentData.experience || 0;
+    const currentLevelXP = levelSystem.getRequiredXP(currentData.level);
+    const nextLevelXP = levelSystem.getRequiredXP(currentData.level + 1);
     const progressXP = currentXP - currentLevelXP;
     const neededXP = nextLevelXP - currentLevelXP;
     const xpPercent = Math.floor((progressXP / neededXP) * 100);
     
-    // Обновляем мини-полоску на главной
     const xpMiniFill = document.getElementById('xp-mini-fill');
     if (xpMiniFill) {
         xpMiniFill.style.width = xpPercent + '%';
     }
     
-    // Обновляем полоску в профиле
     const profileXPFill = document.getElementById('profile-xp-fill');
     if (profileXPFill) {
         profileXPFill.style.width = xpPercent + '%';
     }
     
-    // Обновляем текст в профиле
     const profileXP = document.getElementById('profile-xp');
     const profileXPNext = document.getElementById('profile-xp-next');
     if (profileXP) profileXP.textContent = currentXP;
     if (profileXPNext) profileXPNext.textContent = nextLevelXP;
 }
 
-// Обновление информации игрока (обновлено для новых элементов)
-function updatePlayerInfo() {
-    // Обновляем деньги
-    const moneyElements = [
-        document.getElementById('player-money'),
-        document.getElementById('race-balance'),
-        document.getElementById('upgrade-balance')
-    ];
-    
-    moneyElements.forEach(element => {
-        if (element) element.textContent = gameData.money;
-    });
-    
-    // Обновляем уровень
-    const levelElements = [
-        document.getElementById('player-level'),
-        document.getElementById('profile-level')
-    ];
-    
-    levelElements.forEach(element => {
-        if (element) element.textContent = gameData.level;
-    });
-    
-    // Обновляем имя игрока
-    const playerNameElement = document.getElementById('player-name');
-    if (playerNameElement && currentUser) {
-        playerNameElement.textContent = currentUser.username;
-    }
-    
-    // Обновляем текущую машину в гонках
-    const raceCurrentCar = document.getElementById('race-current-car');
-    if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
-    }
-    
-    // Обновляем полоску опыта
-    updateXPBar();
-    
-    // Обновляем быструю статистику
-    updateQuickStats();
-}
-
-// Функция обновления быстрой статистики (теперь в профиле)
-function updateQuickStats() {
-    const profileWins = document.getElementById('profile-wins');
-    const profileCars = document.getElementById('profile-cars');
-    const profileRating = document.getElementById('profile-rating');
-    
-    if (profileWins) profileWins.textContent = gameData.stats.wins;
-    if (profileCars) profileCars.textContent = gameData.cars.length;
-    if (profileRating) profileRating.textContent = '#—'; // Позже можно добавить реальный рейтинг
-}
-
-// Функция обновления профиля
-function updateProfileDisplay() {
-    // Обновление имени пользователя в профиле
-    const profileUsername = document.getElementById('profile-username');
-    if (profileUsername && currentUser) {
-        profileUsername.textContent = currentUser.username;
-    }
-    
-    const profileLevel = document.getElementById('profile-level');
-    if (profileLevel) {
-        profileLevel.textContent = gameData.level;
-    }
-    
-    // Обновляем полоску опыта
-    updateXPBar();
-    
-    // Обновляем быструю статистику
-    updateQuickStats();
-    
-    // Обновляем аватар
-    const profileAvatar = document.querySelector('.profile-avatar');
-    if (profileAvatar && currentUser) {
-        profileAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
-    }
-    
-    // Навыки
-    const profileSkillsDisplay = document.getElementById('profile-skills-display');
-    if (profileSkillsDisplay) {
-        profileSkillsDisplay.innerHTML = `
-            <div class="skill-item">
-                <span class="skill-name">Вождение</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.driving * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.driving}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Скорость</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.speed * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.speed}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Реакция</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.reaction * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.reaction}</span>
-            </div>
-            <div class="skill-item">
-                <span class="skill-name">Техника</span>
-                <div class="skill-bar">
-                    <div class="skill-progress" style="width: ${gameData.skills.technique * 10}%"></div>
-                </div>
-                <span class="skill-level">${gameData.skills.technique}</span>
-            </div>
-        `;
-    }
-    
-    // Статистика
-    const profileStats = document.getElementById('profile-stats');
-    if (profileStats) {
-        const winRate = gameData.stats.totalRaces > 0 
-            ? ((gameData.stats.wins / gameData.stats.totalRaces) * 100).toFixed(1) 
-            : 0;
-            
-        profileStats.innerHTML = `
-            <div class="stat-row">
-                <span class="stat-label">Всего гонок:</span>
-                <span class="stat-value">${gameData.stats.totalRaces}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Побед:</span>
-                <span class="stat-value">${gameData.stats.wins}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Поражений:</span>
-                <span class="stat-value">${gameData.stats.losses}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Процент побед:</span>
-                <span class="stat-value">${winRate}%</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Заработано:</span>
-                <span class="stat-value">${gameData.stats.moneyEarned}</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">Потрачено:</span>
-                <span class="stat-value">${gameData.stats.moneySpent}</span>
-            </div>
-        `;
-    }
-}
-
-// Сохранение при закрытии/обновлении страницы
-window.addEventListener('beforeunload', async (e) => {
-    if (currentUser && gameData) {
-        // Пытаемся сохранить данные
-        try {
-            await saveGameData(gameData);
-        } catch (error) {
-            console.error('Не удалось сохранить при закрытии:', error);
-        }
-    }
-});
-
-// Периодическая проверка соединения и синхронизация
-setInterval(async () => {
-    if (currentUser && navigator.onLine) {
-        try {
-            // Пробуем синхронизировать данные
-            await saveGameData(gameData);
-        } catch (error) {
-            console.log('Фоновая синхронизация не удалась:', error);
-        }
-    }
-}, 60000); // Каждую минуту
-
-// Инициализация игры
-window.onload = async function() {
-    // Проверяем авторизацию
-    const isAuthorized = await checkAuth();
-    
-    if (isAuthorized) {
-        showGame();
-    } else {
-        showAuthScreen();
-    }
-    
-    // Скрываем экран загрузки
-    setTimeout(() => {
-        document.getElementById('loading-screen').style.display = 'none';
-    }, 500);
-};
-
-// Конфигурация системы улучшений
-const upgradeConfig = {
-    engine: {
-        name: "Двигатель",
-        icon: "🔧",
-        affects: { power: 5, speed: 3 },
-        baseCost: 500,
-        costMultiplier: 2.5,
-        description: "Увеличивает мощность и скорость"
-    },
-    turbo: {
-        name: "Турбо",
-        icon: "💨",
-        affects: { acceleration: 4, power: 2 },
-        baseCost: 300,
-        costMultiplier: 2.3,
-        description: "Улучшает ускорение и мощность"
-    },
-    tires: {
-        name: "Шины",
-        icon: "🏁",
-        affects: { handling: 3, acceleration: 2 },
-        baseCost: 200,
-        costMultiplier: 2.2,
-        description: "Повышает управление и ускорение"
-    },
-    suspension: {
-        name: "Подвеска",
-        icon: "🔩",
-        affects: { handling: 5 },
-        baseCost: 400,
-        costMultiplier: 2.4,
-        description: "Значительно улучшает управление"
-    },
-    transmission: {
-        name: "Коробка передач",
-        icon: "⚙️",
-        affects: { speed: 3, acceleration: 3 },
-        baseCost: 600,
-        costMultiplier: 2.5,
-        description: "Увеличивает скорость и ускорение"
-    }
-};
-
-// Система топлива
-const fuelSystem = {
-    baseConsumption: 5, // базовый расход топлива
-    difficultyMultiplier: {
-        easy: 1,
-        medium: 1.5,
-        hard: 2,
-        extreme: 2.5
-    },
-    regenRate: 10, // минут на единицу топлива
-    
-    calculateFuelCost: function(difficulty) {
-        let category = 'easy';
-        if (difficulty >= 1.0 && difficulty < 1.4) category = 'medium';
-        else if (difficulty >= 1.4 && difficulty < 1.8) category = 'hard';
-        else if (difficulty >= 1.8) category = 'extreme';
-        
-        return Math.ceil(this.baseConsumption * this.difficultyMultiplier[category]);
-    },
-    
-    getTimeUntilFull: function(currentFuel, maxFuel, lastUpdate) {
-        if (currentFuel >= maxFuel) return 0;
-        
-        const now = new Date();
-        const lastUpdateTime = new Date(lastUpdate);
-        const minutesPassed = (now - lastUpdateTime) / 60000;
-        const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
-        const currentActualFuel = Math.min(currentFuel + fuelRegenerated, maxFuel);
-        const fuelNeeded = maxFuel - currentActualFuel;
-        
-        return fuelNeeded * this.regenRate;
-    },
-    
-    getCurrentFuel: function(car) {
-        if (!car.lastFuelUpdate) return car.fuel || 30;
-        
-        const now = new Date();
-        const lastUpdate = new Date(car.lastFuelUpdate);
-        const minutesPassed = (now - lastUpdate) / 60000;
-        const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
-        
-        return Math.min((car.fuel || 0) + fuelRegenerated, car.maxFuel || 30);
-    }
-};
-
-// Интервал обновления топлива
-let fuelUpdateInterval = null;
-
-// Функция запуска обновления топлива
-function startFuelUpdates() {
-    if (fuelUpdateInterval) clearInterval(fuelUpdateInterval);
-    
-    fuelUpdateInterval = setInterval(() => {
-        updateFuelDisplay();
-    }, 10000); // каждые 10 секунд
-}
-
-// Функция остановки обновления топлива
-function stopFuelUpdates() {
-    if (fuelUpdateInterval) {
-        clearInterval(fuelUpdateInterval);
-        fuelUpdateInterval = null;
-    }
-}
-
-// Обновление отображения топлива
-function updateFuelDisplay() {
-    // Обновляем топливо текущей машины в гараже
-    const fuelDisplay = document.getElementById('current-car-fuel');
-    if (fuelDisplay && gameData.cars[gameData.currentCar]) {
-        const car = gameData.cars[gameData.currentCar];
-        const currentFuel = fuelSystem.getCurrentFuel(car);
-        const maxFuel = car.maxFuel || 30;
-        
-        fuelDisplay.innerHTML = `
-            <div class="fuel-info">
-                <span class="fuel-icon">⛽</span>
-                <span class="fuel-text">${currentFuel}/${maxFuel}</span>
-                ${currentFuel < maxFuel ? `<span class="fuel-timer" id="fuel-timer"></span>` : ''}
-            </div>
-            <div class="fuel-bar">
-                <div class="fuel-bar-fill" style="width: ${(currentFuel / maxFuel) * 100}%"></div>
-            </div>
-        `;
-        
-        // Обновляем таймер
-        if (currentFuel < maxFuel) {
-            updateFuelTimer(car);
-        }
-    }
-    
-    // Обновляем топливо в списке соперников
-    const raceCarFuel = document.getElementById('race-car-fuel');
-    if (raceCarFuel && gameData.cars[gameData.currentCar]) {
-        const car = gameData.cars[gameData.currentCar];
-        const currentFuel = fuelSystem.getCurrentFuel(car);
-        raceCarFuel.innerHTML = `⛽ ${currentFuel}/${car.maxFuel || 30}`;
-    }
-}
-
-// Обновление таймера топлива
-function updateFuelTimer(car) {
-    const timerElement = document.getElementById('fuel-timer');
-    if (!timerElement) return;
-    
-    const update = () => {
-        const now = new Date();
-        const lastUpdate = new Date(car.lastFuelUpdate || now);
-        const minutesPassed = (now - lastUpdate) / 60000;
-        const minutesUntilNextFuel = fuelSystem.regenRate - (minutesPassed % fuelSystem.regenRate);
-        
-        if (minutesUntilNextFuel > 0) {
-            const minutes = Math.floor(minutesUntilNextFuel);
-            const seconds = Math.floor((minutesUntilNextFuel - minutes) * 60);
-            timerElement.textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
-        }
-    };
-    
-    update();
-    const interval = setInterval(update, 1000);
-    
-    // Сохраняем интервал для очистки
-    if (window.fuelTimerInterval) clearInterval(window.fuelTimerInterval);
-    window.fuelTimerInterval = interval;
-}
-
-// Обновляем структуру данных машин (добавляем в gameData.cars)
+// Инициализация улучшений машины
 function initializeCarUpgrades(car) {
-    // Инициализируем улучшения только если их нет
     if (!car.upgrades) {
         car.upgrades = {
             engine: 0,
@@ -2086,7 +1354,6 @@ function initializeCarUpgrades(car) {
         };
     }
     
-    // Инициализируем специальные детали только если их нет
     if (!car.specialParts) {
         car.specialParts = {
             nitro: false,
@@ -2096,7 +1363,6 @@ function initializeCarUpgrades(car) {
         };
     }
     
-    // Инициализируем топливо
     if (car.fuel === undefined) {
         car.fuel = 30;
     }
@@ -2107,12 +1373,10 @@ function initializeCarUpgrades(car) {
         car.lastFuelUpdate = new Date().toISOString();
     }
     
-    // Возвращаем машину для удобства
     return car;
 }
 
 // Инициализируем улучшения для всех существующих машин при загрузке скрипта
-// Эта строка выполнится только если gameData уже загружен
 if (gameData && gameData.cars) {
     gameData.cars.forEach(car => initializeCarUpgrades(car));
 }
@@ -2147,7 +1411,6 @@ function calculateTotalStats(car) {
         acceleration: car.acceleration
     };
     
-    // Применяем улучшения
     if (car.upgrades) {
         Object.keys(car.upgrades).forEach(upgradeType => {
             const level = car.upgrades[upgradeType];
@@ -2161,7 +1424,6 @@ function calculateTotalStats(car) {
         });
     }
     
-    // Применяем специальные детали
     if (car.specialParts) {
         if (car.specialParts.bodyKit) {
             Object.keys(totalStats).forEach(stat => {
@@ -2179,100 +1441,24 @@ function calculateTotalStats(car) {
     return totalStats;
 }
 
-// Обновленная функция отображения гаража
-function updateGarageDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
-    initializeCarUpgrades(currentCar); // Убеждаемся, что улучшения инициализированы
-    
-    const carDisplay = document.getElementById('current-car-display');
-    
-    if (carDisplay && currentCar) {
-        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
-        
-        carDisplay.innerHTML = `
-            <div class="car-emoji ${totalUpgradeLevel >= 25 ? 'car-glow' : ''}">🏎️</div>
-            <h3>${currentCar.name}</h3>
-            <div class="car-upgrade-level">
-                <span class="upgrade-stars">${'⭐'.repeat(Math.floor(totalUpgradeLevel / 10))}</span>
-                <span class="upgrade-text">Уровень прокачки: ${totalUpgradeLevel}/50</span>
-            </div>
-        `;
-    }
-    
-    // Обновляем селектор
-    updateCarSelector();
-    
-    // Обновляем статистику машины с учетом улучшений
-    const totalStats = calculateTotalStats(currentCar);
-    const statsDisplay = document.getElementById('car-stats-display');
-    
-    if (statsDisplay) {
-        statsDisplay.innerHTML = `
-            <div class="stat-bar">
-                <label>Мощность</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.power}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.power - currentCar.power}%"></div>
-                </div>
-                <span>${totalStats.power} ${totalStats.power > currentCar.power ? `(+${totalStats.power - currentCar.power})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Скорость</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.speed}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.speed - currentCar.speed}%"></div>
-                </div>
-                <span>${totalStats.speed} ${totalStats.speed > currentCar.speed ? `(+${totalStats.speed - currentCar.speed})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Управление</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.handling}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.handling - currentCar.handling}%"></div>
-                </div>
-                <span>${totalStats.handling} ${totalStats.handling > currentCar.handling ? `(+${totalStats.handling - currentCar.handling})` : ''}</span>
-            </div>
-            <div class="stat-bar">
-                <label>Разгон</label>
-                <div class="progress-bar">
-                    <div class="stat-value base-stat" style="width: ${currentCar.acceleration}%"></div>
-                    <div class="stat-value upgrade-stat" style="width: ${totalStats.acceleration - currentCar.acceleration}%"></div>
-                </div>
-                <span>${totalStats.acceleration} ${totalStats.acceleration > currentCar.acceleration ? `(+${totalStats.acceleration - currentCar.acceleration})` : ''}</span>
-            </div>
-        `;
-    }
-    
-    // Обновляем общую статистику
-    const totalPower = document.getElementById('total-power');
-    const upgradeLevel = document.getElementById('upgrade-level');
-    
-    if (totalPower) {
-        const avgPower = Math.floor((totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4);
-        totalPower.textContent = avgPower;
-    }
-    
-    if (upgradeLevel) {
-        const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
-        upgradeLevel.textContent = totalUpgradeLevel;
-    }
-}
-
-// Отображение списка улучшений
+// Обновление отображения улучшений
 function updateUpgradesDisplay() {
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentCar = currentData.cars[currentData.currentCar];
     const upgradesList = document.getElementById('upgrades-list');
     const upgradeBalance = document.getElementById('upgrade-balance');
     
     if (upgradeBalance) {
-        upgradeBalance.textContent = gameData.money;
+        upgradeBalance.textContent = currentData.money;
     }
     
     if (!upgradesList) return;
     
     upgradesList.innerHTML = '';
     
-    // Ограничения по уровню машины
     let maxUpgradeLevel = 10;
     if (currentCar.price === 0 || currentCar.price <= 8000) {
         maxUpgradeLevel = 5;
@@ -2280,12 +1466,11 @@ function updateUpgradesDisplay() {
         maxUpgradeLevel = 7;
     }
     
-    // Отображаем улучшения
     Object.keys(upgradeConfig).forEach(upgradeType => {
         const config = upgradeConfig[upgradeType];
         const currentLevel = currentCar.upgrades[upgradeType];
         const cost = getUpgradeCost(upgradeType, currentLevel);
-        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
+        const canUpgrade = currentLevel < maxUpgradeLevel && currentData.money >= cost;
         
         const upgradeDiv = document.createElement('div');
         upgradeDiv.className = 'upgrade-item';
@@ -2310,8 +1495,8 @@ function updateUpgradesDisplay() {
                 <button class="btn-upgrade ${canUpgrade ? 'btn-primary' : 'btn-disabled'}" 
                         onclick="upgradeComponent('${upgradeType}')" 
                         ${!canUpgrade ? 'disabled' : ''}>
-                    ${canUpgrade ? `Улучшить (${cost.toLocaleString()})` : 
-                      gameData.money < cost ? 'Недостаточно денег' : 'Макс. уровень'}
+                    ${canUpgrade ? `Улучшить ($${cost.toLocaleString()})` : 
+                      currentData.money < cost ? 'Недостаточно денег' : 'Макс. уровень'}
                 </button>
             ` : '<p class="max-level">Максимальный уровень</p>'}
         `;
@@ -2319,7 +1504,6 @@ function updateUpgradesDisplay() {
         upgradesList.appendChild(upgradeDiv);
     });
     
-    // Специальные детали
     const specialPartsDiv = document.createElement('div');
     specialPartsDiv.className = 'special-parts-section';
     specialPartsDiv.innerHTML = `
@@ -2331,7 +1515,7 @@ function updateUpgradesDisplay() {
                     <h4>Нитро</h4>
                     <p>+20% к скорости (шанс 30%)</p>
                     <button class="btn-primary" onclick="buySpecialPart('nitro', 15000)" 
-                            ${gameData.money < 15000 ? 'disabled' : ''}>
+                            ${currentData.money < 15000 ? 'disabled' : ''}>
                         Купить ($15,000)
                     </button>
                 </div>
@@ -2343,7 +1527,7 @@ function updateUpgradesDisplay() {
                     <h4>Спортивный обвес</h4>
                     <p>+10 ко всем характеристикам</p>
                     <button class="btn-primary" onclick="buySpecialPart('bodyKit', 25000)" 
-                            ${gameData.money < 25000 ? 'disabled' : ''}>
+                            ${currentData.money < 25000 ? 'disabled' : ''}>
                         Купить ($25,000)
                     </button>
                 </div>
@@ -2355,7 +1539,7 @@ function updateUpgradesDisplay() {
                     <h4>Чип-тюнинг</h4>
                     <p>+15% к эффективности</p>
                     <button class="btn-primary" onclick="buySpecialPart('ecuTune', 20000)" 
-                            ${gameData.money < 20000 ? 'disabled' : ''}>
+                            ${currentData.money < 20000 ? 'disabled' : ''}>
                         Купить ($20,000)
                     </button>
                 </div>
@@ -2368,17 +1552,42 @@ function updateUpgradesDisplay() {
 
 // Функция улучшения компонента
 async function upgradeComponent(type) {
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentCar = currentData.cars[currentData.currentCar];
     const currentLevel = currentCar.upgrades[type];
     const cost = getUpgradeCost(type, currentLevel);
     
-    if (gameData.money >= cost) {
-        gameData.money -= cost;
-        gameData.stats.moneySpent += cost;
-        currentCar.upgrades[type]++;
+    if (currentData.money >= cost) {
+        // НОВЫЙ КОД: Используем Store если доступен
+        if (GameCore && GameCore.Store) {
+            const newCars = [...currentData.cars];
+            newCars[currentData.currentCar] = {
+                ...currentCar,
+                upgrades: {
+                    ...currentCar.upgrades,
+                    [type]: currentLevel + 1
+                }
+            };
+            
+            GameCore.Store.setState({
+                money: currentData.money - cost,
+                cars: newCars,
+                stats: {
+                    ...currentData.stats,
+                    moneySpent: currentData.stats.moneySpent + cost
+                }
+            });
+        } else {
+            // СТАРЫЙ КОД для обратной совместимости
+            gameData.money -= cost;
+            gameData.stats.moneySpent += cost;
+            currentCar.upgrades[type]++;
+        }
         
-        console.log('Улучшение применено:', type, 'уровень:', currentCar.upgrades[type]);
-        console.log('Текущие данные машины:', currentCar);
+        console.log('Улучшение применено:', type, 'уровень:', currentCar.upgrades[type] + 1);
         
         updatePlayerInfo();
         updateGarageDisplay();
@@ -2386,21 +1595,55 @@ async function upgradeComponent(type) {
         
         await autoSave();
         
-        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
+        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type] + 1}!`);
         
-        // Проверяем достижения
         checkUpgradeAchievements();
     }
 }
 
 // Покупка специальных деталей
 async function buySpecialPart(type, cost) {
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
     
-    if (gameData.money >= cost) {
-        gameData.money -= cost;
-        gameData.stats.moneySpent += cost;
-        currentCar.specialParts[type] = true;
+    const currentCar = currentData.cars[currentData.currentCar];
+    
+    if (currentData.money >= cost) {
+        // НОВЫЙ КОД: Используем Store если доступен
+        if (GameCore && GameCore.Store) {
+            const newCars = [...currentData.cars];
+            newCars[currentData.currentCar] = {
+                ...currentCar,
+                specialParts: {
+                    ...currentCar.specialParts,
+                    [type]: true
+                }
+            };
+            
+            // Обновляем maxFuel если купили топливный бак
+            if (type === 'fuelTank') {
+                newCars[currentData.currentCar].maxFuel = 40;
+            }
+            
+            GameCore.Store.setState({
+                money: currentData.money - cost,
+                cars: newCars,
+                stats: {
+                    ...currentData.stats,
+                    moneySpent: currentData.stats.moneySpent + cost
+                }
+            });
+        } else {
+            // СТАРЫЙ КОД для обратной совместимости
+            gameData.money -= cost;
+            gameData.stats.moneySpent += cost;
+            currentCar.specialParts[type] = true;
+            
+            if (type === 'fuelTank') {
+                currentCar.maxFuel = 40;
+            }
+        }
         
         updatePlayerInfo();
         updateGarageDisplay();
@@ -2411,7 +1654,8 @@ async function buySpecialPart(type, cost) {
         const partNames = {
             nitro: "Нитро",
             bodyKit: "Спортивный обвес",
-            ecuTune: "Чип-тюнинг"
+            ecuTune: "Чип-тюнинг",
+            fuelTank: "Увеличенный бак"
         };
         
         showError(`${partNames[type]} установлен!`);
@@ -2431,7 +1675,11 @@ function getStatName(stat) {
 
 // Проверка достижений за улучшения
 function checkUpgradeAchievements() {
-    const currentCar = gameData.cars[gameData.currentCar];
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const currentCar = currentData.cars[currentData.currentCar];
     const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
     
     if (totalUpgradeLevel === 10) {
@@ -2445,8 +1693,12 @@ function checkUpgradeAchievements() {
 
 // Сохранение улучшений локально
 function saveUpgradesLocally() {
-    if (gameData.cars) {
-        const upgrades = gameData.cars.map(car => ({
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    if (currentData.cars) {
+        const upgrades = currentData.cars.map(car => ({
             id: car.id,
             upgrades: car.upgrades,
             specialParts: car.specialParts
@@ -2476,9 +1728,126 @@ function loadUpgradesLocally() {
     }
 }
 
+// Функция запуска обновления топлива
+function startFuelUpdates() {
+    if (fuelUpdateInterval) clearInterval(fuelUpdateInterval);
+    
+    fuelUpdateInterval = setInterval(() => {
+        updateFuelDisplay();
+    }, 10000);
+}
+
+// Функция остановки обновления топлива
+function stopFuelUpdates() {
+    if (fuelUpdateInterval) {
+        clearInterval(fuelUpdateInterval);
+        fuelUpdateInterval = null;
+    }
+}
+
+// Обновление отображения топлива
+function updateFuelDisplay() {
+    const currentData = (GameCore && GameCore.Store) 
+        ? GameCore.Store.getState() 
+        : gameData;
+    
+    const fuelDisplay = document.getElementById('current-car-fuel');
+    if (fuelDisplay && currentData.cars[currentData.currentCar]) {
+        const car = currentData.cars[currentData.currentCar];
+        const currentFuel = fuelSystem.getCurrentFuel(car);
+        const maxFuel = car.maxFuel || 30;
+        
+        fuelDisplay.innerHTML = `
+            <div class="fuel-info">
+                <span class="fuel-icon">⛽</span>
+                <span class="fuel-text">${currentFuel}/${maxFuel}</span>
+                ${currentFuel < maxFuel ? `<span class="fuel-timer" id="fuel-timer"></span>` : ''}
+            </div>
+            <div class="fuel-bar">
+                <div class="fuel-bar-fill" style="width: ${(currentFuel / maxFuel) * 100}%"></div>
+            </div>
+        `;
+        
+        if (currentFuel < maxFuel) {
+            updateFuelTimer(car);
+        }
+    }
+    
+    const raceCarFuel = document.getElementById('race-car-fuel');
+    if (raceCarFuel && currentData.cars[currentData.currentCar]) {
+        const car = currentData.cars[currentData.currentCar];
+        const currentFuel = fuelSystem.getCurrentFuel(car);
+        raceCarFuel.innerHTML = `⛽ ${currentFuel}/${car.maxFuel || 30}`;
+    }
+}
+
+// Обновление таймера топлива
+function updateFuelTimer(car) {
+    const timerElement = document.getElementById('fuel-timer');
+    if (!timerElement) return;
+    
+    const update = () => {
+        const now = new Date();
+        const lastUpdate = new Date(car.lastFuelUpdate || now);
+        const minutesPassed = (now - lastUpdate) / 60000;
+        const minutesUntilNextFuel = fuelSystem.regenRate - (minutesPassed % fuelSystem.regenRate);
+        
+        if (minutesUntilNextFuel > 0) {
+            const minutes = Math.floor(minutesUntilNextFuel);
+            const seconds = Math.floor((minutesUntilNextFuel - minutes) * 60);
+            timerElement.textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+        }
+    };
+    
+    update();
+    const interval = setInterval(update, 1000);
+    
+    if (window.fuelTimerInterval) clearInterval(window.fuelTimerInterval);
+    window.fuelTimerInterval = interval;
+}
+
+// Сохранение при закрытии/обновлении страницы
+window.addEventListener('beforeunload', async (e) => {
+    if (currentUser && gameData) {
+        try {
+            await saveGameData(gameData);
+        } catch (error) {
+            console.error('Не удалось сохранить при закрытии:', error);
+        }
+    }
+});
+
+// Периодическая проверка соединения и синхронизация
+setInterval(async () => {
+    if (currentUser && navigator.onLine) {
+        try {
+            await saveGameData(gameData);
+        } catch (error) {
+            console.log('Фоновая синхронизация не удалась:', error);
+        }
+    }
+}, 60000);
+
+// Инициализация игры
+window.onload = async function() {
+    const isAuthorized = await checkAuth();
+    
+    if (isAuthorized) {
+        showGame();
+    } else {
+        showAuthScreen();
+    }
+    
+    setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+    }, 500);
+};
+
 // Предотвращение обновления страницы при клике на кнопки
 document.addEventListener('click', function(e) {
     if (e.target.tagName === 'BUTTON' && !e.target.type) {
         e.preventDefault();
     }
 });
+
+// ===== КОНЕЦ script.js =====
