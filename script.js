@@ -1655,8 +1655,7 @@ async function handleLogin() {
             showGame();
         }
     } catch (error) {
-        // Ошибка уже показана в apiRequest
-        console.log('Login failed');
+    
     }
 }
 
