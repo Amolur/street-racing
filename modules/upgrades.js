@@ -171,6 +171,11 @@ export async function upgradeComponent(type) {
         console.log('Улучшение успешно сохранено на сервер');
         showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
         
+        // Обновляем прогресс заданий
+        if (window.updateTaskProgress) {
+            window.updateTaskProgress('upgradesBought');
+        }
+        
         checkUpgradeAchievements();
         
     } catch (error) {
@@ -234,6 +239,11 @@ export async function buySpecialPart(type, cost) {
         
         console.log('Специальная деталь успешно сохранена на сервер');
         showError(`${partNames[type]} установлен!`);
+        
+         // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
+        if (window.updateTaskProgress) {
+            window.updateTaskProgress('upgradesBought');
+        }
         
     } catch (error) {
         showLoading(false);

@@ -369,16 +369,27 @@ export async function startRace(opponentIndex) {
     gameData.experience = (gameData.experience || 0) + xpGained;
     
     // Обновляем статистику
-    gameData.stats.totalRaces++;
+gameData.stats.totalRaces++;
+if (won) {
+    gameData.stats.wins++;
+    gameData.stats.moneyEarned += opponent.reward;
+    gameData.money += opponent.reward;
+} else {
+    gameData.stats.losses++;
+    gameData.stats.moneySpent += betAmount;
+    gameData.money -= betAmount;
+}
+
+// ДОБАВЬТЕ ЭТИ СТРОКИ:
+// Обновляем прогресс заданий
+if (window.updateTaskProgress) {
+    window.updateTaskProgress('totalRaces');
+    window.updateTaskProgress('fuelSpent', fuelCost);
     if (won) {
-        gameData.stats.wins++;
-        gameData.stats.moneyEarned += opponent.reward;
-        gameData.money += opponent.reward;
-    } else {
-        gameData.stats.losses++;
-        gameData.stats.moneySpent += betAmount;
-        gameData.money -= betAmount;
+        window.updateTaskProgress('wins');
+        window.updateTaskProgress('moneyEarned', opponent.reward);
     }
+}
     
     // Получение навыков
     const gainedSkills = calculateSkillGain(won);

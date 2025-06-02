@@ -134,7 +134,17 @@
                         </span>
                         <span class="menu-arrow">→</span>
                     </button>
-                    
+                    <!-- Ежедневные задания -->
+                    <button class="menu-item" onclick="showDailyTasksScreen()">
+                        <span class="menu-icon">📋</span>
+                        <span class="menu-text">
+                            <span class="menu-title">Задания</span>
+                            <span class="menu-subtitle">Ежедневные награды</span>
+                        </span>
+                        <span class="menu-arrow">→</span>
+                        <span id="daily-tasks-counter" class="menu-counter" style="display: none;">0</span>
+                    </button>
+
                     <button class="menu-item" onclick="showLeaderboardScreen()">
                         <span class="menu-icon">🏆</span>
                         <span class="menu-text">
@@ -352,6 +362,27 @@
                     
                     <div id="leaderboard-list" class="leaderboard-list">
                         <!-- Список лидеров -->
+                    </div>
+                </div>
+            </div>
+             <div id="daily-tasks-screen" class="game-screen">
+                <div class="screen-header">
+                    <button class="btn-back" onclick="goBack()">← Назад</button>
+                    <h2>Ежедневные задания</h2>
+                </div>
+                
+                <div class="daily-tasks-container">
+                    <div class="daily-tasks-header">
+                        <p class="tasks-timer">Обновление через: <span id="tasks-timer">23:59:59</span></p>
+                        <p class="tasks-completed">Выполнено: <span id="tasks-completed">0/3</span></p>
+                    </div>
+                    
+                    <div id="daily-tasks-list" class="daily-tasks-list">
+                        <!-- Задания будут добавлены через JS -->
+                    </div>
+                    
+                    <div class="daily-bonus-info">
+                        <p>🌟 Выполни все задания дня и получи бонус $1000!</p>
                     </div>
                 </div>
             </div>

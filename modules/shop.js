@@ -155,7 +155,10 @@ export async function buyCar(carId) {
         
         console.log('Покупка машины успешно сохранена на сервер');
         showError(`✅ Вы купили ${car.name}!`);
-        
+        // Обновляем прогресс заданий
+        if (window.updateTaskProgress) {
+            window.updateTaskProgress('moneySpent', car.price);
+        }
     } catch (error) {
         showLoading(false);
         console.error('Ошибка сохранения покупки машины:', error);

@@ -10,6 +10,7 @@ import * as shop from './modules/shop.js';
 import * as profile from './modules/profile.js';
 import * as upgrades from './modules/upgrades.js';
 import { startAutoSave, showLoading } from './modules/utils.js';
+import * as dailyTasks from './modules/daily-tasks.js';
 
 // Делаем функции доступными глобально для onclick в HTML
 
@@ -78,11 +79,37 @@ window.addEventListener('DOMContentLoaded', async function() {
     if (isAuthorized) {
         console.log('Пользователь авторизован');
         auth.showGameFunc();
+        
+        // Запускаем таймер обновления заданий
+        startDailyTasksTimer();
     } else {
         console.log('Требуется авторизация');
         navigation.showAuthScreen();
     }
 });
+
+// Таймер для ежедневных заданий
+function startDailyTasksTimer() {
+    const updateTimer = () => {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
+        const msUntilMidnight = tomorrow - now;
+        const hours = Math.floor(msUntilMidnight / (1000 * 60 * 60));
+        const minutes = Math.floor((msUntilMidnight % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((msUntilMidnight % (1000 * 60)) / 1000);
+        
+        const timerEl = document.getElementById('tasks-timer');
+        if (timerEl) {
+            timerEl.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    };
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
 
 // Сохранение при закрытии/обновлении страницы
 window.addEventListener('beforeunload', async (e) => {

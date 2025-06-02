@@ -76,6 +76,14 @@ export function showMainMenu(addToHistory = true) {
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
     
+    // Проверяем и обновляем ежедневные задания
+    if (window.checkAndResetDailyTasks) {
+        window.checkAndResetDailyTasks();
+    }
+    if (window.updateDailyTasksDisplay) {
+        window.updateDailyTasksDisplay();
+    }
+    
     // Всегда показываем информационную панель на главном экране
     setTimeout(() => {
         showPlayerInfoBar();
@@ -145,4 +153,16 @@ export function showAuthScreen() {
 export function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
+}
+
+export function showDailyTasksScreen(addToHistory = true) {
+    hidePlayerInfoBar();
+    hideAllScreens();
+    document.getElementById('daily-tasks-screen').classList.add('active');
+    if (addToHistory) navigateToScreen('daily-tasks-screen');
+    
+    // Обновляем задания при открытии
+    if (window.showDailyTasksScreen) {
+        window.showDailyTasksScreen();
+    }
 }

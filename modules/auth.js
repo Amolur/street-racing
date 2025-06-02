@@ -4,6 +4,7 @@
 import { gameState, gameData, updateGameData } from './game-data.js';
 import { showLoading, storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
+import { initializeDailyTasks } from './daily-tasks.js';
 
 // Инициализация улучшений для машины
 function initializeCarUpgrades(car) {
@@ -216,6 +217,10 @@ export function showGameFunc() {
     // Запускаем обновление информационной панели
     startInfoBarUpdates();
     
+    // Обновляем счетчик заданий
+    if (window.updateDailyTasksDisplay) {
+        window.updateDailyTasksDisplay();
+    }
     gameState.navigationHistory = [];
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);
