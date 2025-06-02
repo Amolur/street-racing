@@ -52,7 +52,7 @@ function showError(message) {
     }, 5000);
 }
 
-javascript// Базовая функция для API запросов
+// Базовая функция для API запросов
 async function apiRequest(endpoint, options = {}) {
     if (!checkConnection()) {
         showError('Нет соединения с интернетом');
