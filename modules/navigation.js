@@ -154,7 +154,6 @@ export function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
 }
-
 export function showDailyTasksScreen(addToHistory = true) {
     hidePlayerInfoBar();
     hideAllScreens();

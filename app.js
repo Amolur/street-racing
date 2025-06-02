@@ -21,6 +21,7 @@ window.showRaceMenu = navigation.showRaceMenu;
 window.showShopScreen = navigation.showShopScreen;
 window.showProfileScreen = navigation.showProfileScreen;
 window.showLeaderboardScreen = navigation.showLeaderboardScreen;
+window.showDailyTasksScreen = navigation.showDailyTasksScreen; 
 window.goBack = navigation.goBack;
 
 // Авторизация
