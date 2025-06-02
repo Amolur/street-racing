@@ -234,7 +234,7 @@ export function initDailyTasksScreen() {
 
 // Делаем функции доступными глобально
 window.claimTaskReward = claimTaskReward;
-window.showDailyTasksScreen = showDailyTasksScreen;
+window.showDailyTasksScreen = initDailyTasksScreen;
 window.initDailyTasksScreen = initDailyTasksScreen; // ← Добавьте эту строку
 window.updateTaskProgress = updateTaskProgress;
 window.updateDailyTasksDisplay = updateDailyTasksDisplay;
