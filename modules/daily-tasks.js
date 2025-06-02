@@ -175,9 +175,9 @@ export async function claimTaskReward(taskId) {
     
     // Сохраняем
     try {
-        await saveGameData(gameData);
+    await saveGameData(gameData);
     } catch (error) {
-        console.error('Ошибка сохранения:', error);
+    console.error('Ошибка сохранения:', error);
     }
 }
 
