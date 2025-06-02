@@ -1,0 +1,2388 @@
+/* Сброс стилей и базовые настройки */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Ключевые анимации */
+@keyframes glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.3); }
+}
+
+@keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+:root {
+    /* Основные цвета - киберпанк стиль */
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #252525;
+    --bg-card: #1f1f1f;
+    
+    /* Неоновые акценты */
+    --neon-cyan: #00ffff;
+    --neon-pink: #ff00ff;
+    --neon-yellow: #ffff00;
+    --neon-green: #00ff00;
+    --neon-red: #ff0040;
+    --neon-orange: #ff8800;
+    
+    /* Текст */
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #666666;
+    
+    /* Размеры */
+    --header-height: 60px;
+    --container-width: 100%;
+    --mobile-padding: 1rem;
+    
+    /* Тени и эффекты */
+    --glow-cyan: 0 0 20px rgba(0, 255, 255, 0.5);
+    --glow-pink: 0 0 20px rgba(255, 0, 255, 0.5);
+    --glow-yellow: 0 0 20px rgba(255, 255, 0, 0.5);
+}
+
+/* Шрифты */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+    font-size: 16px;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 255, 255, 0.03) 2px,
+            rgba(0, 255, 255, 0.03) 4px
+        );
+    overflow-x: hidden;
+}
+
+/* Уведомления об ошибках */
+.error-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 255, 0, 0.5);
+    max-width: 90%;
+    text-align: center;
+}
+
+.error-notification.show {
+    opacity: 1;
+}
+
+/* Индикатор загрузки */
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(10px);
+}
+
+.loading-spinner {
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.spinner-ring {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1rem;
+    border: 4px solid rgba(0, 255, 255, 0.2);
+    border-top-color: var(--neon-cyan);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Экран загрузки */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+@media (min-width: 481px) {
+    .loading-screen {
+        background: #000000;
+        background-image: 
+            repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 255, 0.02) 10px,
+                rgba(0, 255, 255, 0.02) 20px
+            );
+    }
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: glow 2s ease-in-out infinite alternate;
+    margin-bottom: 2rem;
+}
+
+.loading-bar {
+    width: 200px;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto 1rem;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    animation: scan 2s linear infinite;
+}
+
+/* Экран авторизации */
+.auth-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    z-index: 1000;
+    padding: var(--mobile-padding);
+}
+
+/* Для десктопа - добавляем фон */
+@media (min-width: 481px) {
+    .auth-container {
+        background: #000000;
+        background-image: 
+            repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 255, 0.02) 10px,
+                rgba(0, 255, 255, 0.02) 20px
+            );
+    }
+}
+
+.auth-box {
+    background: var(--bg-card);
+    padding: 2rem var(--mobile-padding);
+    border: 1px solid var(--neon-cyan);
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+    box-shadow: var(--glow-cyan), inset 0 0 50px rgba(0, 255, 255, 0.1);
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.game-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 0.5rem;
+    letter-spacing: 3px;
+}
+
+.game-logo span {
+    color: var(--neon-pink);
+    text-shadow: var(--glow-pink);
+}
+
+.game-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.auth-form h2 {
+    font-family: 'Orbitron', monospace;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 1.3rem;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 1rem 3rem 1rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.input-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+/* Кнопки */
+.btn-primary,
+.btn-secondary {
+    padding: 1rem;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    width: 100%;
+    font-size: 1rem;
+    min-height: 50px;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+    color: var(--bg-primary);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--neon-yellow);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.auth-switch a {
+    color: var(--neon-cyan);
+    text-decoration: none;
+}
+
+/* Игровой контейнер */
+.game-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px; /* Максимальная ширина как у смартфона */
+    margin: 0 auto; /* Центрирование по горизонтали */
+    background: var(--bg-primary); /* Фон для мобильной области */
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); /* Тень для отделения от фона */
+    position: relative;
+}
+
+/* Добавляем фон для десктопа */
+@media (min-width: 481px) {
+    body {
+        background: #000000; /* Черный фон вокруг мобильной версии */
+        background-image: 
+            repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 255, 0.02) 10px,
+                rgba(0, 255, 255, 0.02) 20px
+            );
+    }
+    
+    .game-container {
+        border-left: 1px solid rgba(0, 255, 255, 0.2);
+        border-right: 1px solid rgba(0, 255, 255, 0.2);
+    }
+}
+
+/* Обновленный header */
+.game-header {
+    position: sticky;
+    top: 0;
+    height: var(--header-height);
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--neon-cyan);
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0, 255, 255, 0.3);
+    max-width: 480px; /* Ограничиваем ширину header */
+    width: 100%;
+}
+
+.header-content {
+    display: flex;
+    justify-content: center; /* Центрируем логотип */
+    align-items: center;
+    padding: 0 var(--mobile-padding);
+    height: 100%;
+}
+
+.header-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.header-logo:active {
+    transform: scale(0.95);
+}
+
+/* Основной контент */
+.game-main {
+    flex: 1;
+    padding-top: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.game-screen {
+    display: none;
+    padding: var(--mobile-padding);
+    animation: fadeIn 0.3s ease;
+    min-height: calc(100vh - var(--header-height));
+}
+
+.game-screen.active {
+    display: block;
+}
+
+/* Вертикальное меню */
+.menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-item:active {
+    transform: scale(0.98);
+}
+
+.menu-item.primary {
+    background: linear-gradient(135deg, var(--bg-card), rgba(0, 255, 255, 0.1));
+    border-color: var(--neon-cyan);
+}
+
+.menu-item.logout {
+    border-color: var(--neon-red);
+    background: rgba(255, 0, 64, 0.05);
+}
+
+.menu-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+.menu-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.menu-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.menu-arrow {
+    color: var(--neon-cyan);
+    font-size: 1.5rem;
+}
+
+/* Заголовки экранов */
+.screen-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.screen-header h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    color: var(--neon-cyan);
+    flex: 1;
+    text-align: center;
+    margin-right: -40px;
+}
+
+/* Профиль - обновленный */
+.profile-container {
+    max-width: 100%;
+}
+
+.profile-header {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--neon-cyan);
+    margin-bottom: 1rem;
+}
+
+.profile-info h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-level {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.profile-xp-section {
+    width: 100%;
+}
+
+.xp-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.xp-progress-bar {
+    background: var(--bg-tertiary);
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.xp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    transition: width 0.5s ease;
+}
+
+/* Быстрая статистика в профиле */
+.profile-quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-stat-card .stat-icon {
+    font-size: 2rem;
+}
+
+.profile-stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.profile-stat-card .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+.profile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-section {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+.profile-section h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+/* Гараж - мобильная оптимизация */
+.garage-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 100%;
+}
+
+/* Превью машин */
+.cars-preview-section {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 15px;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.cars-carousel {
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.cars-list {
+    display: flex;
+    transition: transform 0.3s ease;
+    gap: 1rem;
+}
+
+.car-card {
+    min-width: 100%;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+    position: relative;
+}
+
+.car-card.active {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.car-emoji-big {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 10px var(--neon-cyan));
+}
+
+.car-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.car-upgrade-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.car-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+}
+
+.nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.car-counter {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Информация о машине */
+.current-car-info {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.car-main-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-compact {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+}
+
+.stat-label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.car-upgrades-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.upgrades-count {
+    color: var(--neon-yellow);
+}
+
+.car-power-rating {
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Современные вкладки */
+.garage-tabs-modern {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.garage-tab-modern {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.garage-tab-modern.active {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 255, 255, 0.1);
+    color: var(--neon-cyan);
+}
+
+.tab-icon {
+    font-size: 1.2rem;
+}
+
+.tab-text {
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.garage-tab-content {
+    display: none;
+}
+
+.garage-tab-content.active {
+    display: block;
+}
+
+/* Сетка улучшений */
+.upgrades-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.upgrade-card-compact {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+}
+
+.upgrade-card-compact:hover {
+    border-color: var(--neon-cyan);
+}
+
+.upgrade-icon-big {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px currentColor);
+    flex-shrink: 0;
+}
+
+.upgrade-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.upgrade-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.upgrade-level-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.upgrade-progress-mini {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.upgrade-progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.3s ease;
+}
+
+.upgrade-level-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.upgrade-effects {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.upgrade-action {
+    flex-shrink: 0;
+}
+
+.btn-upgrade-mini {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-upgrade-mini:hover {
+    background: var(--neon-green);
+}
+
+.btn-upgrade-mini:disabled {
+    background: var(--text-muted);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Специальные детали */
+.special-parts-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.special-part-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.special-part-card.owned {
+    border-color: var(--neon-green);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.special-icon-big {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.special-part-info {
+    flex: 1;
+}
+
+.special-part-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.special-part-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.special-part-price {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+.special-part-owned {
+    color: var(--neon-green);
+    font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 320px) {
+    .car-main-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .upgrade-card-compact {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .upgrade-level-bar {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+}
+
+/* Остальные стили остаются прежними, но с адаптацией под мобильные */
+.opponents-list,
+.cars-grid,
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Индикация сложности соперников */
+.opponent-difficulty {
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+.opponent-difficulty.easy { color: var(--neon-green); }
+.opponent-difficulty.medium { color: var(--neon-yellow); }
+.opponent-difficulty.hard { color: var(--neon-orange); }
+.opponent-difficulty.extreme { color: var(--neon-red); }
+
+/* Заблокированные машины */
+.car-shop-item.locked {
+    opacity: 0.6;
+}
+
+.level-requirement {
+    color: var(--neon-red);
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+/* Адаптация под очень маленькие экраны */
+@media (max-width: 320px) {
+    .game-logo {
+        font-size: 1.8rem;
+    }
+    
+    .header-logo {
+        font-size: 1rem;
+    }
+    
+    .menu-title {
+        font-size: 1rem;
+    }
+    
+    .menu-subtitle {
+        font-size: 0.8rem;
+    }
+}
+
+/* Убираем адаптивность для больших экранов - всегда мобильный вид */
+@media (min-width: 768px) {
+    .game-screen {
+        padding: 1.5rem; /* Немного больше отступы на десктопе */
+    }
+    
+    /* Показываем декоративные элементы на десктопе */
+    .game-container::before,
+    .game-container::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+        animation: scan 3s linear infinite;
+    }
+    
+    .game-container::before {
+        top: 0;
+        left: 0;
+    }
+    
+    .game-container::after {
+        bottom: 0;
+        left: 0;
+        animation-delay: 1.5s;
+    }
+}
+
+/* Курсор для десктопа */
+@media (hover: hover) {
+    .menu-item:hover {
+        border-color: var(--neon-cyan);
+        transform: translateX(5px);
+    }
+    
+    .btn-primary:hover {
+        box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .btn-secondary:hover {
+        background: var(--neon-cyan);
+        color: var(--bg-primary);
+    }
+}
+
+/* Дополнительные стили для полноты */
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Стили для списков */
+.stats-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+.skills-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.skill-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 40px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.skill-name {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.skill-bar {
+    background: var(--bg-tertiary);
+    height: 15px;
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.skill-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    transition: width 0.5s ease;
+}
+
+.skill-level {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    text-align: right;
+}
+
+/* Стили для вкладок гаража */
+.garage-tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0 1rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.garage-tab {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.garage-tab.active {
+    color: var(--neon-cyan);
+}
+
+.garage-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--neon-cyan);
+}
+
+.garage-content {
+    display: none;
+}
+
+.garage-content.active {
+    display: block;
+}
+
+/* Стили для карточек соперников */
+.opponent-card {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.opponent-info h3 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    margin-bottom: 0.5rem;
+}
+
+.opponent-car {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.opponent-stakes {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.stake-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stake-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.stake-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Стили для магазина */
+.shop-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    color: var(--text-secondary);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--neon-cyan);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--neon-cyan);
+}
+
+.shop-content {
+    display: none;
+}
+
+.shop-content.active {
+    display: block;
+}
+
+/* Стили для машин в магазине */
+.car-shop-item {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.car-shop-emoji {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.car-shop-info h4 {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    margin-bottom: 1rem;
+}
+
+.car-shop-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.shop-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.shop-stat-label {
+    color: var(--text-secondary);
+}
+
+.shop-stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+.price {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    color: var(--neon-green);
+    text-align: center;
+    margin: 1rem 0;
+}
+
+/* Стили для таблицы лидеров */
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 60px 100px;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--bg-tertiary);
+    transition: all 0.3s;
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row.current-user {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid var(--neon-cyan);
+}
+
+.lb-position {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.lb-position.gold {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.lb-position.silver {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.lb-position.bronze {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.lb-name {
+    font-weight: 600;
+}
+
+.lb-level {
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.lb-money {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    text-align: right;
+}
+
+/* Стили для результата гонки */
+.race-result {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.result-container {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.result-title.win {
+    color: var(--neon-green);
+    text-shadow: var(--glow-yellow);
+    animation: pulse 1s ease infinite;
+}
+
+.result-title.lose {
+    color: var(--neon-red);
+    text-shadow: 0 0 20px rgba(255, 0, 64, 0.5);
+}
+
+/* Полоска опыта в результатах */
+.xp-progress-section {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 10px;
+}
+
+.xp-gain {
+    color: var(--neon-yellow);
+    font-weight: 700;
+}
+
+/* Модальное окно превью гонки */
+.race-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.race-preview-content {
+    background: var(--bg-card);
+    border: 2px solid var(--neon-cyan);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px; /* Ограничиваем ширину модального окна */
+    max-height: 90vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: 1px solid var(--neon-red);
+    border-radius: 50%;
+    color: var(--neon-red);
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.close-modal:hover {
+    background: var(--neon-red);
+    color: var(--bg-primary);
+}
+
+.race-preview-content h2 {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    padding: 1.5rem;
+    margin: 0;
+    border-bottom: 1px solid var(--text-muted);
+}
+
+.race-comparison {
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.racer-info {
+    text-align: center;
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+.racer-info h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.racer-info.player h3 {
+    color: var(--neon-cyan);
+}
+
+.racer-info.opponent h3 {
+    color: var(--neon-pink);
+}
+
+.car-info {
+    margin-bottom: 1rem;
+}
+
+.car-image {
+    font-size: 3rem;
+    margin: 0.5rem 0;
+}
+
+.car-info h4 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.stats-section {
+    margin-top: 1rem;
+}
+
+.stats-section h5 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.stat-comparison {
+    display: grid;
+    grid-template-columns: 80px 1fr 40px;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.stat-bar-comparison {
+    background: var(--bg-tertiary);
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.5s ease;
+}
+
+.stat-number {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    text-align: right;
+}
+
+.vs-divider {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.vs-circle {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--neon-yellow);
+    text-shadow: var(--glow-yellow);
+    margin-bottom: 1rem;
+}
+
+.race-info {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.race-info p {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.race-info strong {
+    color: var(--neon-green);
+}
+
+.difficulty-bar {
+    background: var(--bg-tertiary);
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.difficulty-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-red));
+}
+
+.difficulty-text {
+    color: var(--text-secondary);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--text-muted);
+    justify-content: center;
+}
+
+.race-start-btn {
+    min-width: 150px;
+}
+
+.modal-buttons button {
+    padding: 0.8rem 1.5rem;
+}
+
+/* Дополнительные стили для результатов гонки */
+.race-times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.time-block {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--text-muted);
+}
+
+.time-block h4 {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.time-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-cyan);
+}
+
+.result-rewards {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 10px;
+}
+
+.reward-item {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+}
+
+.money-gain {
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+.money-loss {
+    color: var(--neon-red);
+    font-weight: 700;
+}
+
+.balance {
+    color: var(--text-secondary);
+}
+
+.skill-gain {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-left: 3px solid var(--neon-yellow);
+    border-radius: 5px;
+}
+
+.skill-gain h4 {
+    color: var(--neon-yellow);
+    margin-bottom: 0.5rem;
+}
+
+.skill-gain-item {
+    color: var(--text-primary);
+    margin: 0.3rem 0;
+}
+
+.result-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.result-actions button {
+    min-width: 140px;
+    padding: 0.8rem 1rem;
+}
+
+.result-animation {
+    font-size: 4rem;
+    animation: pulse 1s ease infinite;
+    margin-bottom: 1rem;
+}
+
+/* Стили для информационного баннера гонок */
+.race-info-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.race-info-banner p {
+    margin: 0;
+}
+
+.race-info-banner strong {
+    color: var(--neon-cyan);
+}
+
+/* Утилиты */
+.loading {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 3rem;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: var(--neon-red);
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+}
+
+.no-data {
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+}
+
+/* Стили для системы топлива */
+.car-fuel-display {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+.fuel-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.fuel-icon {
+    font-size: 1.2rem;
+}
+
+.fuel-text {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-weight: 700;
+}
+
+.fuel-timer {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
+}
+
+.fuel-bar {
+    background: var(--bg-tertiary);
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--text-muted);
+}
+
+.fuel-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-yellow), var(--neon-orange));
+    transition: width 0.5s ease;
+}
+
+.fuel-status {
+    color: var(--neon-yellow);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.fuel-cost {
+    color: var(--neon-orange) !important;
+}
+
+.fuel-spent-info {
+    background: var(--bg-secondary);
+    padding: 0.8rem;
+    margin: 1rem 0;
+    border-radius: 10px;
+    border-left: 3px solid var(--neon-yellow);
+}
+
+.fuel-spent-info p {
+    margin: 0.3rem 0;
+    color: var(--text-secondary);
+}
+
+/* Обновленные стили для банера гонок */
+.race-info-banner {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.race-info-banner p {
+    margin: 0;
+    white-space: nowrap;
+}
+
+.race-info-banner strong {
+    color: var(--neon-cyan);
+}
+
+/* Обновленные стили для карточек соперников */
+.opponent-stakes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 320px) {
+    .opponent-stakes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stake-item:last-child {
+        grid-column: 1 / -1;
+    }
+}
+/* Информационная панель игрока */
+.player-info-bar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--neon-cyan);
+    padding: 0.5rem var(--mobile-padding);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(0, 255, 255, 0.1);
+    max-width: 480px;
+    width: 100%;
+    position: sticky;
+    top: var(--header-height);
+    z-index: 95;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-primary);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.info-icon {
+    font-size: 1rem;
+    filter: drop-shadow(0 0 3px currentColor);
+}
+
+.info-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+}
+
+.fuel-item .info-text {
+    color: var(--neon-yellow);
+}
+
+.fuel-timer-mini {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    margin-left: 0.2rem;
+}
+
+/* Адаптация для очень маленьких экранов */
+@media (max-width: 320px) {
+    .player-info-bar {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .info-item {
+        flex: 1;
+        min-width: 45%;
+        justify-content: center;
+    }
+    
+    .info-text {
+        font-size: 0.7rem;
+    }
+}
+
+/* Анимация для обновления данных */
+.info-item.updating {
+    animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+/* Обновленный дизайн гаража */
+.garage-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 100%;
+}
+
+/* Превью машин */
+.cars-preview-section {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 15px;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.cars-carousel {
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.cars-list {
+    display: flex;
+    transition: transform 0.3s ease;
+    gap: 1rem;
+}
+
+.car-card {
+    min-width: 100%;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+    position: relative;
+}
+
+.car-card.active {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.car-emoji-big {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 10px var(--neon-cyan));
+}
+
+.car-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.car-upgrade-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.car-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+}
+
+.nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.car-counter {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Информация о машине */
+.current-car-info {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+}
+
+.car-main-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-compact {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--text-muted);
+}
+
+.stat-label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.car-upgrades-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.upgrades-count {
+    color: var(--neon-yellow);
+}
+
+.car-power-rating {
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+/* Современные вкладки */
+.garage-tabs-modern {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.garage-tab-modern {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.garage-tab-modern.active {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 255, 255, 0.1);
+    color: var(--neon-cyan);
+}
+
+.tab-icon {
+    font-size: 1.2rem;
+}
+
+.tab-text {
+    font-family: 'Orbitron', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.garage-tab-content {
+    display: none;
+}
+
+.garage-tab-content.active {
+    display: block;
+}
+
+/* Сетка улучшений */
+.upgrades-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.upgrade-card-compact {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+}
+
+.upgrade-card-compact:hover {
+    border-color: var(--neon-cyan);
+}
+
+.upgrade-icon-big {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 5px currentColor);
+    flex-shrink: 0;
+}
+
+.upgrade-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.upgrade-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-yellow);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.upgrade-level-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.upgrade-progress-mini {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.upgrade-progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.3s ease;
+}
+
+.upgrade-level-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.upgrade-effects {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.upgrade-action {
+    flex-shrink: 0;
+}
+
+.btn-upgrade-mini {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-upgrade-mini:hover {
+    background: var(--neon-green);
+}
+
+.btn-upgrade-mini:disabled {
+    background: var(--text-muted);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Специальные детали */
+.special-parts-grid-modern {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+}
+
+.special-part-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--text-muted);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.special-part-card.owned {
+    border-color: var(--neon-green);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.special-icon-big {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.special-part-info {
+    flex: 1;
+}
+
+.special-part-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.special-part-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.special-part-price {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+}
+
+.special-part-owned {
+    color: var(--neon-green);
+    font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 320px) {
+    .car-main-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.3rem;
+    }
+    
+    .upgrade-card-compact {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .upgrade-level-bar {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+}
