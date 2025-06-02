@@ -64,23 +64,19 @@ export function initializeDailyTasks() {
 
 // Проверка и сброс заданий в полночь
 export function checkAndResetDailyTasks() {
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().split('T')[0]; // UTC дата
     
     if (gameData.dailyTasks.lastReset !== today) {
-        // Новый день - генерируем новые задания
+        // Генерируем новые задания
         generateDailyTasks();
         gameData.dailyTasks.lastReset = today;
-        gameData.dailyTasks.completedToday = 0;
-        
-        // Сбрасываем счетчики для отслеживания
-        if (!gameData.dailyStats) {
-            gameData.dailyStats = {};
-        }
-        gameData.dailyStats.totalRaces = gameData.stats.totalRaces;
-        gameData.dailyStats.wins = gameData.stats.wins;
-        gameData.dailyStats.fuelSpent = 0;
-        gameData.dailyStats.upgradesBought = 0;
-        gameData.dailyStats.moneyEarned = gameData.stats.moneyEarned;
+        gameData.dailyStats = {
+            totalRaces: gameData.stats.totalRaces,
+            wins: gameData.stats.wins,
+            fuelSpent: 0,
+            upgradesBought: 0,
+            moneyEarned: gameData.stats.moneyEarned
+        };
         
         showError('🌅 Новый день! Доступны новые задания!');
     }
