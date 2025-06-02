@@ -72,9 +72,15 @@ async function apiRequest(endpoint, options = {}) {
     }
     
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, config);
-        
-        let data;
+    const response = await fetch(`${API_URL}${endpoint}`, config);
+    
+    // Специальная обработка для rate limit
+    if (response.status === 429) {
+        const data = await response.json();
+        throw new Error(data.error || 'Слишком много попыток');
+    }
+    
+    let data;
         
         // Пробуем распарсить JSON
         try {
