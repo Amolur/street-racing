@@ -76,7 +76,13 @@ async function apiRequest(endpoint, options = {}) {
         
         // Проверяем, что получили JSON
         const contentType = response.headers.get("content-type");
+        
+        // Если ответ пустой или не JSON
         if (!contentType || !contentType.includes("application/json")) {
+            // Для ошибок авторизации показываем стандартное сообщение
+            if (response.status === 400 && endpoint.includes('/auth/')) {
+                throw new Error('Неверный логин или пароль');
+            }
             throw new Error("Сервер вернул не JSON ответ");
         }
         
@@ -89,9 +95,16 @@ async function apiRequest(endpoint, options = {}) {
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        if (error.message.includes('Failed to fetch')) {
+        
+        // Специальная обработка для ошибок rate limit
+        if (error.message.includes('Too Many Requests') || error.message.includes('Слишком много')) {
+            showError('Слишком много попыток. Подождите немного.');
+        } else if (error.message.includes('Failed to fetch')) {
             showError('Сервер недоступен. Попробуйте позже.');
+        } else {
+            showError(error.message);
         }
+        
         throw error;
     }
 }
