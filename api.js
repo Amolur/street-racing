@@ -52,7 +52,7 @@ function showError(message) {
     }, 5000);
 }
 
-// Базовая функция для API запросов
+javascript// Базовая функция для API запросов
 async function apiRequest(endpoint, options = {}) {
     if (!checkConnection()) {
         showError('Нет соединения с интернетом');
@@ -74,20 +74,20 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_URL}${endpoint}`, config);
         
-        // Проверяем, что получили JSON
-        const contentType = response.headers.get("content-type");
+        let data;
         
-        // Если ответ пустой или не JSON
-        if (!contentType || !contentType.includes("application/json")) {
-            // Для ошибок авторизации показываем стандартное сообщение
-            if (response.status === 400 && endpoint.includes('/auth/')) {
-                throw new Error('Неверный логин или пароль');
+        // Пробуем распарсить JSON
+        try {
+            data = await response.json();
+        } catch (e) {
+            // Если не удалось распарсить JSON
+            if (!response.ok) {
+                throw new Error('Ошибка сервера');
             }
-            throw new Error("Сервер вернул не JSON ответ");
+            data = {};
         }
         
-        const data = await response.json();
-        
+        // Если ответ не успешный, выбрасываем ошибку
         if (!response.ok) {
             throw new Error(data.error || 'Ошибка сервера');
         }
@@ -96,11 +96,15 @@ async function apiRequest(endpoint, options = {}) {
     } catch (error) {
         console.error('API Error:', error);
         
-        // Специальная обработка для ошибок rate limit
-        if (error.message.includes('Too Many Requests') || error.message.includes('Слишком много')) {
-            showError('Слишком много попыток. Подождите немного.');
-        } else if (error.message.includes('Failed to fetch')) {
+        // Не показываем техническую ошибку пользователю
+        if (error.message.includes('Failed to fetch')) {
             showError('Сервер недоступен. Попробуйте позже.');
+        } else if (error.message.includes('Слишком много')) {
+            // Уже есть понятное сообщение
+            showError(error.message);
+        } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
+            // Для ошибок авторизации всегда показываем это сообщение
+            showError('Неверный логин или пароль');
         } else {
             showError(error.message);
         }

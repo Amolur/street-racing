@@ -1645,13 +1645,18 @@ async function handleLogin() {
     const password = document.getElementById('login-password').value;
     
     if (!username || !password) {
-        alert('Введите логин и пароль');
+        showError('Введите логин и пароль');
         return;
     }
     
-    const success = await login(username, password);
-    if (success) {
-        showGame();
+    try {
+        const success = await login(username, password);
+        if (success) {
+            showGame();
+        }
+    } catch (error) {
+        // Ошибка уже показана в apiRequest
+        console.log('Login failed');
     }
 }
 
@@ -1661,28 +1666,33 @@ async function handleRegister() {
     const passwordConfirm = document.getElementById('register-password-confirm').value;
     
     if (!username || !password) {
-        alert('Введите логин и пароль');
+        showError('Введите логин и пароль');
         return;
     }
     
     if (username.length < 3) {
-        alert('Логин должен быть не менее 3 символов');
+        showError('Логин должен быть не менее 3 символов');
         return;
     }
     
     if (password.length < 6) {
-        alert('Пароль должен быть не менее 6 символов');
+        showError('Пароль должен быть не менее 6 символов');
         return;
     }
     
     if (password !== passwordConfirm) {
-        alert('Пароли не совпадают!');
+        showError('Пароли не совпадают!');
         return;
     }
     
-    const success = await register(username, password);
-    if (success) {
-        showGame();
+    try {
+        const success = await register(username, password);
+        if (success) {
+            showGame();
+        }
+    } catch (error) {
+        // Ошибка уже показана в apiRequest
+        console.log('Registration failed');
     }
 }
 
