@@ -227,7 +227,7 @@ export function updateDailyTasksDisplay() {
 }
 
 // Функция для отображения экрана заданий
-export function showDailyTasksScreen() {
+export function initDailyTasksScreen() {
     checkAndResetDailyTasks();
     updateDailyTasksDisplay();
 }
@@ -235,6 +235,7 @@ export function showDailyTasksScreen() {
 // Делаем функции доступными глобально
 window.claimTaskReward = claimTaskReward;
 window.showDailyTasksScreen = showDailyTasksScreen;
+window.initDailyTasksScreen = initDailyTasksScreen; // ← Добавьте эту строку
 window.updateTaskProgress = updateTaskProgress;
 window.updateDailyTasksDisplay = updateDailyTasksDisplay;
 window.checkAndResetDailyTasks = checkAndResetDailyTasks;

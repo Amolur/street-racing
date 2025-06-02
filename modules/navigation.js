@@ -154,6 +154,7 @@ export function showGame() {
     document.getElementById('auth-container').style.display = 'none';
     document.querySelector('.game-container').style.display = 'block';
 }
+
 export function showDailyTasksScreen(addToHistory = true) {
     hidePlayerInfoBar();
     hideAllScreens();
@@ -161,7 +162,11 @@ export function showDailyTasksScreen(addToHistory = true) {
     if (addToHistory) navigateToScreen('daily-tasks-screen');
     
     // Обновляем задания при открытии
-    if (window.showDailyTasksScreen) {
-        window.showDailyTasksScreen();
+    // Импортируем функции из daily-tasks
+    if (window.checkAndResetDailyTasks) {
+        window.checkAndResetDailyTasks();
+    }
+    if (window.updateDailyTasksDisplay) {
+        window.updateDailyTasksDisplay();
     }
 }
