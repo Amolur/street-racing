@@ -48,6 +48,29 @@ const DAILY_TASKS_CONFIG = [
     }
 ];
 
+export function updateDailyTasksTimer() {
+    const timerEl = document.getElementById('tasks-timer');
+    if (!timerEl || !gameData.dailyTasks || !gameData.dailyTasks.expiresAt) return;
+    
+    const now = new Date();
+    const expiresAt = new Date(gameData.dailyTasks.expiresAt);
+    const timeLeft = expiresAt - now;
+    
+    if (timeLeft <= 0) {
+        timerEl.textContent = 'Обновление доступно!';
+        // Можно показать уведомление пользователю
+        return;
+    }
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+    
+    timerEl.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Запускаем обновление таймера каждую секунду
+setInterval(updateDailyTasksTimer, 1000);
 // Инициализация ежедневных заданий в gameData
 export function initializeDailyTasks() {
     if (!gameData.dailyTasks) {
