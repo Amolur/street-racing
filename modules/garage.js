@@ -68,6 +68,11 @@ export function updateGarageDisplay() {
             updateUpgradesMinimal();
         }
     });
+    
+    // Инициализируем делегирование событий после обновления DOM
+    setTimeout(() => {
+        initGarageEventDelegation();
+    }, 100);
 }
 
 // Оптимизированное обновление витрины машины
@@ -251,25 +256,81 @@ export const showGarageTab = dom.debounce((tab) => {
         dom.getAll('.tab-content').forEach(content => content.classList.remove('active'));
         
         // Активируем нужную вкладку
+        let tabButton, tabContent;
+        
         switch(tab) {
             case 'upgrades':
-                dom.addClass('.tab-minimal:nth-child(1)', 'active');
-                dom.addClass('#tab-upgrades', 'active');
-                setTimeout(() => updateUpgradesMinimal(), 10);
+                tabButton = document.querySelector('.tab-minimal:nth-child(1)');
+                tabContent = document.getElementById('tab-upgrades');
                 break;
             case 'stats':
-                dom.addClass('.tab-minimal:nth-child(2)', 'active');
-                dom.addClass('#tab-stats', 'active');
-                setTimeout(() => updateStatsDisplay(), 10);
+                tabButton = document.querySelector('.tab-minimal:nth-child(2)');
+                tabContent = document.getElementById('tab-stats');
                 break;
             case 'parts':
-                dom.addClass('.tab-minimal:nth-child(3)', 'active');
-                dom.addClass('#tab-parts', 'active');
-                setTimeout(() => updatePartsMinimal(), 10);
+                tabButton = document.querySelector('.tab-minimal:nth-child(3)');
+                tabContent = document.getElementById('tab-parts');
                 break;
         }
+        
+        if (tabButton) tabButton.classList.add('active');
+        if (tabContent) tabContent.classList.add('active');
+        
+        // Обновляем содержимое вкладки
+        setTimeout(() => {
+            switch(tab) {
+                case 'upgrades':
+                    updateUpgradesMinimal();
+                    break;
+                case 'stats':
+                    updateStatsDisplay();
+                    break;
+                case 'parts':
+                    updatePartsMinimal();
+                    break;
+            }
+            // Реинициализируем делегирование
+            initGarageEventDelegation();
+        }, 10);
     });
 }, 50);
+
+// Инициализация делегирования событий
+function initGarageEventDelegation() {
+    // Для улучшений
+    const upgradesList = document.getElementById('upgrades-list');
+    if (upgradesList) {
+        // Удаляем старые обработчики
+        const newUpgradesList = upgradesList.cloneNode(true);
+        upgradesList.parentNode.replaceChild(newUpgradesList, upgradesList);
+        
+        newUpgradesList.addEventListener('click', function(e) {
+            const button = e.target.closest('.upgrade-button');
+            if (button && button.dataset.upgradeType) {
+                window.upgradeComponent(button.dataset.upgradeType);
+            }
+        });
+    }
+    
+    // Для специальных деталей
+    const partsList = document.getElementById('special-parts-list');
+    if (partsList) {
+        // Удаляем старые обработчики
+        const newPartsList = partsList.cloneNode(true);
+        partsList.parentNode.replaceChild(newPartsList, partsList);
+        
+        newPartsList.addEventListener('click', function(e) {
+            const button = e.target.closest('.upgrade-button');
+            if (button && button.dataset.partType) {
+                const partType = button.dataset.partType;
+                const partPrice = parseInt(button.dataset.partPrice);
+                if (partType && partPrice) {
+                    window.buySpecialPart(partType, partPrice);
+                }
+            }
+        });
+    }
+}
 
 // ============================================
 // СТАРЫЕ ФУНКЦИИ ДЛЯ СОВМЕСТИМОСТИ
@@ -475,104 +536,6 @@ export function updateSpecialPartsDisplay() {
     });
 }
 
-// Делегирование событий для улучшений
-dom.delegate('#upgrades-list', 'click', '.upgrade-button', function(e) {
-    const upgradeType = this.dataset.upgradeType;
-    if (upgradeType) {
-        window.upgradeComponent(upgradeType);
-    }
-});
-
-// Делегирование для покупки деталей
-dom.delegate('#special-parts-list', 'click', '.upgrade-button', function(e) {
-    const partType = this.dataset.partType;
-    const partPrice = parseInt(this.dataset.partPrice);
-    if (partType && partPrice) {
-        window.buySpecialPart(partType, partPrice);
-    }
-});
-function initGarageEventDelegation() {
-    // Для улучшений
-    const upgradesList = document.getElementById('upgrades-list');
-    if (upgradesList) {
-        upgradesList.addEventListener('click', function(e) {
-            const button = e.target.closest('.upgrade-button');
-            if (button && button.dataset.upgradeType) {
-                window.upgradeComponent(button.dataset.upgradeType);
-            }
-        });
-    }
-    
-    // Для специальных деталей
-    const partsList = document.getElementById('special-parts-list');
-    if (partsList) {
-        partsList.addEventListener('click', function(e) {
-            const button = e.target.closest('.upgrade-button');
-            if (button && button.dataset.partType) {
-                const partType = button.dataset.partType;
-                const partPrice = parseInt(button.dataset.partPrice);
-                if (partType && partPrice) {
-                    window.buySpecialPart(partType, partPrice);
-                }
-            }
-        });
-    }
-}
-
-// Вызываем инициализацию при переходе в гараж
-const originalUpdateGarageDisplay = updateGarageDisplay;
-export function updateGarageDisplay() {
-    originalUpdateGarageDisplay();
-    // Инициализируем делегирование после обновления DOM
-    setTimeout(() => {
-        initGarageEventDelegation();
-    }, 100);
-}
-
-// Переопределяем showGarageTab для правильной работы
-export function showGarageTab(tab) {
-    // Удаляем активные классы
-    document.querySelectorAll('.tab-minimal').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Активируем нужную вкладку
-    let tabButton, tabContent;
-    
-    switch(tab) {
-        case 'upgrades':
-            tabButton = document.querySelector('.tab-minimal:nth-child(1)');
-            tabContent = document.getElementById('tab-upgrades');
-            break;
-        case 'stats':
-            tabButton = document.querySelector('.tab-minimal:nth-child(2)');
-            tabContent = document.getElementById('tab-stats');
-            break;
-        case 'parts':
-            tabButton = document.querySelector('.tab-minimal:nth-child(3)');
-            tabContent = document.getElementById('tab-parts');
-            break;
-    }
-    
-    if (tabButton) tabButton.classList.add('active');
-    if (tabContent) tabContent.classList.add('active');
-    
-    // Обновляем содержимое вкладки
-    setTimeout(() => {
-        switch(tab) {
-            case 'upgrades':
-                updateUpgradesMinimal();
-                break;
-            case 'stats':
-                updateStatsDisplay();
-                break;
-            case 'parts':
-                updatePartsMinimal();
-                break;
-        }
-        // Реинициализируем делегирование
-        initGarageEventDelegation();
-    }, 10);
-}
 // Делаем функции доступными глобально
 window.updateGarageDisplay = updateGarageDisplay;
 window.updateUpgradesMinimal = updateUpgradesMinimal;

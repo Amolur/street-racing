@@ -3,8 +3,6 @@
 
 import { gameState } from './game-data.js';
 import { showPlayerInfoBar, hidePlayerInfoBar, updateQuickStats } from './utils.js';
-// Убираем импорт, так как используем глобальную функцию
-// Добавьте эту функцию в modules/navigation.js после импортов:
 
 // Очистка кеша DOM при переходах
 export function clearDOMCache() {
@@ -13,10 +11,40 @@ export function clearDOMCache() {
     }
 }
 
-// Обновите функцию navigateTo:
+// Функция для отслеживания навигации
+export function navigateToScreen(screenId) {
+    if (gameState.currentScreen !== screenId) {
+        gameState.navigationHistory.push(gameState.currentScreen);
+        gameState.currentScreen = screenId;
+    }
+}
+
+// Функция возврата на предыдущий экран
+export function goBack() {
+    if (gameState.navigationHistory.length > 0) {
+        const previousScreen = gameState.navigationHistory.pop();
+        gameState.currentScreen = previousScreen;
+        navigateTo(previousScreen);
+    } else {
+        navigateTo('main-menu');
+    }
+    
+    if (gameState.currentScreen === 'main-menu') {
+        showPlayerInfoBar();
+    }
+}
+
+// Функция скрытия всех экранов
+export function hideAllScreens() {
+    document.querySelectorAll('.game-screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+}
+
+// Базовая функция навигации - ОБЪЯВЛЕНА ТОЛЬКО ОДИН РАЗ
 export function navigateTo(screenId) {
     hideAllScreens();
-    clearDOMCache(); // Добавьте эту строку
+    clearDOMCache();
     
     const screen = document.getElementById(screenId);
     if (screen) {
@@ -50,65 +78,6 @@ export function navigateTo(screenId) {
             if (window.updateLeaderboard) {
                 setTimeout(() => window.updateLeaderboard(), 100);
             }
-            break;
-    }
-}
-// Функция для отслеживания навигации
-export function navigateToScreen(screenId) {
-    if (gameState.currentScreen !== screenId) {
-        gameState.navigationHistory.push(gameState.currentScreen);
-        gameState.currentScreen = screenId;
-    }
-}
-
-// Функция возврата на предыдущий экран
-export function goBack() {
-    if (gameState.navigationHistory.length > 0) {
-        const previousScreen = gameState.navigationHistory.pop();
-        gameState.currentScreen = previousScreen;
-        navigateTo(previousScreen);
-    } else {
-        navigateTo('main-menu');
-    }
-    
-    if (gameState.currentScreen === 'main-menu') {
-        showPlayerInfoBar();
-    }
-}
-
-// Функция скрытия всех экранов
-export function hideAllScreens() {
-    document.querySelectorAll('.game-screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-}
-
-// Базовая функция навигации
-export function navigateTo(screenId) {
-    hideAllScreens();
-    
-    const screen = document.getElementById(screenId);
-    if (screen) {
-        screen.classList.add('active');
-        navigateToScreen(screenId);
-    }
-    
-    // Обновляем данные экрана если нужно
-    switch(screenId) {
-        case 'garage-screen':
-            if (window.updateGarageDisplay) window.updateGarageDisplay();
-            break;
-        case 'race-menu-screen':
-            if (window.displayOpponents) window.displayOpponents();
-            break;
-        case 'profile-screen':
-            if (window.updateProfileDisplay) window.updateProfileDisplay();
-            break;
-        case 'shop-screen':
-            if (window.updateShopDisplay) window.updateShopDisplay();
-            break;
-        case 'leaderboard-screen':
-            if (window.updateLeaderboard) window.updateLeaderboard();
             break;
     }
 }
