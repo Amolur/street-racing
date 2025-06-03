@@ -51,12 +51,12 @@ export function startAutoSave() {
         if (gameState.currentUser) {
             try {
                 await saveGameData(gameData);
-                console.log('Автосохранение выполнено');
+                console.log('✅ Автосохранение выполнено');
             } catch (error) {
-                console.error('Ошибка автосохранения:', error);
+                console.error('❌ Ошибка автосохранения:', error);
             }
         }
-    }, 60000); // 60 секунд
+    }, 300000); // Увеличьте до 5 минут (300000 мс) вместо 1 минуты
 }
 
 export function stopAutoSave() {

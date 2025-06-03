@@ -140,6 +140,30 @@ setInterval(async () => {
         }
     }
 }, 60000); // Каждую минуту
+// Отключаем автосохранение при неактивности
+let lastActivity = Date.now();
 
+document.addEventListener('click', () => {
+    lastActivity = Date.now();
+});
+
+document.addEventListener('keypress', () => {
+    lastActivity = Date.now();
+});
+
+// Модифицируем периодическое сохранение
+setInterval(async () => {
+    // Сохраняем только если была активность в последние 30 секунд
+    if (gameState.currentUser && navigator.onLine && (Date.now() - lastActivity < 30000)) {
+        try {
+            if (typeof window.saveGameData === 'function') {
+                await window.saveGameData(gameData);
+            }
+        } catch (error) {
+            // Тихо обрабатываем ошибку
+            console.log('Автосохранение пропущено');
+        }
+    }
+}, 60000);
 // Экспортируем для использования в других модулях если нужно
 export { gameState, gameData };

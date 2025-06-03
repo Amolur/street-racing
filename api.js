@@ -152,6 +152,19 @@ async function loadGameData() {
     return await apiRequest('/game/data', { method: 'GET' });
 }
 
+async function saveGameData(gameData) {
+    console.log('Отправка данных на сервер:', {
+        money: gameData.money,
+        level: gameData.level,
+        carsCount: gameData.cars ? gameData.cars.length : 0,
+        hasStats: !!gameData.stats
+    });
+    
+    return await apiRequest('/game/save', {
+        method: 'POST',
+        body: JSON.stringify({ gameData })
+    });
+}
 // Около строки 98 в api.js
 async function saveGameData(gameData) {
     try {
