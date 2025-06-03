@@ -39,21 +39,24 @@ export function initializeDailyTasks() {
 
 // Проверка и сброс заданий в полночь
 export function checkAndResetDailyTasks() {
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (gameData.dailyTasks.lastReset !== today) {
-        generateDailyTasks();
-        gameData.dailyTasks.lastReset = today;
-        gameData.dailyStats = {
-            totalRaces: gameData.stats.totalRaces,
-            wins: gameData.stats.wins,
-            fuelSpent: 0,
-            upgradesBought: 0,
-            moneyEarned: gameData.stats.moneyEarned
-        };
-        
-        showError('🌅 Новый день! Доступны новые задания!');
+    if (!gameData.dailyTasks || !gameData.dailyTasks.expiresAt) {
+        return; // Не сбрасываем на фронтенде, пусть сервер управляет
     }
+    
+    const now = new Date();
+    const expiresAt = new Date(gameData.dailyTasks.expiresAt);
+    
+    // Проверяем только истечение времени, не сбрасываем сами
+    if (now >= expiresAt) {
+        showError('⏰ Задания истекли! Обновите страницу для получения новых.');
+    }
+}
+
+// Обновите также функцию generateDailyTasks:
+function generateDailyTasks() {
+    // Эта функция больше не должна вызываться на фронтенде
+    // Задания генерируются только на сервере
+    console.warn('generateDailyTasks вызвана на фронтенде - это не должно происходить');
 }
 
 // Конфигурация ежедневных заданий
