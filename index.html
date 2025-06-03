@@ -8,8 +8,6 @@
     <meta name="theme-color" content="#0a0a0a">
     <title>Night Race - Ночные гонки</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <!-- Добавим иконки и шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -28,7 +26,6 @@
 
     <!-- Экран авторизации -->
     <div id="auth-container" class="auth-container">
-        <div class="auth-background"></div>
         <div class="auth-box">
             <div class="logo-container">
                 <h1 class="game-logo">NIGHT<span>RACE</span></h1>
@@ -71,42 +68,42 @@
 
     <!-- Игровой контейнер -->
     <div class="game-container" style="display: none;">
-        <!-- Обновленный header -->
+        <!-- Header -->
         <header class="game-header">
             <div class="header-content">
-    <div class="header-logo" onclick="showMainMenu()">NIGHT RACE</div>
-</div>
+                <div class="header-logo" onclick="showMainMenu()">NIGHT RACE</div>
+            </div>
         </header>
-<div id="player-info-bar" class="player-info-bar" style="display: none;">
-    <div class="info-item">
-        <span class="info-icon">👤</span>
-        <span class="info-text" id="info-username">Игрок</span>
-    </div>
-    
-    <div class="info-item">
-        <span class="info-icon">⭐</span>
-        <span class="info-text">Ур. <span id="info-level">1</span></span>
-    </div>
-    
-    <div class="info-item">
-        <span class="info-icon">💰</span>
-        <span class="info-text">$<span id="info-money">1000</span></span>
-    </div>
-    
-    <div class="info-item fuel-item">
-        <span class="info-icon">⛽</span>
-        <span class="info-text">
-            <span id="info-fuel">30/30</span>
-            <span id="info-fuel-timer" class="fuel-timer-mini"></span>
-        </span>
-    </div>
-</div>
+        
+        <div id="player-info-bar" class="player-info-bar" style="display: none;">
+            <div class="info-item">
+                <span class="info-icon">👤</span>
+                <span class="info-text" id="info-username">Игрок</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-icon">⭐</span>
+                <span class="info-text">Ур. <span id="info-level">1</span></span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-icon">💰</span>
+                <span class="info-text">$<span id="info-money">1000</span></span>
+            </div>
+            
+            <div class="info-item fuel-item">
+                <span class="info-icon">⛽</span>
+                <span class="info-text">
+                    <span id="info-fuel">30/30</span>
+                    <span id="info-fuel-timer" class="fuel-timer-mini"></span>
+                </span>
+            </div>
+        </div>
+        
         <!-- Основной контент -->
         <main class="game-main">
-            <!-- Главная страница - упрощенная -->
+            <!-- Главная страница -->
             <div id="main-menu" class="game-screen active">
-                
-                <!-- Основное меню - вертикальный список -->
                 <div class="menu-list">
                     <button class="menu-item primary" onclick="showRaceMenu()">
                         <span class="menu-icon">🏁</span>
@@ -134,7 +131,7 @@
                         </span>
                         <span class="menu-arrow">→</span>
                     </button>
-                    <!-- Ежедневные задания -->
+                    
                     <button class="menu-item" onclick="showDailyTasksScreen()">
                         <span class="menu-icon">📋</span>
                         <span class="menu-text">
@@ -165,80 +162,75 @@
                 </div>
             </div>
 
-           <div id="garage-screen" class="game-screen">
-    <div class="screen-header">
-        <button class="btn-back" onclick="goBack()">← Назад</button>
-        <h2>Гараж</h2>
-    </div>
-    
-    <div class="garage-container">
-        <!-- Превью машин -->
-        <div class="cars-preview-section">
-            <div class="cars-carousel">
-                <div id="cars-list" class="cars-list">
-                    <!-- Карточки машин будут добавлены через JS -->
+            <!-- Гараж -->
+            <div id="garage-screen" class="game-screen">
+                <div class="screen-header">
+                    <button class="btn-back" onclick="goBack()">← Назад</button>
+                    <h2>Гараж</h2>
+                </div>
+                
+                <div class="garage-container">
+                    <!-- Превью машин -->
+                    <div class="cars-preview-section">
+                        <div class="cars-carousel">
+                            <div id="cars-list" class="cars-list"></div>
+                        </div>
+                        <div class="car-navigation">
+                            <button class="nav-btn" onclick="previousCar()">←</button>
+                            <span class="car-counter" id="car-counter">1 / 1</span>
+                            <button class="nav-btn" onclick="nextCar()">→</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Информация о текущей машине -->
+                    <div class="current-car-info">
+                        <div class="car-main-stats">
+                            <div class="stat-compact">
+                                <span class="stat-label">💪</span>
+                                <span class="stat-value" id="garage-power">50</span>
+                            </div>
+                            <div class="stat-compact">
+                                <span class="stat-label">🏃</span>
+                                <span class="stat-value" id="garage-speed">60</span>
+                            </div>
+                            <div class="stat-compact">
+                                <span class="stat-label">🎯</span>
+                                <span class="stat-value" id="garage-handling">70</span>
+                            </div>
+                            <div class="stat-compact">
+                                <span class="stat-label">🚀</span>
+                                <span class="stat-value" id="garage-acceleration">55</span>
+                            </div>
+                        </div>
+                        
+                        <div class="car-upgrades-summary">
+                            <span class="upgrades-count">Улучшений: <span id="total-upgrades">0</span>/50</span>
+                            <span class="car-power-rating">Рейтинг: <span id="car-rating">D</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Вкладки гаража -->
+                    <div class="garage-tabs-modern">
+                        <button class="garage-tab-modern active" onclick="showGarageTab('upgrades')">
+                            <span class="tab-icon">🔧</span>
+                            <span class="tab-text">Улучшения</span>
+                        </button>
+                        <button class="garage-tab-modern" onclick="showGarageTab('parts')">
+                            <span class="tab-icon">⚡</span>
+                            <span class="tab-text">Детали</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Контент вкладок -->
+                    <div id="garage-upgrades-modern" class="garage-tab-content active">
+                        <div id="upgrades-grid" class="upgrades-grid-modern"></div>
+                    </div>
+                    
+                    <div id="garage-parts-modern" class="garage-tab-content">
+                        <div id="special-parts-grid" class="special-parts-grid-modern"></div>
+                    </div>
                 </div>
             </div>
-            <div class="car-navigation">
-                <button class="nav-btn" onclick="previousCar()">←</button>
-                <span class="car-counter" id="car-counter">1 / 1</span>
-                <button class="nav-btn" onclick="nextCar()">→</button>
-            </div>
-        </div>
-        
-        <!-- Информация о текущей машине -->
-        <div class="current-car-info">
-            <div class="car-main-stats">
-                <div class="stat-compact">
-                    <span class="stat-label">💪</span>
-                    <span class="stat-value" id="garage-power">50</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-label">🏃</span>
-                    <span class="stat-value" id="garage-speed">60</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-label">🎯</span>
-                    <span class="stat-value" id="garage-handling">70</span>
-                </div>
-                <div class="stat-compact">
-                    <span class="stat-label">🚀</span>
-                    <span class="stat-value" id="garage-acceleration">55</span>
-                </div>
-            </div>
-            
-            <div class="car-upgrades-summary">
-                <span class="upgrades-count">Улучшений: <span id="total-upgrades">0</span>/50</span>
-                <span class="car-power-rating">Рейтинг: <span id="car-rating">D</span></span>
-            </div>
-        </div>
-        
-        <!-- Вкладки гаража -->
-        <div class="garage-tabs-modern">
-            <button class="garage-tab-modern active" onclick="showGarageTab('upgrades')">
-                <span class="tab-icon">🔧</span>
-                <span class="tab-text">Улучшения</span>
-            </button>
-            <button class="garage-tab-modern" onclick="showGarageTab('parts')">
-                <span class="tab-icon">⚡</span>
-                <span class="tab-text">Детали</span>
-            </button>
-        </div>
-        
-        <!-- Контент вкладок -->
-        <div id="garage-upgrades-modern" class="garage-tab-content active">
-            <div id="upgrades-grid" class="upgrades-grid-modern">
-                <!-- Улучшения будут добавлены через JS -->
-            </div>
-        </div>
-        
-        <div id="garage-parts-modern" class="garage-tab-content">
-            <div id="special-parts-grid" class="special-parts-grid-modern">
-                <!-- Специальные детали будут добавлены через JS -->
-            </div>
-        </div>
-    </div>
-</div>
 
             <!-- Экран гонок -->
             <div id="race-menu-screen" class="game-screen">
@@ -252,19 +244,15 @@
                     <p>Баланс: <strong>$<span id="race-balance">1000</span></strong></p>
                 </div>
                 
-                <div id="opponents-list" class="opponents-list">
-                    <!-- Список соперников -->
-                </div>
+                <div id="opponents-list" class="opponents-list"></div>
             </div>
 
             <!-- Экран результата гонки -->
             <div id="race-result-screen" class="game-screen">
-                <div id="race-result" class="race-result">
-                    <!-- Результаты гонки -->
-                </div>
+                <div id="race-result" class="race-result"></div>
             </div>
 
-            <!-- Обновленный экран профиля -->
+            <!-- Профиль -->
             <div id="profile-screen" class="game-screen">
                 <div class="screen-header">
                     <button class="btn-back" onclick="goBack()">← Назад</button>
@@ -308,16 +296,12 @@
                     <div class="profile-sections">
                         <div class="profile-section">
                             <h3>📊 Подробная статистика</h3>
-                            <div id="profile-stats" class="stats-list">
-                                <!-- Статистика -->
-                            </div>
+                            <div id="profile-stats" class="stats-list"></div>
                         </div>
                         
                         <div class="profile-section">
                             <h3>💪 Навыки пилота</h3>
-                            <div id="profile-skills-display" class="skills-list">
-                                <!-- Навыки -->
-                            </div>
+                            <div id="profile-skills-display" class="skills-list"></div>
                         </div>
                     </div>
                 </div>
@@ -336,15 +320,11 @@
                 </div>
                 
                 <div id="shop-buy" class="shop-content active">
-                    <div id="cars-for-sale" class="cars-grid">
-                        <!-- Машины для покупки -->
-                    </div>
+                    <div id="cars-for-sale" class="cars-grid"></div>
                 </div>
                 
                 <div id="shop-sell" class="shop-content">
-                    <div id="cars-to-sell" class="cars-grid">
-                        <!-- Машины для продажи -->
-                    </div>
+                    <div id="cars-to-sell" class="cars-grid"></div>
                 </div>
             </div>
 
@@ -360,12 +340,12 @@
                         <button class="tab-btn active">Общий рейтинг</button>
                     </div>
                     
-                    <div id="leaderboard-list" class="leaderboard-list">
-                        <!-- Список лидеров -->
-                    </div>
+                    <div id="leaderboard-list" class="leaderboard-list"></div>
                 </div>
             </div>
-             <div id="daily-tasks-screen" class="game-screen">
+            
+            <!-- Ежедневные задания -->
+            <div id="daily-tasks-screen" class="game-screen">
                 <div class="screen-header">
                     <button class="btn-back" onclick="goBack()">← Назад</button>
                     <h2>Ежедневные задания</h2>
@@ -377,9 +357,7 @@
                         <p class="tasks-completed">Выполнено: <span id="tasks-completed">0/3</span></p>
                     </div>
                     
-                    <div id="daily-tasks-list" class="daily-tasks-list">
-                        <!-- Задания будут добавлены через JS -->
-                    </div>
+                    <div id="daily-tasks-list" class="daily-tasks-list"></div>
                     
                     <div class="daily-bonus-info">
                         <p>🌟 Выполни все задания дня и получи бонус $1000!</p>
@@ -391,13 +369,5 @@
 
     <script src="api.js"></script>
     <script type="module" src="app.js"></script>
-    <script>
-        // Скрываем экран загрузки после загрузки
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-            }, 1000);
-        });
-    </script>
 </body>
 </html>
