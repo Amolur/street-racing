@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#f5f5f5">
+    <meta name="theme-color" content="#1a1a1a">
     <title>Street Racing - Уличные гонки</title>
     
-    <!-- Новые стили -->
-    <link rel="stylesheet" href="new-mobile-ui.css">
-    <link rel="stylesheet" href="auth-styles.css">
-    <link rel="stylesheet" href="components-styles.css">
+    <!-- Новые стили в гоночной тематике -->
+    <link rel="stylesheet" href="racing-mobile-ui.css">
+    <link rel="stylesheet" href="racing-auth-styles.css">
+    <link rel="stylesheet" href="racing-components-styles.css">
     
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,8 +30,6 @@
     <!-- Экран авторизации -->
     <div id="auth-container" class="auth-container">
         <div class="auth-content">
-            <div class="city-background"></div>
-            
             <div class="auth-box">
                 <h1 class="auth-title">Street Racing</h1>
                 <p class="auth-subtitle">Уличные гонки</p>
@@ -115,13 +113,11 @@
         <main class="mobile-main">
             <!-- Главное меню -->
             <div id="main-menu" class="mobile-screen active">
-                <div class="city-background"></div>
-                
                 <div class="main-menu-container">
                     <!-- Информация об игроке -->
                     <div class="player-info-card">
                         <div class="player-avatar-wrapper">
-                            <img src="https://ui-avatars.com/api/?name=Player&background=2c3e50&color=ffffff&size=80" 
+                            <img src="https://ui-avatars.com/api/?name=Player&background=ff4444&color=ffffff&size=80" 
                                  alt="Avatar" class="player-avatar">
                         </div>
                         <h2 class="player-name" id="player-name">Игрок</h2>
@@ -141,38 +137,45 @@
                         </div>
                     </div>
 
-                    <!-- Меню кнопки -->
+                    <!-- Меню кнопки - вертикальное расположение -->
                     <div class="menu-grid">
                         <button class="menu-button race" onclick="showRaceMenu()">
-                            <span class="menu-button-title">Гонки</span>
-                            <span class="menu-button-subtitle">Начать заезд</span>
+                            <div>
+                                <span class="menu-button-title">🏁 Гонки</span>
+                                <span class="menu-button-subtitle">Начать заезд</span>
+                            </div>
                         </button>
                         
                         <button class="menu-button garage" onclick="showGarageScreen()">
-                            <span class="menu-button-title">Гараж</span>
-                            <span class="menu-button-subtitle">Мои машины</span>
+                            <div>
+                                <span class="menu-button-title">🔧 Гараж</span>
+                                <span class="menu-button-subtitle">Мои машины</span>
+                            </div>
                         </button>
                         
                         <button class="menu-button shop" onclick="showShopScreen()">
-                            <span class="menu-button-title">Магазин</span>
-                            <span class="menu-button-subtitle">Купить авто</span>
+                            <div>
+                                <span class="menu-button-title">🛒 Магазин</span>
+                                <span class="menu-button-subtitle">Купить авто</span>
+                            </div>
                         </button>
                         
                         <button class="menu-button tasks" onclick="showDailyTasksScreen()">
-                            <span class="menu-button-title">Задания</span>
-                            <span class="menu-button-subtitle">Ежедневные</span>
+                            <div>
+                                <span class="menu-button-title">📋 Задания</span>
+                                <span class="menu-button-subtitle">Ежедневные</span>
+                            </div>
                             <span class="badge" id="daily-tasks-counter" style="display: none;">0</span>
                         </button>
+                        
+                        <button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
+                            <span class="menu-button-title">🏆 Таблица лидеров</span>
+                        </button>
+                        
+                        <button class="menu-button full-width critical-button" onclick="logout()">
+                            <span class="menu-button-title">🚪 Выход</span>
+                        </button>
                     </div>
-
-                    <!-- Дополнительные кнопки -->
-                    <button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
-                        <span class="menu-button-title">Таблица лидеров</span>
-                    </button>
-                    
-                    <button class="menu-button full-width" onclick="logout()">
-                        <span class="menu-button-title">Выход</span>
-                    </button>
                 </div>
             </div>
 
@@ -252,9 +255,9 @@
                 
                 <div class="screen-content">
                     <div class="info-panel">
-                        <p>Машина: <strong id="race-current-car">-</strong></p>
-                        <p>Топливо: <strong id="race-car-fuel">-</strong></p>
-                        <p>Баланс: $<strong id="race-balance">-</strong></p>
+                        <p class="small-text">Машина: <strong id="race-current-car">-</strong></p>
+                        <p class="small-text">Топливо: <strong id="race-car-fuel">-</strong></p>
+                        <p class="small-text">Баланс: $<strong id="race-balance">-</strong></p>
                     </div>
                     
                     <div id="opponents-list" class="list-container"></div>
@@ -317,8 +320,8 @@
                 <div class="screen-content">
                     <div class="info-panel">
                         <div class="info-panel-header">
-                            <span>Обновление через:</span>
-                            <span id="tasks-timer">23:59:59</span>
+                            <span class="small-text">Обновление через:</span>
+                            <span id="tasks-timer" class="small-text">23:59:59</span>
                         </div>
                     </div>
                     

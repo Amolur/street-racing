@@ -47,26 +47,32 @@ export function navigateTo(screenId) {
         navigateToScreen(screenId);
     }
     
+    // Прокручиваем наверх при переходе между экранами
+    const mainContainer = document.querySelector('.mobile-main');
+    if (mainContainer) {
+        mainContainer.scrollTop = 0;
+    }
+    
     // Обновляем данные экрана если нужно
     switch(screenId) {
         case 'garage-screen':
             if (window.updateGarageDisplay) {
-                setTimeout(() => window.updateGarageDisplay(), 100);
+                setTimeout(() => window.updateGarageDisplay(), 50);
             }
             break;
         case 'race-menu-screen':
             if (window.displayOpponents) {
-                setTimeout(() => window.displayOpponents(), 100);
+                setTimeout(() => window.displayOpponents(), 50);
             }
             break;
         case 'shop-screen':
             if (window.updateShopDisplay) {
-                setTimeout(() => window.updateShopDisplay(), 100);
+                setTimeout(() => window.updateShopDisplay(), 50);
             }
             break;
         case 'leaderboard-screen':
             if (window.updateLeaderboard) {
-                setTimeout(() => window.updateLeaderboard(), 100);
+                setTimeout(() => window.updateLeaderboard(), 50);
             }
             break;
     }
@@ -88,25 +94,43 @@ export function showMainMenu(addToHistory = true) {
 
 function updateMainMenuInfo() {
     if (gameState.currentUser) {
-        document.getElementById('player-name').textContent = gameState.currentUser.username;
+        const playerNameEl = document.getElementById('player-name');
+        if (playerNameEl) {
+            playerNameEl.textContent = gameState.currentUser.username;
+        }
+        
+        // Обновляем аватар с новой цветовой схемой
+        const avatars = document.querySelectorAll('.player-avatar');
+        avatars.forEach(avatar => {
+            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=ff4444&color=ffffff&size=100`;
+        });
     }
     
     const gameData = window.gameData;
     if (gameData) {
-        document.getElementById('player-level').textContent = gameData.level;
-        document.getElementById('player-wins').textContent = gameData.stats.wins;
-        document.getElementById('player-cars').textContent = gameData.cars.length;
+        // Обновляем статистику игрока в главном меню
+        const playerLevelEl = document.getElementById('player-level');
+        const playerWinsEl = document.getElementById('player-wins');
+        const playerCarsEl = document.getElementById('player-cars');
+        
+        if (playerLevelEl) playerLevelEl.textContent = gameData.level;
+        if (playerWinsEl) playerWinsEl.textContent = gameData.stats.wins;
+        if (playerCarsEl) playerCarsEl.textContent = gameData.cars.length;
         
         // Обновляем ресурсы в header
-        document.getElementById('header-level').textContent = gameData.level;
-        document.getElementById('header-money').textContent = gameData.money.toLocaleString();
+        const headerLevelEl = document.getElementById('header-level');
+        const headerMoneyEl = document.getElementById('header-money');
+        const headerFuelEl = document.getElementById('header-fuel');
+        
+        if (headerLevelEl) headerLevelEl.textContent = gameData.level;
+        if (headerMoneyEl) headerMoneyEl.textContent = gameData.money.toLocaleString();
         
         const currentCar = gameData.cars[gameData.currentCar];
-        if (currentCar) {
+        if (currentCar && headerFuelEl) {
             const currentFuel = window.fuelSystem ? 
                 window.fuelSystem.getCurrentFuel(currentCar) : 
                 currentCar.fuel;
-            document.getElementById('header-fuel').textContent = currentFuel;
+            headerFuelEl.textContent = currentFuel;
         }
     }
 }
@@ -134,7 +158,13 @@ export function showRaceMenu(addToHistory = true) {
 export function showShopScreen(addToHistory = true) {
     hideAllScreens();
     document.getElementById('shop-screen').classList.add('active');
-    if (window.updateShopDisplay) window.updateShopDisplay();
+    if (window.updateShopDisplay) {
+        window.updateShopDisplay();
+        // Убеждаемся что активна вкладка покупки
+        if (window.showShopTab) {
+            window.showShopTab('buy');
+        }
+    }
     if (addToHistory) navigateToScreen('shop-screen');
 }
 
@@ -148,6 +178,11 @@ export async function showLeaderboardScreen(addToHistory = true) {
 export function showRaceResultScreen() {
     hideAllScreens();
     document.getElementById('race-result-screen').classList.add('active');
+    // Прокручиваем наверх для показа результата
+    const mainContainer = document.querySelector('.mobile-main');
+    if (mainContainer) {
+        mainContainer.scrollTop = 0;
+    }
 }
 
 export function showDailyTasksScreen(addToHistory = true) {
@@ -174,6 +209,6 @@ export function showGame() {
 
 // Функции для совместимости
 export function showProfileScreen(addToHistory = true) {
-    // Профиль скрыт в новом дизайне
+    // Профиль скрыт в новом дизайне, показываем главное меню
     showMainMenu(addToHistory);
 }
