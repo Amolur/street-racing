@@ -152,11 +152,28 @@ async function loadGameData() {
     return await apiRequest('/game/data', { method: 'GET' });
 }
 
+// Около строки 98 в api.js
 async function saveGameData(gameData) {
-    return await apiRequest('/game/save', {
-        method: 'POST',
-        body: JSON.stringify({ gameData })
-    });
+    try {
+        // Проверяем данные перед отправкой
+        if (!gameData || typeof gameData !== 'object') {
+            console.error('Неверные данные для сохранения:', gameData);
+            return;
+        }
+        
+        // Убедимся, что все числовые поля - числа
+        if (gameData.money !== undefined) gameData.money = Number(gameData.money) || 0;
+        if (gameData.level !== undefined) gameData.level = Number(gameData.level) || 1;
+        if (gameData.experience !== undefined) gameData.experience = Number(gameData.experience) || 0;
+        
+        return await apiRequest('/game/save', {
+            method: 'POST',
+            body: JSON.stringify({ gameData })
+        });
+    } catch (error) {
+        console.error('Ошибка сохранения данных:', error);
+        throw error;
+    }
 }
 
 async function getLeaderboard() {

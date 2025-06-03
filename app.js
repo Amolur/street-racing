@@ -14,6 +14,29 @@ import * as dailyTasks from './modules/daily-tasks.js';
 import { dom } from './modules/dom-manager.js';
 import * as achievements from './modules/achievements.js';
 
+// Проверка структуры gameData при загрузке
+window.validateGameDataStructure = function() {
+    if (!gameData) {
+        console.error('gameData не определена');
+        return false;
+    }
+    
+    console.log('Структура gameData:', {
+        money: typeof gameData.money,
+        level: typeof gameData.level,
+        experience: typeof gameData.experience,
+        cars: Array.isArray(gameData.cars),
+        carsCount: gameData.cars ? gameData.cars.length : 0
+    });
+    
+    return true;
+};
+
+// Вызовите после загрузки данных
+setTimeout(() => {
+    window.validateGameDataStructure();
+}, 1000);
+
 // Делаем функции доступными глобально для onclick в HTML
 
 // Навигация
