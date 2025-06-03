@@ -196,4 +196,4 @@ export function initDailyTasksScreen() {
 window.claimTaskReward = claimTaskReward;
 window.updateTaskProgress = updateTaskProgress;
 window.updateDailyTasksDisplay = updateDailyTasksDisplay;
-export { initDailyTasksScreen };
+window.initDailyTasksScreen = initDailyTasksScreen;

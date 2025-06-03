@@ -77,10 +77,7 @@ export function showMainMenu(addToHistory = true) {
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
     
-    // Проверяем и обновляем ежедневные задания
-    if (window.checkAndResetDailyTasks) {
-        window.checkAndResetDailyTasks();
-    }
+    // Обновляем счетчик заданий без вызова несуществующих функций
     if (window.updateDailyTasksDisplay) {
         window.updateDailyTasksDisplay();
     }
