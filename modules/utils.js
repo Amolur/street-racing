@@ -149,6 +149,10 @@ export function updateFuelDisplay() {
     }
 }
 
+// Заглушки для совместимости
+export function showPlayerInfoBar() {}
+export function hidePlayerInfoBar() {}
+export function updatePlayerInfoBar() {}
 export function startInfoBarUpdates() {
     // Запускаем обновление основной информации вместо инфобара
     updatePlayerInfo();

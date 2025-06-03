@@ -1,6 +1,8 @@
 // modules/ui-components.js
 // Модуль для создания UI компонентов
 
+import { dom } from './dom-manager.js';
+
 // Создание карточки машины для гаража
 export function createCarPreviewCard(car) {
     return `
