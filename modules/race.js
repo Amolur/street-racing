@@ -1,103 +1,109 @@
 // modules/race.js
-// Гоночная логика с новым UI
+// Гоночная логика с серверной валидацией
 
-import { gameData, gameState, levelSystem, fuelSystem } from './game-data.js';
+import { gameData, gameState } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
-import { calculateTotalStats, initializeCarUpgrades } from './upgrades.js';
 import { showRaceResultScreen, showRaceMenu, showMainMenu } from './navigation.js';
 import { createOpponentListItem, createRacePreviewModal, createRaceResult } from './ui-components.js';
 
-// Генерация соперников
-export function generateDynamicOpponents() {
-    const playerLevel = gameData.level;
-    const baseOpponents = [];
-    
-    const difficulties = ['easy', 'medium', 'hard', 'extreme'];
-    const difficultySettings = {
-        easy: { 
-            diffMult: 0.8, 
-            rewardMult: 0.8,
-            names: ["Новичок", "Студент", "Таксист", "Курьер"]
-        },
-        medium: { 
-            diffMult: 1.0, 
-            rewardMult: 1.0,
-            names: ["Гонщик", "Дрифтер", "Стритрейсер", "Спидстер"]
-        },
-        hard: { 
-            diffMult: 1.3, 
-            rewardMult: 1.5,
-            names: ["Профи", "Мастер", "Чемпион", "Ветеран"]
-        },
-        extreme: { 
-            diffMult: 1.6, 
-            rewardMult: 2.0,
-            names: ["Легенда", "Призрак", "Босс", "Король"]
-        }
-    };
-    
-    const carNames = ["BMW M3", "Subaru WRX", "Mazda RX-7", "Nissan GT-R", "Toyota Supra"];
-    
-    difficulties.forEach(diff => {
-        const settings = difficultySettings[diff];
-        const randomName = settings.names[Math.floor(Math.random() * settings.names.length)];
-        const randomCar = carNames[Math.floor(Math.random() * carNames.length)];
-        
-        const baseDifficulty = 0.7 + (playerLevel * 0.02);
-        const difficulty = Number((baseDifficulty * settings.diffMult).toFixed(2));
-        const baseReward = 200 + (playerLevel * 100);
-        const reward = Math.floor(baseReward * settings.rewardMult / 50) * 50;
-        
-        baseOpponents.push({
-            name: randomName,
-            car: randomCar,
-            difficulty: difficulty,
-            reward: reward,
-            difficultyClass: diff,
-            fuelCost: fuelSystem.calculateFuelCost(difficulty)
+// Загрузка соперников с сервера
+let serverOpponents = [];
+
+// Загрузить соперников с сервера
+async function loadOpponents() {
+    try {
+        const response = await fetch(`${API_URL}/game/opponents`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
         });
-    });
-    
-    return baseOpponents;
+        
+        if (response.ok) {
+            const data = await response.json();
+            serverOpponents = data.opponents;
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Ошибка загрузки соперников:', error);
+        return false;
+    }
 }
 
 // Отображение соперников
-export function displayOpponents() {
+export async function displayOpponents() {
     const opponentsList = document.getElementById('opponents-list');
     if (!opponentsList) return;
     
     const currentCar = gameData.cars[gameData.currentCar];
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
     // Обновляем информацию
     document.getElementById('race-current-car').textContent = currentCar.name;
-    document.getElementById('race-car-fuel').textContent = `${currentFuel}/${currentCar.maxFuel || 30}`;
+    document.getElementById('race-car-fuel').textContent = `${currentCar.fuel}/${currentCar.maxFuel || 30}`;
     document.getElementById('race-balance').textContent = gameData.money;
     
-    // Генерируем соперников
-    const opponents = generateDynamicOpponents();
+    // Загружаем соперников с сервера
+    opponentsList.innerHTML = '<div class="loading">Загрузка соперников...</div>';
+    
+    const loaded = await loadOpponents();
+    if (!loaded) {
+        opponentsList.innerHTML = '<p class="error">Ошибка загрузки соперников</p>';
+        return;
+    }
+    
+    // Дополняем данные для отображения
+    const opponents = serverOpponents.map((opp, index) => ({
+        ...opp,
+        name: getOpponentName(opp.difficultyClass),
+        car: getOpponentCar(opp.difficultyClass),
+        betAmount: Math.floor(opp.reward / 2)
+    }));
     
     // Создаем список
     const opponentsHTML = opponents.map((opponent, index) => {
-        const betAmount = Math.floor(opponent.reward / 2);
-        const canAfford = gameData.money >= betAmount && currentFuel >= opponent.fuelCost;
-        
+        const canAfford = gameData.money >= opponent.betAmount && currentCar.fuel >= opponent.fuelCost;
         return createOpponentListItem(opponent, index, canAfford);
     }).join('');
     
     opponentsList.innerHTML = opponentsHTML;
 }
 
+// Вспомогательные функции для генерации имен
+function getOpponentName(difficultyClass) {
+    const names = {
+        easy: ["Новичок", "Студент", "Таксист", "Курьер"],
+        medium: ["Гонщик", "Дрифтер", "Стритрейсер", "Спидстер"],
+        hard: ["Профи", "Мастер", "Чемпион", "Ветеран"],
+        extreme: ["Легенда", "Призрак", "Босс", "Король"]
+    };
+    const nameList = names[difficultyClass] || names.easy;
+    return nameList[Math.floor(Math.random() * nameList.length)];
+}
+
+function getOpponentCar(difficultyClass) {
+    const cars = {
+        easy: ["Handa Civic", "Toyata Corolla"],
+        medium: ["Mazta RX-7", "Nisan 240SX"],
+        hard: ["BMV M3", "Subare WRX"],
+        extreme: ["Nisan GT-R", "Toyata Supra"]
+    };
+    const carList = cars[difficultyClass] || cars.easy;
+    return carList[Math.floor(Math.random() * carList.length)];
+}
+
 // Показать превью гонки
 export function showRacePreview(opponentIndex) {
-    const opponents = generateDynamicOpponents();
-    const opponent = opponents[opponentIndex];
+    const opponent = serverOpponents[opponentIndex];
+    if (!opponent) return;
+    
     opponent.index = opponentIndex;
+    opponent.name = getOpponentName(opponent.difficultyClass);
+    opponent.car = getOpponentCar(opponent.difficultyClass);
     
     const currentCar = gameData.cars[gameData.currentCar];
     const betAmount = Math.floor(opponent.reward / 2);
     const fuelCost = opponent.fuelCost;
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    const currentFuel = currentCar.fuel;
     
     const modal = createRacePreviewModal(opponent, currentCar, betAmount, fuelCost, currentFuel);
     
@@ -123,150 +129,85 @@ export function confirmRace(opponentIndex) {
     }, 100);
 }
 
-// Старт гонки
+// Старт гонки - ТЕПЕРЬ ЧЕРЕЗ СЕРВЕР
 export async function startRace(opponentIndex) {
-    const opponents = generateDynamicOpponents();
-    const opponent = opponents[opponentIndex];
+    const opponent = serverOpponents[opponentIndex];
+    if (!opponent) return;
+    
     const currentCar = gameData.cars[gameData.currentCar];
-    
-    initializeCarUpgrades(currentCar);
-    
     const betAmount = Math.floor(opponent.reward / 2);
-    const fuelCost = opponent.fuelCost;
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
     if (gameData.money < betAmount) {
         showError(`Недостаточно денег! Нужно минимум $${betAmount}`);
         return;
     }
     
-    if (currentFuel < fuelCost) {
-        showError(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`);
+    if (currentCar.fuel < opponent.fuelCost) {
+        showError(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`);
         return;
     }
     
-    // Тратим топливо
-    currentCar.fuel = currentFuel - fuelCost;
-    currentCar.lastFuelUpdate = new Date().toISOString();
-    
-    // Получаем характеристики
-    const totalStats = calculateTotalStats(currentCar);
-    const carPower = (totalStats.power + totalStats.speed + totalStats.handling + totalStats.acceleration) / 4;
-    
-    // Бонус от навыков
-    const skillMultiplier = 1 + (
-        gameData.skills.driving * 0.002 +
-        gameData.skills.speed * 0.002 +
-        gameData.skills.reaction * 0.0015 +
-        gameData.skills.technique * 0.0015
-    );
-    
-    let playerEfficiency = carPower * skillMultiplier;
-    
-    // Проверяем нитро
-    if (currentCar.specialParts && currentCar.specialParts.nitro && Math.random() < 0.3) {
-        playerEfficiency *= 1.2;
-        showError("🚀 Нитро активировано!");
-    }
-    
-    // Эффективность соперника
-    const opponentEfficiency = 60 * opponent.difficulty;
-    
-    // Расчет времени
-    const trackBaseTime = 60;
-    const playerRandomFactor = 0.95 + Math.random() * 0.1;
-    const opponentRandomFactor = 0.95 + Math.random() * 0.1;
-    
-    const playerTime = trackBaseTime * (100 / playerEfficiency) * playerRandomFactor;
-    const opponentTime = trackBaseTime * (100 / opponentEfficiency) * opponentRandomFactor;
-    
-    const won = playerTime < opponentTime;
-    
-    // Расчет опыта
-    const xpGained = levelSystem.calculateXPGain(won, opponent.difficulty, betAmount);
-    gameData.experience = (gameData.experience || 0) + xpGained;
-    
-    // Обновляем статистику
-    gameData.stats.totalRaces++;
-    if (won) {
-        gameData.stats.wins++;
-        gameData.stats.moneyEarned += opponent.reward;
-        gameData.money += opponent.reward;
-    } else {
-        gameData.stats.losses++;
-        gameData.stats.moneySpent += betAmount;
-        gameData.money -= betAmount;
-    }
-    // Проверяем достижения
-    if (window.checkAllAchievements) {
-    window.checkAllAchievements();
-    }
-    // Обновляем прогресс заданий
-    if (window.updateTaskProgress) {
-        window.updateTaskProgress('totalRaces');
-        window.updateTaskProgress('fuelSpent', fuelCost);
-        if (won) {
-            window.updateTaskProgress('wins');
-            window.updateTaskProgress('moneyEarned', opponent.reward);
-        }
-    }
-    
-    // Получение навыков
-    const gainedSkills = calculateSkillGain(won);
-    
-    // Проверка повышения уровня
-    checkLevelUp();
-    
-    // Показываем результат
-    showRaceResult(won, opponent, playerTime, opponentTime, xpGained);
-    
-    updatePlayerInfo();
-    
-    // Сохраняем результат
     try {
-        await saveGameData(gameData);
-    } catch (error) {
-        console.error('Ошибка сохранения результата гонки:', error);
-    }
-}
-
-// Расчет получения навыков
-function calculateSkillGain(isWin) {
-    const skillNames = ['driving', 'speed', 'reaction', 'technique'];
-    let gainedSkills = [];
-    
-    const attempts = Math.random() < 0.7 ? 1 : 2;
-    const baseChance = isWin ? 0.9 : 0.45;
-    
-    for (let i = 0; i < attempts; i++) {
-        const randomSkill = skillNames[Math.floor(Math.random() * skillNames.length)];
+        // Отправляем запрос на сервер для проведения гонки
+        const response = await fetch(`${API_URL}/game/race`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                carIndex: gameData.currentCar,
+                opponentIndex: opponentIndex,
+                betAmount: betAmount
+            })
+        });
         
-        const currentSkillLevel = gameData.skills[randomSkill];
-        const chance = baseChance / (1 + currentSkillLevel * 0.01);
-        
-        if (Math.random() < chance && currentSkillLevel < 10) {
-            gameData.skills[randomSkill]++;
-            gainedSkills.push(randomSkill);
+        if (!response.ok) {
+            const error = await response.json();
+            showError(error.error || 'Ошибка проведения гонки');
+            return;
         }
-    }
-    
-    return gainedSkills;
-}
-
-// Проверка повышения уровня
-function checkLevelUp() {
-    const currentXP = gameData.experience || 0;
-    const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
-    
-    if (currentXP >= nextLevelXP) {
-        gameData.level++;
-        const reward = levelSystem.getLevelReward(gameData.level);
-        gameData.money += reward;
         
-        showError(`🎉 Поздравляем! Вы достигли ${gameData.level} уровня! Награда: $${reward}`);
+        const result = await response.json();
         
-        // Проверяем еще раз
-        checkLevelUp();
+        // Обновляем локальные данные из ответа сервера
+        gameData.money = result.gameData.money;
+        gameData.experience = result.gameData.experience;
+        gameData.level = result.gameData.level;
+        currentCar.fuel = result.gameData.fuel;
+        
+        // Показываем уведомления
+        if (result.result.nitroActivated) {
+            showError("🚀 Нитро активировано!");
+        }
+        
+        if (result.result.leveledUp) {
+            showError(`🎉 Поздравляем! Вы достигли ${result.gameData.level} уровня! Награда: $${result.result.levelReward}`);
+        }
+        
+        // Проверяем достижения
+        if (window.checkAllAchievements) {
+            window.checkAllAchievements();
+        }
+        
+        // Показываем результат
+        showRaceResult(
+            result.result.won,
+            {
+                name: getOpponentName(opponent.difficultyClass),
+                car: getOpponentCar(opponent.difficultyClass),
+                reward: opponent.reward
+            },
+            result.result.playerTime,
+            result.result.opponentTime,
+            result.result.xpGained
+        );
+        
+        updatePlayerInfo();
+        
+    } catch (error) {
+        console.error('Ошибка гонки:', error);
+        showError('Ошибка соединения с сервером');
     }
 }
 
