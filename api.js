@@ -1,5 +1,6 @@
 // API конфигурация
 const API_URL = 'https://street-racing-backend-wnse.onrender.com/api';
+window.API_URL = API_URL;
 
 // Безопасная работа с localStorage
 const storage = {

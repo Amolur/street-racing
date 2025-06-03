@@ -2,7 +2,11 @@
 // Функционал чата и новостей
 
 import { gameState } from './game-data.js';
-import { showError } from './utils.js';
+import { showError, storage } from './utils.js';
+
+// Получаем API URL и токен
+const API_URL = window.API_URL || 'https://street-racing-backend-wnse.onrender.com/api';
+const getAuthToken = () => storage.getItem('authToken');
 
 // Состояние чата
 let chatMessages = [];
@@ -25,7 +29,7 @@ export async function loadChatMessages(before = null) {
         
         const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${getAuthToken()}`
             }
         });
         
@@ -75,7 +79,7 @@ export async function sendChatMessage(message) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({ message: message.trim() })
         });
@@ -138,10 +142,16 @@ function updateChatDisplay() {
 // Загрузка новостей
 export async function loadNews(category = 'all') {
     try {
+        const authToken = getAuthToken();
+        let headers = {};
+        
+        // Новости могут быть доступны и без авторизации
+        if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        
         const response = await fetch(`${API_URL}/chat/news?category=${category}`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
+            headers: headers
         });
         
         if (!response.ok) {
