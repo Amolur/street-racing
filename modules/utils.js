@@ -1,7 +1,8 @@
 // modules/utils.js
 // Вспомогательные функции
 
-import { gameState, gameData } from './game-data.js';
+import { gameState, gameData, fuelSystem } from './game-data.js';
+import { dom } from './dom-manager.js';
 
 // Безопасная работа с localStorage
 export const storage = {
@@ -92,28 +93,27 @@ export function stopAutoSave() {
     }
 }
 
-// Обновление информации игрока
+// Оптимизированное обновление информации игрока
 export function updatePlayerInfo() {
-    const moneyElements = [
-        document.getElementById('race-balance'),
-        document.getElementById('upgrade-balance')
-    ];
-    
-    moneyElements.forEach(element => {
-        if (element) element.textContent = gameData.money;
+    // Батчинг всех обновлений денег
+    dom.batchUpdate(() => {
+        const money = gameData.money.toLocaleString();
+        dom.setText('#race-balance', money);
+        dom.setText('#upgrade-balance', money);
+        dom.setText('#info-money', money);
     });
     
-    const levelElements = [
-        document.getElementById('profile-level')
-    ];
-    
-    levelElements.forEach(element => {
-        if (element) element.textContent = gameData.level;
+    // Батчинг обновлений уровня
+    dom.batchUpdate(() => {
+        const level = gameData.level;
+        dom.setText('#profile-level', level);
+        dom.setText('#info-level', level);
     });
     
-    const raceCurrentCar = document.getElementById('race-current-car');
+    // Обновление машины только если элемент существует
+    const raceCurrentCar = dom.get('#race-current-car');
     if (raceCurrentCar && gameData.cars[gameData.currentCar]) {
-        raceCurrentCar.textContent = gameData.cars[gameData.currentCar].name;
+        dom.setText('#race-current-car', gameData.cars[gameData.currentCar].name);
     }
     
     updateQuickStats();
@@ -123,15 +123,16 @@ export function updatePlayerInfo() {
     }
 }
 
-// Обновление быстрой статистики
+// Дебаунсинг для частых обновлений
+const debouncedUpdatePlayerInfo = dom.debounce(updatePlayerInfo, 100);
+
+// Оптимизированное обновление быстрой статистики
 export function updateQuickStats() {
-    const quickWins = document.getElementById('quick-wins');
-    const quickCars = document.getElementById('quick-cars');
-    const quickRating = document.getElementById('quick-rating');
-    
-    if (quickWins) quickWins.textContent = gameData.stats.wins;
-    if (quickCars) quickCars.textContent = gameData.cars.length;
-    if (quickRating) quickRating.textContent = '#—';
+    dom.batchUpdate(() => {
+        dom.setText('#quick-wins', gameData.stats.wins);
+        dom.setText('#quick-cars', gameData.cars.length);
+        dom.setText('#quick-rating', '#—');
+    });
 }
 
 // Информационная панель игрока
@@ -150,74 +151,65 @@ export function hidePlayerInfoBar() {
     }
 }
 
+// Оптимизированная информационная панель
+let lastMoneyValue = null;
+
 export function updatePlayerInfoBar() {
-    if (gameState.currentScreen === 'main-menu' && gameState.currentUser && gameData) {
-        const infoBar = document.getElementById('player-info-bar');
-        if (infoBar) {
-            infoBar.style.display = 'flex';
+    if (gameState.currentScreen !== 'main-menu' || !gameState.currentUser || !gameData) {
+        return;
+    }
+    
+    dom.show('#player-info-bar');
+    
+    // Обновляем только если изменилось
+    if (gameState.currentUser.username) {
+        dom.setText('#info-username', gameState.currentUser.username);
+    }
+    
+    dom.setText('#info-level', gameData.level);
+    
+    // Анимация только при изменении денег
+    const newMoney = gameData.money;
+    if (lastMoneyValue !== null && lastMoneyValue !== newMoney) {
+        const moneyEl = dom.get('#info-money');
+        if (moneyEl) {
+            dom.addClass('#info-money', 'updating');
+            setTimeout(() => dom.removeClass('#info-money', 'updating'), 300);
         }
     }
     
-    if (!gameState.currentUser || !gameData) return;
-    
-    const usernameEl = document.getElementById('info-username');
-    if (usernameEl) {
-        usernameEl.textContent = gameState.currentUser.username;
-    }
-    
-    const levelEl = document.getElementById('info-level');
-    if (levelEl) {
-        levelEl.textContent = gameData.level;
-    }
-    
-    const moneyEl = document.getElementById('info-money');
-    if (moneyEl) {
-        const oldMoney = parseInt(moneyEl.textContent.replace(/,/g, '')) || 0;
-        const newMoney = gameData.money;
-        
-        if (oldMoney !== newMoney) {
-            moneyEl.parentElement.classList.add('updating');
-            setTimeout(() => {
-                moneyEl.parentElement.classList.remove('updating');
-            }, 300);
-        }
-        
-        moneyEl.textContent = newMoney.toLocaleString();
-    }
+    dom.setText('#info-money', newMoney.toLocaleString());
+    lastMoneyValue = newMoney;
     
     updateFuelInfoBarDirect();
 }
 
-// Обновление топлива в информационной панели
-export function updateFuelInfoBarDirect() {
+// Оптимизированное обновление топлива
+const updateFuelInfoBarDirect = dom.throttle(() => {
     if (!gameData.cars || !gameData.cars[gameData.currentCar]) return;
     
     const currentCar = gameData.cars[gameData.currentCar];
     const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     const maxFuel = currentCar.maxFuel || 30;
     
-    const fuelEl = document.getElementById('info-fuel');
-    const fuelTimerEl = document.getElementById('info-fuel-timer');
-    
-    if (fuelEl) {
-        fuelEl.textContent = `${currentFuel}/${maxFuel}`;
+    dom.batchUpdate(() => {
+        dom.setText('#info-fuel', `${currentFuel}/${maxFuel}`);
         
         const fuelPercent = currentFuel / maxFuel;
-        if (fuelPercent <= 0.2) {
-            fuelEl.style.color = 'var(--neon-red)';
-        } else if (fuelPercent <= 0.5) {
-            fuelEl.style.color = 'var(--neon-orange)';
-        } else {
-            fuelEl.style.color = 'var(--neon-yellow)';
-        }
-    }
+        const color = fuelPercent <= 0.2 ? 'var(--neon-red)' : 
+                      fuelPercent <= 0.5 ? 'var(--neon-orange)' : 
+                      'var(--neon-yellow)';
+        
+        dom.setStyle('#info-fuel', 'color', color);
+    });
     
+    const fuelTimerEl = dom.get('#info-fuel-timer');
     if (fuelTimerEl && currentFuel < maxFuel) {
         updateFuelTimerMini(currentCar, fuelTimerEl);
     } else if (fuelTimerEl) {
-        fuelTimerEl.textContent = '';
+        dom.setText('#info-fuel-timer', '');
     }
-}
+}, 500);
 
 // Мини-таймер топлива
 export function updateFuelTimerMini(car, timerElement) {
@@ -271,35 +263,38 @@ export function stopFuelUpdates() {
     }
 }
 
-// Обновление отображения топлива
+// Оптимизированное отображение топлива
 export function updateFuelDisplay() {
-    const fuelDisplay = document.getElementById('current-car-fuel');
-    if (fuelDisplay && gameData.cars[gameData.currentCar]) {
-        const car = gameData.cars[gameData.currentCar];
-        const currentFuel = fuelSystem.getCurrentFuel(car);
-        const maxFuel = car.maxFuel || 30;
-        
-        fuelDisplay.innerHTML = `
+    const car = gameData.cars[gameData.currentCar];
+    if (!car) return;
+    
+    const currentFuel = fuelSystem.getCurrentFuel(car);
+    const maxFuel = car.maxFuel || 30;
+    const fuelPercent = (currentFuel / maxFuel) * 100;
+    
+    const fuelDisplay = dom.get('#current-car-fuel');
+    if (fuelDisplay) {
+        const fuelHTML = `
             <div class="fuel-info">
                 <span class="fuel-icon">⛽</span>
                 <span class="fuel-text">${currentFuel}/${maxFuel}</span>
-                ${currentFuel < maxFuel ? `<span class="fuel-timer" id="fuel-timer"></span>` : ''}
+                ${currentFuel < maxFuel ? '<span class="fuel-timer" id="fuel-timer"></span>' : ''}
             </div>
             <div class="fuel-bar">
-                <div class="fuel-bar-fill" style="width: ${(currentFuel / maxFuel) * 100}%"></div>
+                <div class="fuel-bar-fill" style="width: ${fuelPercent}%"></div>
             </div>
         `;
+        
+        dom.setHTML('#current-car-fuel', fuelHTML);
         
         if (currentFuel < maxFuel) {
             updateFuelTimer(car);
         }
     }
     
-    const raceCarFuel = document.getElementById('race-car-fuel');
-    if (raceCarFuel && gameData.cars[gameData.currentCar]) {
-        const car = gameData.cars[gameData.currentCar];
-        const currentFuel = fuelSystem.getCurrentFuel(car);
-        raceCarFuel.innerHTML = `⛽ ${currentFuel}/${car.maxFuel || 30}`;
+    const raceCarFuel = dom.get('#race-car-fuel');
+    if (raceCarFuel) {
+        dom.setHTML('#race-car-fuel', `⛽ ${currentFuel}/${maxFuel}`);
     }
     
     if (gameState.currentScreen === 'main-menu') {
@@ -307,10 +302,17 @@ export function updateFuelDisplay() {
     }
 }
 
-// Обновление таймера топлива
+// Оптимизированный таймер топлива
+let fuelTimerInterval = null;
+
 export function updateFuelTimer(car) {
-    const timerElement = document.getElementById('fuel-timer');
+    const timerElement = dom.get('#fuel-timer');
     if (!timerElement) return;
+    
+    // Очищаем старый интервал
+    if (fuelTimerInterval) {
+        clearInterval(fuelTimerInterval);
+    }
     
     const update = () => {
         const now = new Date();
@@ -321,16 +323,10 @@ export function updateFuelTimer(car) {
         if (minutesUntilNextFuel > 0) {
             const minutes = Math.floor(minutesUntilNextFuel);
             const seconds = Math.floor((minutesUntilNextFuel - minutes) * 60);
-            timerElement.textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+            dom.setText('#fuel-timer', `(${minutes}:${seconds.toString().padStart(2, '0')})`);
         }
     };
     
     update();
-    const interval = setInterval(update, 1000);
-    
-    if (window.fuelTimerInterval) clearInterval(window.fuelTimerInterval);
-    window.fuelTimerInterval = interval;
+    fuelTimerInterval = setInterval(update, 1000);
 }
-
-// Импортируем fuelSystem для использования в функциях
-import { fuelSystem } from './game-data.js';

@@ -1,17 +1,28 @@
 // modules/race.js
 // Гоночная логика
 
-import { gameData, levelSystem, fuelSystem } from './game-data.js';
+import { gameData, gameState, allCars, levelSystem, fuelSystem } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
 import { calculateTotalStats, initializeCarUpgrades } from './upgrades.js';
 import { showRaceResultScreen, showRaceMenu, showMainMenu } from './navigation.js';
+import { dom } from './dom-manager.js';
 
-// Функция для генерации динамических соперников
+// Кеш для соперников
+let cachedOpponents = null;
+let lastPlayerLevel = null;
+
+// Оптимизированная генерация соперников
 export function generateDynamicOpponents() {
     const playerLevel = gameData.level;
+    
+    // Используем кеш если уровень не изменился
+    if (cachedOpponents && lastPlayerLevel === playerLevel) {
+        return cachedOpponents;
+    }
+    
     const baseOpponents = [];
     
-    // Генерируем 4 соперника разной сложности
+    // Предварительно создаем массивы для оптимизации
     const difficulties = ['easy', 'medium', 'hard', 'extreme'];
     const difficultySettings = {
         easy: { 
@@ -38,17 +49,16 @@ export function generateDynamicOpponents() {
     
     const surnames = ["Иван", "Петр", "Алексей", "Максим", "Артем", "Денис", "Виктор", "Сергей"];
     
+    // Фильтруем машины один раз
+    const maxCarPrice = 5000 + (playerLevel * 5000);
+    const availableCars = allCars.filter(car => car.price <= maxCarPrice && car.price > 0);
+    
     difficulties.forEach(diff => {
         const settings = difficultySettings[diff];
         const randomName = settings.names[Math.floor(Math.random() * settings.names.length)];
         const randomSurname = surnames[Math.floor(Math.random() * surnames.length)];
-        
-        // Выбираем подходящую машину для соперника
-        const maxCarPrice = 5000 + (playerLevel * 5000);
-        const availableCars = allCars.filter(car => car.price <= maxCarPrice && car.price > 0);
         const randomCar = availableCars[Math.floor(Math.random() * availableCars.length)] || allCars[1];
         
-        // Расчет сложности и награды
         const baseDifficulty = 0.7 + (playerLevel * 0.02);
         const difficulty = Number((baseDifficulty * settings.diffMult).toFixed(2));
         const baseReward = 200 + (playerLevel * 100);
@@ -58,85 +68,88 @@ export function generateDynamicOpponents() {
             name: `${randomName} ${randomSurname}`,
             car: randomCar.name,
             difficulty: difficulty,
-            reward: reward
+            reward: reward,
+            difficultyClass: diff
         });
     });
+    
+    // Кешируем результат
+    cachedOpponents = baseOpponents;
+    lastPlayerLevel = playerLevel;
     
     return baseOpponents;
 }
 
-// Отображение списка соперников
+// Оптимизированное отображение соперников
 export function displayOpponents() {
-    const opponentsList = document.getElementById('opponents-list');
+    const opponentsList = dom.get('#opponents-list');
     if (!opponentsList) return;
     
-    // Добавляем информацию о топливе
     const currentCar = gameData.cars[gameData.currentCar];
     const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
-    // Обновляем баннер с топливом
-    const raceInfoBanner = document.querySelector('.race-info-banner');
-    if (raceInfoBanner) {
-        raceInfoBanner.innerHTML = `
+    // Обновляем информационный баннер
+    dom.batchUpdate(() => {
+        dom.setHTML('.race-info-banner', `
             <p>Ваша машина: <strong id="race-current-car">${currentCar.name}</strong></p>
             <p>Топливо: <strong id="race-car-fuel">⛽ ${currentFuel}/${currentCar.maxFuel || 30}</strong></p>
             <p>Баланс: <strong>$<span id="race-balance">${gameData.money}</span></strong></p>
-        `;
-    }
+        `);
+    });
     
-    opponentsList.innerHTML = '';
-    
-    // Генерируем динамических соперников
+    // Генерируем соперников
     const opponents = generateDynamicOpponents();
+    const fragment = document.createDocumentFragment();
     
     opponents.forEach((opponent, index) => {
         const betAmount = Math.floor(opponent.reward / 2);
         const fuelCost = fuelSystem.calculateFuelCost(opponent.difficulty);
         const canAfford = gameData.money >= betAmount && currentFuel >= fuelCost;
         
-        const opponentCard = document.createElement('div');
-        opponentCard.className = 'opponent-card';
-        opponentCard.style.opacity = canAfford ? '1' : '0.5';
-        
-        // Добавляем цветовую индикацию сложности
-        let difficultyColor = '';
-        if (opponent.difficulty < 1.0) difficultyColor = 'easy';
-        else if (opponent.difficulty < 1.4) difficultyColor = 'medium';
-        else if (opponent.difficulty < 1.8) difficultyColor = 'hard';
-        else difficultyColor = 'extreme';
-        
-        opponentCard.innerHTML = `
-            <div class="opponent-info">
-                <h3>${opponent.name}</h3>
-                <p class="opponent-car">Машина: ${opponent.car}</p>
-                <p class="opponent-difficulty ${difficultyColor}">
-                    Сложность: ${opponent.difficulty < 1.0 ? '⭐' : 
-                                opponent.difficulty < 1.4 ? '⭐⭐' :
-                                opponent.difficulty < 1.8 ? '⭐⭐⭐' : '⭐⭐⭐⭐'}
-                </p>
-                <div class="opponent-stakes">
-                    <span class="stake-item">
-                        <span class="stake-label">Ставка:</span>
-                        <span class="stake-value">${betAmount}</span>
-                    </span>
-                    <span class="stake-item">
-                        <span class="stake-label">Выигрыш:</span>
-                        <span class="stake-value">${opponent.reward}</span>
-                    </span>
-                    <span class="stake-item">
-                        <span class="stake-label">Топливо:</span>
-                        <span class="stake-value fuel-cost">⛽ ${fuelCost}</span>
-                    </span>
+        const opponentCard = dom.createElement('div', {
+            className: 'opponent-card',
+            styles: { opacity: canAfford ? '1' : '0.5' },
+            html: `
+                <div class="opponent-info">
+                    <h3>${opponent.name}</h3>
+                    <p class="opponent-car">Машина: ${opponent.car}</p>
+                    <p class="opponent-difficulty ${opponent.difficultyClass}">
+                        Сложность: ${'⭐'.repeat(
+                            opponent.difficulty < 1.0 ? 1 : 
+                            opponent.difficulty < 1.4 ? 2 :
+                            opponent.difficulty < 1.8 ? 3 : 4
+                        )}
+                    </p>
+                    <div class="opponent-stakes">
+                        <span class="stake-item">
+                            <span class="stake-label">Ставка:</span>
+                            <span class="stake-value">${betAmount}</span>
+                        </span>
+                        <span class="stake-item">
+                            <span class="stake-label">Выигрыш:</span>
+                            <span class="stake-value">${opponent.reward}</span>
+                        </span>
+                        <span class="stake-item">
+                            <span class="stake-label">Топливо:</span>
+                            <span class="stake-value fuel-cost">⛽ ${fuelCost}</span>
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <button class="btn-primary race-btn" onclick="showRacePreview(${index}); return false;" 
-                    ${!canAfford ? 'disabled' : ''}>
-                ${gameData.money < betAmount ? `Нужно ${betAmount}` : 
-                  currentFuel < fuelCost ? `Нужно ⛽${fuelCost}` : 'Вызвать на гонку'}
-            </button>
-        `;
-        opponentsList.appendChild(opponentCard);
+                <button class="btn-primary race-btn" 
+                        data-opponent-index="${index}"
+                        ${!canAfford ? 'disabled' : ''}>
+                    ${gameData.money < betAmount ? `Нужно ${betAmount}` : 
+                      currentFuel < fuelCost ? `Нужно ⛽${fuelCost}` : 'Вызвать на гонку'}
+                </button>
+            `
+        });
+        
+        fragment.appendChild(opponentCard);
     });
+    
+    // Очищаем и добавляем все карточки за раз
+    dom.empty('#opponents-list');
+    opponentsList.appendChild(fragment);
 }
 
 // Показать превью гонки
@@ -369,27 +382,26 @@ export async function startRace(opponentIndex) {
     gameData.experience = (gameData.experience || 0) + xpGained;
     
     // Обновляем статистику
-gameData.stats.totalRaces++;
-if (won) {
-    gameData.stats.wins++;
-    gameData.stats.moneyEarned += opponent.reward;
-    gameData.money += opponent.reward;
-} else {
-    gameData.stats.losses++;
-    gameData.stats.moneySpent += betAmount;
-    gameData.money -= betAmount;
-}
-
-// ДОБАВЬТЕ ЭТИ СТРОКИ:
-// Обновляем прогресс заданий
-if (window.updateTaskProgress) {
-    window.updateTaskProgress('totalRaces');
-    window.updateTaskProgress('fuelSpent', fuelCost);
+    gameData.stats.totalRaces++;
     if (won) {
-        window.updateTaskProgress('wins');
-        window.updateTaskProgress('moneyEarned', opponent.reward);
+        gameData.stats.wins++;
+        gameData.stats.moneyEarned += opponent.reward;
+        gameData.money += opponent.reward;
+    } else {
+        gameData.stats.losses++;
+        gameData.stats.moneySpent += betAmount;
+        gameData.money -= betAmount;
     }
-}
+
+    // Обновляем прогресс заданий
+    if (window.updateTaskProgress) {
+        window.updateTaskProgress('totalRaces');
+        window.updateTaskProgress('fuelSpent', fuelCost);
+        if (won) {
+            window.updateTaskProgress('wins');
+            window.updateTaskProgress('moneyEarned', opponent.reward);
+        }
+    }
     
     // Получение навыков
     const gainedSkills = calculateSkillGain(won);
@@ -412,22 +424,14 @@ if (window.updateTaskProgress) {
     }
 }
 
-// Показ результата гонки
-function showRaceResult(won, opponent, playerTime, opponentTime, xpGained, gainedSkills, fuelCost, car) {
+// Оптимизированный результат гонки
+export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained, gainedSkills, fuelCost, car) {
     showRaceResultScreen();
     
-    const resultDiv = document.getElementById('race-result');
-    let skillsHTML = '';
+    const resultDiv = dom.get('#race-result');
+    if (!resultDiv) return;
     
-    if (gainedSkills.length > 0) {
-        skillsHTML = '<div class="skill-gain"><h4>Получены навыки:</h4>';
-        gainedSkills.forEach(skill => {
-            skillsHTML += `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`;
-        });
-        skillsHTML += '</div>';
-    }
-    
-    // Отображение полоски опыта
+    // Подготавливаем данные
     const currentXP = gameData.experience || 0;
     const currentLevelXP = levelSystem.getRequiredXP(gameData.level);
     const nextLevelXP = levelSystem.getRequiredXP(gameData.level + 1);
@@ -435,7 +439,14 @@ function showRaceResult(won, opponent, playerTime, opponentTime, xpGained, gaine
     const neededXP = nextLevelXP - currentLevelXP;
     const xpPercent = Math.floor((progressXP / neededXP) * 100);
     
-    // Информация о топливе
+    let skillsHTML = '';
+    if (gainedSkills.length > 0) {
+        const skillsItems = gainedSkills.map(skill => 
+            `<p class="skill-gain-item">✨ ${skill.name} +1 (уровень ${skill.newLevel})</p>`
+        ).join('');
+        skillsHTML = `<div class="skill-gain"><h4>Получены навыки:</h4>${skillsItems}</div>`;
+    }
+    
     const fuelInfo = `
         <div class="fuel-spent-info">
             <p>⛽ Потрачено топлива: ${fuelCost}</p>
@@ -443,98 +454,112 @@ function showRaceResult(won, opponent, playerTime, opponentTime, xpGained, gaine
         </div>
     `;
     
-    if (won) {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title win">🏆 ПОБЕДА!</h2>
-                <div class="result-animation">🎉</div>
-                
-                <div class="result-info">
-                    <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💰 Выигрыш: <span class="money-gain">+${opponent.reward}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: ${gameData.money}</p>
-                    </div>
-                    
-                    ${fuelInfo}
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <div class="result-container">
-                <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
-                
-                <div class="result-info">
-                    <p><strong>${opponent.name}</strong> оказался быстрее!</p>
-                    
-                    <div class="race-times">
-                        <div class="time-block player">
-                            <h4>Ваше время</h4>
-                            <p class="time-value">${playerTime.toFixed(2)} сек</p>
-                        </div>
-                        <div class="time-block opponent">
-                            <h4>Время соперника</h4>
-                            <p class="time-value">${opponentTime.toFixed(2)} сек</p>
-                        </div>
-                    </div>
-                    
-                    <div class="result-rewards">
-                        <p class="reward-item">💸 Проигрыш: <span class="money-loss">-${Math.floor(opponent.reward / 2)}</span></p>
-                        <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
-                        <p class="balance">Баланс: ${gameData.money}</p>
-                    </div>
-                    
-                    ${fuelInfo}
-                    
-                    <div class="xp-progress-section">
-                        <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
-                        <div class="xp-progress-bar">
-                            <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
-                        </div>
-                    </div>
-                    
-                    ${skillsHTML}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
-                    <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
-                </div>
-            </div>
-        `;
-    }
+    // Используем шаблон для результата
+    const resultHTML = won ? createWinResultHTML(opponent, playerTime, opponentTime, xpGained, currentXP, nextLevelXP, xpPercent, fuelInfo, skillsHTML) :
+                            createLoseResultHTML(opponent, playerTime, opponentTime, xpGained, currentXP, nextLevelXP, xpPercent, fuelInfo, skillsHTML);
+    
+    dom.setHTML('#race-result', resultHTML);
 }
 
-// Импортируем необходимые данные
-import { gameState, allCars } from './game-data.js';
+// Вспомогательные функции для создания HTML
+function createWinResultHTML(opponent, playerTime, opponentTime, xpGained, currentXP, nextLevelXP, xpPercent, fuelInfo, skillsHTML) {
+    return `
+        <div class="result-container">
+            <h2 class="result-title win">🏆 ПОБЕДА!</h2>
+            <div class="result-animation">🎉</div>
+            
+            <div class="result-info">
+                <p>Вы обогнали <strong>${opponent.name}</strong>!</p>
+                
+                <div class="race-times">
+                    <div class="time-block player">
+                        <h4>Ваше время</h4>
+                        <p class="time-value">${playerTime.toFixed(2)} сек</p>
+                    </div>
+                    <div class="time-block opponent">
+                        <h4>Время соперника</h4>
+                        <p class="time-value">${opponentTime.toFixed(2)} сек</p>
+                    </div>
+                </div>
+                
+                <div class="result-rewards">
+                    <p class="reward-item">💰 Выигрыш: <span class="money-gain">+${opponent.reward}</span></p>
+                    <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
+                    <p class="balance">Баланс: ${gameData.money}</p>
+                </div>
+                
+                ${fuelInfo}
+                
+                <div class="xp-progress-section">
+                    <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
+                    <div class="xp-progress-bar">
+                        <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
+                    </div>
+                </div>
+                
+                ${skillsHTML}
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn-primary" onclick="showRaceMenu()">Новая гонка</button>
+                <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
+            </div>
+        </div>
+    `;
+}
+
+function createLoseResultHTML(opponent, playerTime, opponentTime, xpGained, currentXP, nextLevelXP, xpPercent, fuelInfo, skillsHTML) {
+    return `
+        <div class="result-container">
+            <h2 class="result-title lose">😔 ПОРАЖЕНИЕ</h2>
+            
+            <div class="result-info">
+                <p><strong>${opponent.name}</strong> оказался быстрее!</p>
+                
+                <div class="race-times">
+                    <div class="time-block player">
+                        <h4>Ваше время</h4>
+                        <p class="time-value">${playerTime.toFixed(2)} сек</p>
+                    </div>
+                    <div class="time-block opponent">
+                        <h4>Время соперника</h4>
+                        <p class="time-value">${opponentTime.toFixed(2)} сек</p>
+                    </div>
+                </div>
+                
+                <div class="result-rewards">
+                    <p class="reward-item">💸 Проигрыш: <span class="money-loss">-${Math.floor(opponent.reward / 2)}</span></p>
+                    <p class="reward-item">⭐ Опыт: <span class="xp-gain">+${xpGained} XP</span></p>
+                    <p class="balance">Баланс: ${gameData.money}</p>
+                </div>
+                
+                ${fuelInfo}
+                
+                <div class="xp-progress-section">
+                    <p>Уровень ${gameData.level}: ${currentXP} / ${nextLevelXP} XP</p>
+                    <div class="xp-progress-bar">
+                        <div class="xp-progress-fill" style="width: ${xpPercent}%"></div>
+                    </div>
+                </div>
+                
+                ${skillsHTML}
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn-primary" onclick="showRaceMenu()">Попробовать снова</button>
+                <button class="btn-secondary" onclick="showMainMenu()">В главное меню</button>
+            </div>
+        </div>
+    `;
+}
+
+// Делегирование событий для кнопок гонки
+dom.delegate('#opponents-list', 'click', '.race-btn', function(e) {
+    const opponentIndex = parseInt(this.dataset.opponentIndex);
+    if (!isNaN(opponentIndex)) {
+        window.showRacePreview(opponentIndex);
+    }
+});
 
 // Делаем функцию доступной глобально
 window.displayOpponents = displayOpponents;
