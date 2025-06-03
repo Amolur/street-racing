@@ -1,10 +1,9 @@
 // modules/auth.js
-// Функции авторизации без загрузки
+// Функции авторизации
 
 import { gameState, gameData, updateGameData } from './game-data.js';
 import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
-import { initializeDailyTasks } from './daily-tasks.js';
 
 // Инициализация улучшений для машины
 function initializeCarUpgrades(car) {
@@ -43,7 +42,7 @@ function initializeCarUpgrades(car) {
 // Регистрация
 export async function register(username, password) {
     try {
-        console.log('Регистрация пользователя...');
+        console.log('📝 Регистрация пользователя...');
         const data = await registerAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         updateGameData(data.user.gameData);
@@ -54,10 +53,19 @@ export async function register(username, password) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
         }
         
-        console.log('Регистрация завершена');
+        // Синхронизируем достижения с сервером (безопасно)
+        try {
+            if (typeof window.syncAchievementsWithServer === 'function') {
+                await window.syncAchievementsWithServer();
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка синхронизации достижений при регистрации:', error.message);
+        }
+        
+        console.log('✅ Регистрация завершена');
         return true;
     } catch (error) {
-        console.error('Ошибка регистрации:', error);
+        console.error('❌ Ошибка регистрации:', error);
         return false;
     }
 }
@@ -65,27 +73,36 @@ export async function register(username, password) {
 // Вход
 export async function login(username, password) {
     try {
-        console.log('Вход в систему...');
+        console.log('🔐 Вход в систему...');
         const data = await loginAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         updateGameData(data.user.gameData);
         
         if (!gameData.experience) gameData.experience = 0;
         
-        console.log('Загруженные данные с сервера:', gameData);
+        console.log('📦 Загруженные данные с сервера:', gameData);
         
         if (gameData.cars) {
             gameData.cars.forEach(car => {
-                console.log('Машина до инициализации:', car);
+                console.log('🚗 Машина до инициализации:', car);
                 initializeCarUpgrades(car);
-                console.log('Машина после инициализации:', car);
+                console.log('🚗 Машина после инициализации:', car);
             });
         }
         
-        console.log('Вход выполнен успешно');
+        // Синхронизируем достижения с сервером (безопасно)
+        try {
+            if (typeof window.syncAchievementsWithServer === 'function') {
+                await window.syncAchievementsWithServer();
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка синхронизации достижений при входе:', error.message);
+        }
+        
+        console.log('✅ Вход выполнен успешно');
         return true;
     } catch (error) {
-        console.error('Ошибка входа:', error);
+        console.error('❌ Ошибка входа:', error);
         return false;
     }
 }
@@ -104,10 +121,13 @@ export function logout() {
 // Проверка авторизации
 export async function checkAuth() {
     const token = storage.getItem('authToken');
-    if (!token) return false;
+    if (!token) {
+        console.log('🔑 Токен отсутствует');
+        return false;
+    }
     
     try {
-        console.log('Проверка авторизации...');
+        console.log('🔍 Проверка авторизации...');
         const data = await loadGameData();
         gameState.currentUser = { username: data.username };
         updateGameData(data.gameData);
@@ -118,10 +138,19 @@ export async function checkAuth() {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
         }
         
-        console.log('Авторизация подтверждена');
+        // Синхронизируем достижения с сервером (безопасно)
+        try {
+            if (typeof window.syncAchievementsWithServer === 'function') {
+                await window.syncAchievementsWithServer();
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка синхронизации достижений при проверке авторизации:', error.message);
+        }
+        
+        console.log('✅ Авторизация подтверждена');
         return true;
     } catch (error) {
-        console.error('Ошибка проверки авторизации:', error);
+        console.error('❌ Ошибка проверки авторизации:', error);
         storage.removeItem('authToken');
         return false;
     }
@@ -143,7 +172,7 @@ export async function handleLogin() {
             showGameFunc();
         }
     } catch (error) {
-        console.log('Login failed');
+        console.log('❌ Вход не удался');
     }
 }
 
@@ -178,7 +207,7 @@ export async function handleRegister() {
             showGameFunc();
         }
     } catch (error) {
-        console.log('Registration failed');
+        console.log('❌ Регистрация не удалась');
     }
 }
 
@@ -221,6 +250,7 @@ export function showGameFunc() {
     if (window.updateDailyTasksDisplay) {
         window.updateDailyTasksDisplay();
     }
+    
     gameState.navigationHistory = [];
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);

@@ -176,8 +176,31 @@ export function initializeAchievements() {
     }
 }
 
-// Проверка всех достижений
-export function checkAllAchievements() {
+// Синхронизация достижений с сервером
+export async function syncAchievementsWithServer() {
+    try {
+        if (typeof window.getAchievements !== 'function') {
+            console.warn('⚠️ Функция getAchievements недоступна, пропускаем синхронизацию');
+            return false;
+        }
+        
+        console.log('🔄 Синхронизация достижений с сервером...');
+        const serverAchievements = await window.getAchievements();
+        
+        // Обновляем локальные данные достижениями с сервера
+        gameData.achievements = serverAchievements.achievements || [];
+        
+        console.log(`✅ Достижения синхронизированы: ${gameData.achievements.length} шт.`);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Ошибка синхронизации достижений:', error);
+        return false;
+    }
+}
+
+// Проверка всех достижений (с сохранением на сервер)
+export async function checkAllAchievements() {
     initializeAchievements();
     
     let newAchievements = [];
@@ -186,20 +209,49 @@ export function checkAllAchievements() {
         const isUnlocked = gameData.achievements.some(a => a.id === achievement.id);
         
         if (!isUnlocked && achievement.condition()) {
-            // Разблокируем достижение
+            // Добавляем локально
             gameData.achievements.push({
                 id: achievement.id,
                 unlockedAt: new Date().toISOString()
             });
             
-            newAchievements.push(achievement);
+            newAchievements.push({
+                id: achievement.id,
+                name: achievement.name,
+                description: achievement.description
+            });
         }
     });
     
-    // Показываем уведомления о новых достижениях
-    newAchievements.forEach(achievement => {
-        showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
-    });
+    // Если есть новые достижения - сохраняем на сервер
+    if (newAchievements.length > 0) {
+        try {
+            if (typeof window.unlockAchievementsBatch === 'function') {
+                const result = await window.unlockAchievementsBatch(newAchievements);
+                
+                if (result.success) {
+                    // Показываем уведомления о новых достижениях
+                    newAchievements.forEach(achievement => {
+                        showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                    });
+                    
+                    console.log(`✅ ${newAchievements.length} достижений сохранено на сервер`);
+                }
+            } else {
+                console.warn('⚠️ Функция unlockAchievementsBatch недоступна');
+                // Показываем уведомления локально
+                newAchievements.forEach(achievement => {
+                    showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                });
+            }
+        } catch (error) {
+            console.error('❌ Ошибка сохранения достижений на сервер:', error);
+            // Показываем уведомления локально
+            newAchievements.forEach(achievement => {
+                showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+            });
+        }
+    }
     
     return newAchievements.length > 0;
 }
@@ -275,3 +327,4 @@ export function updateAchievementsDisplay() {
 // Делаем функции доступными глобально
 window.updateAchievementsDisplay = updateAchievementsDisplay;
 window.checkAllAchievements = checkAllAchievements;
+window.syncAchievementsWithServer = syncAchievementsWithServer;

@@ -6,7 +6,7 @@ const API_URL = 'https://street-racing-backend-wnse.onrender.com/api'
 // Регистрация
 window.registerAPI = async function(username, password) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -31,7 +31,7 @@ window.registerAPI = async function(username, password) {
 // Вход
 window.loginAPI = async function(username, password) {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ window.logoutAPI = function() {
 window.loadGameData = async function() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/data`, {
+        const response = await fetch(`${API_URL}/api/game/data`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -85,7 +85,7 @@ window.loadGameData = async function() {
 window.saveGameData = async function(gameData) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/save`, {
+        const response = await fetch(`${API_URL}/api/game/save`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -109,7 +109,7 @@ window.saveGameData = async function(gameData) {
 window.getLeaderboard = async function(page = 1, limit = 50) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/leaderboard?page=${page}&limit=${limit}`, {
+        const response = await fetch(`${API_URL}/api/game/leaderboard?page=${page}&limit=${limit}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -132,7 +132,7 @@ window.getLeaderboard = async function(page = 1, limit = 50) {
 window.getAchievements = async function() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/achievements`, {
+        const response = await fetch(`${API_URL}/api/game/achievements`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -155,7 +155,7 @@ window.getAchievements = async function() {
 window.unlockAchievement = async function(achievementId, name, description) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/unlock-achievement`, {
+        const response = await fetch(`${API_URL}/api/game/unlock-achievement`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -183,7 +183,7 @@ window.unlockAchievement = async function(achievementId, name, description) {
 window.unlockAchievementsBatch = async function(achievements) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/unlock-achievements-batch`, {
+        const response = await fetch(`${API_URL}/api/game/unlock-achievements-batch`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -209,7 +209,7 @@ window.unlockAchievementsBatch = async function(achievements) {
 window.updatePlayerRating = async function(ratingChange, reason) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/update-rating`, {
+        const response = await fetch(`${API_URL}/api/game/update-rating`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -236,7 +236,7 @@ window.updatePlayerRating = async function(ratingChange, reason) {
 window.getProfileStats = async function() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/profile-stats`, {
+        const response = await fetch(`${API_URL}/api/game/profile-stats`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -259,7 +259,7 @@ window.getProfileStats = async function() {
 window.claimDailyTaskReward = async function(taskId) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/claim-daily-task`, {
+        const response = await fetch(`${API_URL}/api/game/claim-daily-task`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -283,7 +283,7 @@ window.claimDailyTaskReward = async function(taskId) {
 window.updateTaskProgress = async function(statType, amount = 1) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/update-task-progress`, {
+        const response = await fetch(`${API_URL}/api/game/update-task-progress`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -307,7 +307,7 @@ window.updateTaskProgress = async function(statType, amount = 1) {
 window.addExperience = async function(amount, source) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/add-experience`, {
+        const response = await fetch(`${API_URL}/api/game/add-experience`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -331,7 +331,7 @@ window.addExperience = async function(amount, source) {
 window.startRaceAPI = async function(carIndex, fuelCost, opponentDifficulty, betAmount, won) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/start-race`, {
+        const response = await fetch(`${API_URL}/api/game/start-race`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -355,7 +355,7 @@ window.startRaceAPI = async function(carIndex, fuelCost, opponentDifficulty, bet
 window.getFuelStatus = async function() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/fuel-status`, {
+        const response = await fetch(`${API_URL}/api/game/fuel-status`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -378,7 +378,7 @@ window.getFuelStatus = async function() {
 window.regenerateFuel = async function() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_BASE_URL}/api/game/regenerate-fuel`, {
+        const response = await fetch(`${API_URL}/api/game/regenerate-fuel`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
