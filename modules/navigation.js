@@ -3,7 +3,7 @@
 
 import { gameState } from './game-data.js';
 import { showPlayerInfoBar, hidePlayerInfoBar, updateQuickStats } from './utils.js';
-import { initDailyTasksScreen } from './daily-tasks.js';
+// Убираем импорт, так как используем глобальную функцию
 
 // Функция для отслеживания навигации
 export function navigateToScreen(screenId) {
@@ -48,23 +48,18 @@ export function navigateTo(screenId) {
     // Обновляем данные экрана если нужно
     switch(screenId) {
         case 'garage-screen':
-            // Будет импортировано из garage.js позже
             if (window.updateGarageDisplay) window.updateGarageDisplay();
             break;
         case 'race-menu-screen':
-            // Будет импортировано из race.js позже
             if (window.displayOpponents) window.displayOpponents();
             break;
         case 'profile-screen':
-            // Будет импортировано из profile.js позже
             if (window.updateProfileDisplay) window.updateProfileDisplay();
             break;
         case 'shop-screen':
-            // Будет импортировано из shop.js позже
             if (window.updateShopDisplay) window.updateShopDisplay();
             break;
         case 'leaderboard-screen':
-            // Будет импортировано из profile.js позже
             if (window.updateLeaderboard) window.updateLeaderboard();
             break;
     }
@@ -77,7 +72,7 @@ export function showMainMenu(addToHistory = true) {
     if (addToHistory) navigateToScreen('main-menu');
     updateQuickStats();
     
-    // Обновляем счетчик заданий без вызова несуществующих функций
+    // Обновляем только счетчик заданий
     if (window.updateDailyTasksDisplay) {
         window.updateDailyTasksDisplay();
     }
@@ -159,8 +154,7 @@ export function showDailyTasksScreen(addToHistory = true) {
     document.getElementById('daily-tasks-screen').classList.add('active');
     if (addToHistory) navigateToScreen('daily-tasks-screen');
     
-    // Обновляем задания при открытии
-    // Используем функцию, которая действительно существует
+    // Вызываем функцию обновления заданий
     if (window.initDailyTasksScreen) {
         window.initDailyTasksScreen();
     }

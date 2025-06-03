@@ -2710,4 +2710,432 @@ body {
 
 .daily-task-card.completed {
     animation: taskComplete 0.5s ease;
+}/* ==================== */
+/* НОВЫЙ ДИЗАЙН ГАРАЖА */
+/* ==================== */
+
+/* Контейнер гаража */
+.garage-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: calc(100vh - var(--header-height) - 100px);
+    overflow: hidden;
 }
+
+/* Витрина машины */
+.car-showcase {
+    background: var(--bg-card);
+    border: 1px solid var(--neon-cyan);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.car-showcase::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+.car-visual {
+    text-align: center;
+    z-index: 1;
+}
+
+.car-emoji {
+    font-size: 4rem;
+    filter: drop-shadow(0 0 20px var(--neon-cyan));
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.car-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--neon-yellow);
+    margin-top: 0.5rem;
+    text-shadow: 0 0 10px rgba(255,255,0,0.5);
+}
+
+/* Мини статистика */
+.car-stats-mini {
+    display: flex;
+    gap: 2rem;
+    z-index: 1;
+}
+
+.stat-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stat-mini .stat-icon {
+    font-size: 1.2rem;
+    filter: brightness(1.5);
+}
+
+.stat-mini span:last-child {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-cyan);
+    font-weight: 700;
+}
+
+/* Навигация */
+.car-nav-compact {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    z-index: 1;
+}
+
+.nav-arrow {
+    background: rgba(0,255,255,0.1);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-arrow:active {
+    transform: scale(0.9);
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+}
+
+.nav-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.car-index {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Минималистичные вкладки */
+.garage-tabs-minimal {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    background: var(--bg-secondary);
+    padding: 0.3rem;
+    border-radius: 15px;
+}
+
+.tab-minimal {
+    background: transparent;
+    border: none;
+    padding: 0.7rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.tab-minimal.active {
+    background: var(--bg-card);
+    color: var(--neon-cyan);
+    box-shadow: 0 2px 10px rgba(0,255,255,0.3);
+}
+
+.tab-minimal .tab-icon {
+    font-size: 1.1rem;
+}
+
+/* Контент вкладок */
+.garage-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Улучшения - минималистичный стиль */
+.upgrades-minimal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.upgrade-item-minimal {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.upgrade-item-minimal.maxed {
+    opacity: 0.7;
+    border-color: var(--neon-green);
+}
+
+.upgrade-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.upgrade-content {
+    flex: 1;
+}
+
+.upgrade-title {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.upgrade-level {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.upgrade-progress {
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.upgrade-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.3s ease;
+}
+
+.upgrade-button {
+    background: var(--neon-cyan);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.upgrade-button:active {
+    transform: scale(0.95);
+}
+
+.upgrade-button:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+}
+
+/* Статистика - карточки */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    color: var(--neon-cyan);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+    transition: width 0.5s ease;
+}
+
+/* Специальные детали */
+.parts-minimal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.part-item-minimal {
+    background: var(--bg-card);
+    border: 1px solid var(--text-muted);
+    border-radius: 15px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.part-item-minimal.owned {
+    border-color: var(--neon-green);
+    background: rgba(0,255,0,0.05);
+}
+
+.part-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.part-info {
+    flex: 1;
+}
+
+.part-name {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-pink);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.part-effect {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.part-price {
+    font-family: 'Orbitron', monospace;
+    color: var(--neon-green);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Адаптация для маленьких экранов */
+@media (max-width: 360px) {
+    .car-showcase {
+        padding: 1rem;
+    }
+    
+    .car-emoji {
+        font-size: 3rem;
+    }
+    
+    .car-stats-mini {
+        gap: 1rem;
+    }
+    
+    .stat-mini {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Улучшение скроллинга */
+.garage-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.garage-content::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+.garage-content::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 2px;
+}
+
+/* Анимации */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.upgrade-item-minimal,
+.part-item-minimal {
+    animation: slideIn 0.3s ease backwards;
+}
+
+.upgrade-item-minimal:nth-child(2) { animation-delay: 0.1s; }
+.upgrade-item-minimal:nth-child(3) { animation-delay: 0.2s; }
+.upgrade-item-minimal:nth-child(4) { animation-delay: 0.3s; }
+.upgrade-item-minimal:nth-child(5) { animation-delay: 0.4s; }

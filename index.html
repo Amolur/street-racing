@@ -163,74 +163,120 @@
             </div>
 
             <!-- Гараж -->
-            <div id="garage-screen" class="game-screen">
-                <div class="screen-header">
-                    <button class="btn-back" onclick="goBack()">← Назад</button>
-                    <h2>Гараж</h2>
+<div id="garage-screen" class="game-screen">
+    <div class="screen-header">
+        <button class="btn-back" onclick="goBack()">←</button>
+        <h2>Гараж</h2>
+    </div>
+    
+    <div class="garage-container">
+        <!-- Компактное превью машины -->
+        <div class="car-showcase">
+            <div class="car-visual">
+                <div class="car-emoji" id="current-car-emoji">🏎️</div>
+                <div class="car-name" id="current-car-name">Загрузка...</div>
+            </div>
+            
+            <!-- Мини-статистика -->
+            <div class="car-stats-mini">
+                <div class="stat-mini">
+                    <span class="stat-icon">⚡</span>
+                    <span id="car-total-power">0</span>
                 </div>
-                
-                <div class="garage-container">
-                    <!-- Превью машин -->
-                    <div class="cars-preview-section">
-                        <div class="cars-carousel">
-                            <div id="cars-list" class="cars-list"></div>
+                <div class="stat-mini">
+                    <span class="stat-icon">⛽</span>
+                    <span id="car-fuel-display">30/30</span>
+                </div>
+                <div class="stat-mini">
+                    <span class="stat-icon">🏆</span>
+                    <span id="car-rating">D</span>
+                </div>
+            </div>
+            
+            <!-- Навигация между машинами -->
+            <div class="car-nav-compact">
+                <button class="nav-arrow" onclick="previousCar()">‹</button>
+                <span class="car-index" id="car-counter">1/1</span>
+                <button class="nav-arrow" onclick="nextCar()">›</button>
+            </div>
+        </div>
+        
+        <!-- Вкладки -->
+        <div class="garage-tabs-minimal">
+            <button class="tab-minimal active" onclick="showGarageTab('upgrades')">
+                <span class="tab-icon">🔧</span>
+                <span>Улучшения</span>
+            </button>
+            <button class="tab-minimal" onclick="showGarageTab('stats')">
+                <span class="tab-icon">📊</span>
+                <span>Статистика</span>
+            </button>
+            <button class="tab-minimal" onclick="showGarageTab('parts')">
+                <span class="tab-icon">⚡</span>
+                <span>Детали</span>
+            </button>
+        </div>
+        
+        <!-- Контент вкладок -->
+        <div class="garage-content">
+            <!-- Вкладка улучшений -->
+            <div id="tab-upgrades" class="tab-content active">
+                <div id="upgrades-list" class="upgrades-minimal"></div>
+            </div>
+            
+            <!-- Вкладка статистики -->
+            <div id="tab-stats" class="tab-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-icon">💪</span>
+                            <span>Мощность</span>
                         </div>
-                        <div class="car-navigation">
-                            <button class="nav-btn" onclick="previousCar()">←</button>
-                            <span class="car-counter" id="car-counter">1 / 1</span>
-                            <button class="nav-btn" onclick="nextCar()">→</button>
+                        <div class="stat-value" id="stat-power">0</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="fill-power"></div>
                         </div>
                     </div>
-                    
-                    <!-- Информация о текущей машине -->
-                    <div class="current-car-info">
-                        <div class="car-main-stats">
-                            <div class="stat-compact">
-                                <span class="stat-label">💪</span>
-                                <span class="stat-value" id="garage-power">50</span>
-                            </div>
-                            <div class="stat-compact">
-                                <span class="stat-label">🏃</span>
-                                <span class="stat-value" id="garage-speed">60</span>
-                            </div>
-                            <div class="stat-compact">
-                                <span class="stat-label">🎯</span>
-                                <span class="stat-value" id="garage-handling">70</span>
-                            </div>
-                            <div class="stat-compact">
-                                <span class="stat-label">🚀</span>
-                                <span class="stat-value" id="garage-acceleration">55</span>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-icon">🏃</span>
+                            <span>Скорость</span>
                         </div>
-                        
-                        <div class="car-upgrades-summary">
-                            <span class="upgrades-count">Улучшений: <span id="total-upgrades">0</span>/50</span>
-                            <span class="car-power-rating">Рейтинг: <span id="car-rating">D</span></span>
+                        <div class="stat-value" id="stat-speed">0</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="fill-speed"></div>
                         </div>
                     </div>
-                    
-                    <!-- Вкладки гаража -->
-                    <div class="garage-tabs-modern">
-                        <button class="garage-tab-modern active" onclick="showGarageTab('upgrades')">
-                            <span class="tab-icon">🔧</span>
-                            <span class="tab-text">Улучшения</span>
-                        </button>
-                        <button class="garage-tab-modern" onclick="showGarageTab('parts')">
-                            <span class="tab-icon">⚡</span>
-                            <span class="tab-text">Детали</span>
-                        </button>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-icon">🎯</span>
+                            <span>Управление</span>
+                        </div>
+                        <div class="stat-value" id="stat-handling">0</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="fill-handling"></div>
+                        </div>
                     </div>
-                    
-                    <!-- Контент вкладок -->
-                    <div id="garage-upgrades-modern" class="garage-tab-content active">
-                        <div id="upgrades-grid" class="upgrades-grid-modern"></div>
-                    </div>
-                    
-                    <div id="garage-parts-modern" class="garage-tab-content">
-                        <div id="special-parts-grid" class="special-parts-grid-modern"></div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-icon">🚀</span>
+                            <span>Разгон</span>
+                        </div>
+                        <div class="stat-value" id="stat-acceleration">0</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="fill-acceleration"></div>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Вкладка деталей -->
+            <div id="tab-parts" class="tab-content">
+                <div id="special-parts-list" class="parts-minimal"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Экран гонок -->
             <div id="race-menu-screen" class="game-screen">
