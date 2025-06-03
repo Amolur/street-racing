@@ -223,7 +223,8 @@ export function showRegisterForm() {
     document.getElementById('login-form').classList.remove('active');
 }
 
-// Функция для показа игры после входа
+
+window.showGameFunc = showGameFunc;
 export function showGameFunc() {
     showGame();
     
@@ -255,3 +256,5 @@ export function showGameFunc() {
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);
 }
+// Экспортируем showGameFunc
+window.showGameFunc = showGameFunc;

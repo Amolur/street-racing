@@ -282,3 +282,5 @@ export function checkUpgradeAchievements() {
         showError("🏆 Достижение: Максимальная прокачка!");
     }
 }
+window.upgradeComponent = upgradeComponent;
+window.buySpecialPart = buySpecialPart;

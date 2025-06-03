@@ -229,3 +229,13 @@ export function showAchievementsScreen(addToHistory = true) {
         window.updateAchievementsDisplay();
     }
 }
+// Делаем функции доступными глобально
+window.showMainMenu = showMainMenu;
+window.showGarageScreen = showGarageScreen;
+window.showRaceMenu = showRaceMenu;
+window.showShopScreen = showShopScreen;
+window.showProfileScreen = showProfileScreen;
+window.showLeaderboardScreen = showLeaderboardScreen;
+window.showDailyTasksScreen = showDailyTasksScreen;
+window.showAchievementsScreen = showAchievementsScreen;
+window.goBack = goBack;

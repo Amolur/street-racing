@@ -197,7 +197,6 @@ export function showShopTab(tab) {
     }
 }
 
-// Делаем функции доступными глобально
 window.updateShopDisplay = updateShopDisplay;
 window.buyCar = buyCar;
 window.sellCar = sellCar;

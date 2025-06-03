@@ -286,7 +286,6 @@ export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained
     resultDiv.innerHTML = createRaceResult(won, opponent, playerTime, opponentTime, rewards);
 }
 
-// Делаем функции доступными глобально
 window.displayOpponents = displayOpponents;
 window.showRacePreview = showRacePreview;
 window.closeRacePreview = closeRacePreview;
