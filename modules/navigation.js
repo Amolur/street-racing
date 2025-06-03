@@ -237,16 +237,25 @@ export function showAchievementsScreen(addToHistory = true) {
 }
 // Показать экран сообщества
 export function showCommunityScreen(addToHistory = true) {
+    console.log('showCommunityScreen вызвана'); // Добавь эту строку
+    
     hideAllScreens();
     document.getElementById('community-screen').classList.add('active');
     if (addToHistory) navigateToScreen('community-screen');
     
+    console.log('Загружаем чат и новости'); // И эту
+    
     // Загружаем чат и новости
     if (window.loadChatMessages) {
         window.loadChatMessages();
+    } else {
+        console.error('loadChatMessages не найдена'); // И эту
     }
+    
     if (window.loadNews) {
         window.loadNews('all');
+    } else {
+        console.error('loadNews не найдена'); // И эту
     }
     
     // Запускаем автообновление чата
@@ -279,6 +288,6 @@ window.showProfileScreen = showProfileScreen;
 window.showLeaderboardScreen = showLeaderboardScreen;
 window.showDailyTasksScreen = showDailyTasksScreen;
 window.showAchievementsScreen = showAchievementsScreen;
+window.goBack = goBack;
 window.showCommunityScreen = showCommunityScreen;
 window.showCommunityTab = showCommunityTab;
-window.goBack = goBack;

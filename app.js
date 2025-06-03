@@ -92,6 +92,15 @@ window.checkAllAchievements = achievements.checkAllAchievements;
 // Чат и новости
 window.showCommunityScreen = navigation.showCommunityScreen;
 window.showCommunityTab = navigation.showCommunityTab;
+// Чат и новости - функции
+window.loadChatMessages = chat.loadChatMessages;
+window.sendChatMessage = chat.sendChatMessage;
+window.handleChatSubmit = chat.handleChatSubmit;
+window.startChatUpdates = chat.startChatUpdates;
+window.stopChatUpdates = chat.stopChatUpdates;
+window.checkChatScroll = chat.checkChatScroll;
+window.loadNews = chat.loadNews;
+window.switchNewsCategory = chat.switchNewsCategory;
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {
