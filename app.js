@@ -13,6 +13,7 @@ import { startAutoSave, showLoading } from './modules/utils.js';
 import * as dailyTasks from './modules/daily-tasks.js';
 import { dom } from './modules/dom-manager.js';
 import * as achievements from './modules/achievements.js';
+import * as chat from './modules/chat.js';
 
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
@@ -87,6 +88,10 @@ window.updateLeaderboard = profile.updateLeaderboard;
 window.showAchievementsScreen = navigation.showAchievementsScreen;
 window.updateAchievementsDisplay = achievements.updateAchievementsDisplay;
 window.checkAllAchievements = achievements.checkAllAchievements;
+
+// Чат и новости
+window.showCommunityScreen = navigation.showCommunityScreen;
+window.showCommunityTab = navigation.showCommunityTab;
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {

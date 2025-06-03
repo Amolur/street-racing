@@ -1,0 +1,252 @@
+/* ================================ */
+/* СТИЛИ ДЛЯ ЧАТА И НОВОСТЕЙ */
+/* ================================ */
+
+/* Контейнер сообщений чата */
+.chat-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--race-spacing);
+    background: var(--race-surface-dark);
+    border-radius: var(--race-radius);
+    margin-bottom: var(--race-spacing);
+    max-height: calc(100vh - 300px);
+    min-height: 400px;
+}
+
+/* Сообщение в чате */
+.chat-message {
+    background: var(--race-surface);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing-small);
+    border: 1px solid var(--race-border);
+}
+
+.chat-message.own-message {
+    background: var(--race-primary);
+    background: rgba(255, 68, 68, 0.2);
+    border-color: var(--race-primary);
+    margin-left: 20%;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--race-spacing-small);
+    font-size: 12px;
+}
+
+.message-author {
+    color: var(--race-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.user-level {
+    color: var(--race-warning);
+    font-size: 11px;
+}
+
+.message-time {
+    color: var(--race-text-secondary);
+    font-size: 11px;
+}
+
+.message-content {
+    color: var(--race-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* Поле ввода чата */
+.chat-input-container {
+    display: flex;
+    gap: var(--race-spacing-small);
+    background: var(--race-surface);
+    padding: var(--race-spacing);
+    border-radius: var(--race-radius);
+    border: 1px solid var(--race-border);
+}
+
+.chat-input {
+    flex: 1;
+    background: var(--race-surface-dark);
+    border: 1px solid var(--race-border);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    color: var(--race-text-primary);
+    font-size: 14px;
+    min-height: 40px;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--race-primary);
+}
+
+.chat-send-btn {
+    background: var(--race-primary);
+    color: var(--race-text-primary);
+    border: none;
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing) var(--race-spacing-large);
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+    min-width: 100px;
+}
+
+.chat-send-btn:active {
+    background: var(--race-danger);
+    transform: scale(0.98);
+}
+
+/* Новости */
+.news-filters {
+    display: flex;
+    gap: var(--race-spacing-small);
+    margin-bottom: var(--race-spacing);
+    overflow-x: auto;
+    padding-bottom: var(--race-spacing-small);
+}
+
+.news-filter-btn {
+    background: var(--race-surface);
+    color: var(--race-text-secondary);
+    border: 1px solid var(--race-border);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing-small) var(--race-spacing);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.news-filter-btn.active {
+    background: var(--race-primary);
+    color: var(--race-text-primary);
+    border-color: var(--race-primary);
+}
+
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--race-spacing);
+}
+
+.news-item {
+    background: var(--race-surface);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    border: 1px solid var(--race-border);
+}
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--race-spacing-small);
+}
+
+.news-category {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--race-radius-small);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.news-category.update {
+    background: var(--race-info);
+    color: var(--race-text-primary);
+}
+
+.news-category.event {
+    background: var(--race-accent);
+    color: var(--race-text-dark);
+}
+
+.news-category.maintenance {
+    background: var(--race-danger);
+    color: var(--race-text-primary);
+}
+
+.news-category.general {
+    background: var(--race-surface-dark);
+    color: var(--race-text-secondary);
+}
+
+.news-date {
+    font-size: 11px;
+    color: var(--race-text-secondary);
+}
+
+.news-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--race-primary);
+    margin-bottom: var(--race-spacing-small);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.news-content {
+    font-size: 14px;
+    color: var(--race-text-primary);
+    line-height: 1.5;
+    margin-bottom: var(--race-spacing-small);
+}
+
+.news-author {
+    font-size: 12px;
+    color: var(--race-text-secondary);
+    font-style: italic;
+    text-align: right;
+}
+
+/* Пустые состояния */
+.no-messages,
+.no-news {
+    text-align: center;
+    color: var(--race-text-secondary);
+    padding: var(--race-spacing-large);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Кнопка сообщества в меню */
+.menu-button.community {
+    border-left: 4px solid var(--race-info);
+}
+
+.menu-button.community:active {
+    border-color: var(--race-info);
+}
+
+/* Адаптивность */
+@media (max-width: 380px) {
+    .chat-message.own-message {
+        margin-left: 10%;
+    }
+    
+    .chat-send-btn {
+        min-width: 80px;
+        padding: var(--race-spacing);
+        font-size: 11px;
+    }
+    
+    .news-filter-btn {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+}

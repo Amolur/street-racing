@@ -45,6 +45,7 @@ export async function register(username, password) {
         console.log('📝 Регистрация пользователя...');
         const data = await registerAPI(username, password);
         gameState.currentUser = { username: data.user.username };
+        gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
         
         if (!gameData.experience) gameData.experience = 0;
@@ -76,6 +77,7 @@ export async function login(username, password) {
         console.log('🔐 Вход в систему...');
         const data = await loginAPI(username, password);
         gameState.currentUser = { username: data.user.username };
+        gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
         
         if (!gameData.experience) gameData.experience = 0;
@@ -130,6 +132,7 @@ export async function checkAuth() {
         console.log('🔍 Проверка авторизации...');
         const data = await loadGameData();
         gameState.currentUser = { username: data.username };
+        gameState.currentUserId = data.userId;
         updateGameData(data.gameData);
         
         if (!gameData.experience) gameData.experience = 0;

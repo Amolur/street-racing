@@ -10,8 +10,9 @@
     
     <!-- Новые стили в гоночной тематике -->
     <link rel="stylesheet" href="racing-mobile-ui.css">
-<link rel="stylesheet" href="racing-auth-styles.css">
-<link rel="stylesheet" href="racing-components-styles.css">
+    <link rel="stylesheet" href="racing-auth-styles.css">
+    <link rel="stylesheet" href="racing-components-styles.css">
+    <link rel="stylesheet" href="chat-styles.css">
     
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -167,7 +168,13 @@
                             </div>
                             <span class="badge" id="daily-tasks-counter" style="display: none;">0</span>
                         </button>
-                        
+                        <button class="menu-button community" onclick="showCommunityScreen()">
+    <div>
+        <span class="menu-button-title">💬 Сообщество</span>
+        <span class="menu-button-subtitle">Чат и новости</span>
+    </div>
+    <span class="badge" id="unread-news-counter" style="display: none;">0</span>
+</button>
                         <button class="menu-button full-width secondary" onclick="showProfileScreen()">
     <span class="menu-button-title">👤 Мой профиль</span>
 </button>
@@ -409,7 +416,69 @@
                 <span>разблокировано</span>
             </div>
         </div>
-        
+        <div id="community-screen" class="mobile-screen">
+    <div class="screen-header">
+        <button class="back-button" onclick="goBack()">←</button>
+        <h2 class="screen-title">Сообщество</h2>
+    </div>
+    
+    <div class="screen-content">
+        <!-- Табы для переключения между чатом и новостями -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-button active" onclick="showCommunityTab('chat')">
+                    💬 Чат
+                </button>
+                <button class="tab-button" onclick="showCommunityTab('news')">
+                    📰 Новости
+                </button>
+            </div>
+            
+            <!-- Вкладка чата -->
+            <div id="community-chat" class="tab-content active">
+                <div id="chat-messages" class="chat-messages-container" onscroll="checkChatScroll()">
+                    <!-- Сообщения чата будут здесь -->
+                </div>
+                
+                <div class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="chat-input" 
+                        class="chat-input" 
+                        placeholder="Введите сообщение..." 
+                        maxlength="500"
+                        onkeypress="if(event.key === 'Enter') handleChatSubmit()"
+                    >
+                    <button class="chat-send-btn" onclick="handleChatSubmit()">
+                        Отправить
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Вкладка новостей -->
+            <div id="community-news" class="tab-content">
+                <div class="news-filters">
+                    <button class="news-filter-btn active" data-category="all" onclick="switchNewsCategory('all')">
+                        Все
+                    </button>
+                    <button class="news-filter-btn" data-category="update" onclick="switchNewsCategory('update')">
+                        Обновления
+                    </button>
+                    <button class="news-filter-btn" data-category="event" onclick="switchNewsCategory('event')">
+                        События
+                    </button>
+                    <button class="news-filter-btn" data-category="maintenance" onclick="switchNewsCategory('maintenance')">
+                        Тех. работы
+                    </button>
+                </div>
+                
+                <div id="news-list" class="news-list">
+                    <!-- Новости будут здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
         <div id="achievements-list">
             <!-- Достижения будут добавлены через JS -->
         </div>
