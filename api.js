@@ -1,254 +1,235 @@
-// API функции для взаимодействия с сервером
-const API_URL = 'https://street-racing-backend-wnse.onrender.com/api' 
-    ? 'http://localhost:3000' 
-    : 'https://amolur.github.io';
+// API конфигурация
+const API_URL = 'https://street-racing-backend-wnse.onrender.com/api';
 
-// Регистрация
-window.registerAPI = async function(username, password) {
+// Безопасная работа с localStorage
+const storage = {
+    getItem: (key) => {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn('localStorage недоступен:', e);
+            return null;
+        }
+    },
+    setItem: (key, value) => {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn('Не удалось сохранить в localStorage:', e);
+        }
+    },
+    removeItem: (key) => {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn('Не удалось удалить из localStorage:', e);
+        }
+    }
+};
+
+let authToken = storage.getItem('authToken');
+
+// Проверка соединения
+function checkConnection() {
+    return navigator.onLine;
+}
+
+// Показать уведомление об ошибке
+function showError(message) {
+    let notification = document.getElementById('error-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'error-notification';
+        notification.className = 'error-notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 5000);
+}
+
+// Базовая функция для API запросов
+async function apiRequest(endpoint, options = {}) {
+    if (!checkConnection()) {
+        showError('Нет соединения с интернетом');
+        throw new Error('No internet connection');
+    }
+    
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    };
+    
+    if (authToken) {
+        config.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
     try {
-        const response = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
+        const response = await fetch(`${API_URL}${endpoint}`, config);
         
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Ошибка регистрации');
+        // Специальная обработка для rate limit
+        if (response.status === 429) {
+            const data = await response.json();
+            throw new Error(data.error || 'Слишком много попыток');
         }
         
-        localStorage.setItem('authToken', data.token);
+        let data;
+        
+        // Пробуем распарсить JSON
+        try {
+            data = await response.json();
+        } catch (e) {
+            // Если не удалось распарсить JSON
+            if (!response.ok) {
+                throw new Error('Ошибка сервера');
+            }
+            data = {};
+        }
+        
+        // Если ответ не успешный, выбрасываем ошибку
+        if (!response.ok) {
+            throw new Error(data.error || 'Ошибка сервера');
+        }
+        
         return data;
     } catch (error) {
-        console.error('Register API error:', error);
-        throw error;
-    }
-};
-
-// Вход
-window.loginAPI = async function(username, password) {
-    try {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
+        console.error('API Error:', error);
         
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Ошибка входа');
+        // Не показываем техническую ошибку пользователю
+        if (error.message.includes('Failed to fetch')) {
+            showError('Сервер недоступен. Попробуйте позже.');
+        } else if (error.message.includes('Слишком много')) {
+            // Уже есть понятное сообщение
+            showError(error.message);
+        } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
+            // Для ошибок авторизации всегда показываем это сообщение
+            showError('Неверный логин или пароль');
+        } else {
+            showError(error.message);
         }
         
-        localStorage.setItem('authToken', data.token);
-        return data;
-    } catch (error) {
-        console.error('Login API error:', error);
         throw error;
     }
-};
+}
 
-// Выход
-window.logoutAPI = function() {
-    localStorage.removeItem('authToken');
-};
+// Функции авторизации
+async function registerAPI(username, password) {
+    const data = await apiRequest('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+    });
+    
+    authToken = data.token;
+    storage.setItem('authToken', authToken);
+    return data;
+}
 
-// Загрузка игровых данных
-window.loadGameData = async function() {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/data`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Load game data error:', error);
-        throw error;
-    }
-};
+async function loginAPI(username, password) {
+    const data = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+    });
+    
+    authToken = data.token;
+    storage.setItem('authToken', authToken);
+    return data;
+}
 
-// Сохранение игровых данных
-window.saveGameData = async function(gameData) {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/save`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ gameData })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Save game data error:', error);
-        throw error;
-    }
-};
+function logoutAPI() {
+    authToken = null;
+    storage.removeItem('authToken');
+}
 
-// Получение таблицы лидеров
-window.getLeaderboard = async function(page = 1, limit = 50) {
-    try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/leaderboard?page=${page}&limit=${limit}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error('Get leaderboard error:', error);
-        throw error;
-    }
-};
+// Игровые функции
+async function loadGameData() {
+    return await apiRequest('/game/data', { method: 'GET' });
+}
+
+async function saveGameData(gameData) {
+    return await apiRequest('/game/save', {
+        method: 'POST',
+        body: JSON.stringify({ gameData })
+    });
+}
+
+async function getLeaderboard() {
+    return await apiRequest('/game/leaderboard', { method: 'GET' });
+}
+
+// ================================
+// НОВЫЕ ФУНКЦИИ ДЛЯ ДОСТИЖЕНИЙ
+// ================================
 
 // Получение достижений
 window.getAchievements = async function() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/achievements`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+        return await apiRequest('/game/achievements', { method: 'GET' });
     } catch (error) {
         console.error('Ошибка получения достижений:', error);
-        throw error;
+        // Возвращаем пустой массив если ошибка
+        return { achievements: [], total: 0 };
     }
 };
 
 // Разблокировка одного достижения
 window.unlockAchievement = async function(achievementId, name, description) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/unlock-achievement`, {
+        return await apiRequest('/game/unlock-achievement', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 achievementId,
                 name,
                 description
             })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
         console.error('Ошибка разблокировки достижения:', error);
-        throw error;
+        return { success: false, error: error.message };
     }
 };
 
 // Массовое разблокирование достижений
 window.unlockAchievementsBatch = async function(achievements) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/unlock-achievements-batch`, {
+        return await apiRequest('/game/unlock-achievements-batch', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 achievements
             })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
         console.error('Ошибка массового разблокирования:', error);
-        throw error;
+        return { success: false, error: error.message };
     }
 };
 
 // Обновление рейтинга игрока
 window.updatePlayerRating = async function(ratingChange, reason) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/update-rating`, {
+        return await apiRequest('/game/update-rating', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
                 ratingChange,
                 reason
             })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
         console.error('Ошибка обновления рейтинга:', error);
-        throw error;
+        return { success: false, error: error.message };
     }
 };
 
 // Получение расширенной статистики профиля
 window.getProfileStats = async function() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/profile-stats`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+        return await apiRequest('/game/profile-stats', { method: 'GET' });
     } catch (error) {
         console.error('Ошибка получения статистики профиля:', error);
         throw error;
@@ -258,23 +239,12 @@ window.getProfileStats = async function() {
 // Получение награды за ежедневное задание
 window.claimDailyTaskReward = async function(taskId) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/claim-daily-task`, {
+        return await apiRequest('/game/claim-daily-task', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ taskId })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
-        console.error('Claim task reward error:', error);
+        console.error('Ошибка получения награды за задание:', error);
         throw error;
     }
 };
@@ -282,47 +252,25 @@ window.claimDailyTaskReward = async function(taskId) {
 // Обновление прогресса задания
 window.updateTaskProgress = async function(statType, amount = 1) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/update-task-progress`, {
+        return await apiRequest('/game/update-task-progress', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ statType, amount })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
-        console.error('Update task progress error:', error);
-        throw error;
+        console.warn('Ошибка обновления прогресса заданий:', error);
+        return { success: false };
     }
 };
 
 // Добавление опыта
 window.addExperience = async function(amount, source) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/add-experience`, {
+        return await apiRequest('/game/add-experience', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ amount, source })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
-        console.error('Add experience error:', error);
+        console.error('Ошибка добавления опыта:', error);
         throw error;
     }
 };
@@ -330,23 +278,12 @@ window.addExperience = async function(amount, source) {
 // Начать гонку
 window.startRaceAPI = async function(carIndex, fuelCost, opponentDifficulty, betAmount, won) {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/start-race`, {
+        return await apiRequest('/game/start-race', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ carIndex, fuelCost, opponentDifficulty, betAmount, won })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
     } catch (error) {
-        console.error('Start race error:', error);
+        console.error('Ошибка начала гонки:', error);
         throw error;
     }
 };
@@ -354,22 +291,9 @@ window.startRaceAPI = async function(carIndex, fuelCost, opponentDifficulty, bet
 // Получить статус топлива
 window.getFuelStatus = async function() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/fuel-status`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+        return await apiRequest('/game/fuel-status', { method: 'GET' });
     } catch (error) {
-        console.error('Get fuel status error:', error);
+        console.error('Ошибка получения статуса топлива:', error);
         throw error;
     }
 };
@@ -377,22 +301,26 @@ window.getFuelStatus = async function() {
 // Восстановить топливо
 window.regenerateFuel = async function() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`${API_URL}/api/game/regenerate-fuel`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+        return await apiRequest('/game/regenerate-fuel', { method: 'POST' });
     } catch (error) {
-        console.error('Regenerate fuel error:', error);
+        console.error('Ошибка восстановления топлива:', error);
         throw error;
     }
 };
+
+// Делаем основные функции доступными глобально для совместимости
+window.registerAPI = registerAPI;
+window.loginAPI = loginAPI;
+window.logoutAPI = logoutAPI;
+window.loadGameData = loadGameData;
+window.saveGameData = saveGameData;
+window.getLeaderboard = getLeaderboard;
+
+// Обработчики offline/online
+window.addEventListener('online', () => {
+    showError('Соединение восстановлено');
+});
+
+window.addEventListener('offline', () => {
+    showError('Нет соединения с интернетом');
+});
