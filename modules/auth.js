@@ -1,8 +1,8 @@
 // modules/auth.js
-// Функции авторизации
+// Функции авторизации без загрузки
 
 import { gameState, gameData, updateGameData } from './game-data.js';
-import { showLoading, storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
+import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
 import { initializeDailyTasks } from './daily-tasks.js';
 
@@ -43,7 +43,7 @@ function initializeCarUpgrades(car) {
 // Регистрация
 export async function register(username, password) {
     try {
-        showLoading(true);
+        console.log('Регистрация пользователя...');
         const data = await registerAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         updateGameData(data.user.gameData);
@@ -54,10 +54,10 @@ export async function register(username, password) {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
         }
         
-        showLoading(false);
+        console.log('Регистрация завершена');
         return true;
     } catch (error) {
-        showLoading(false);
+        console.error('Ошибка регистрации:', error);
         return false;
     }
 }
@@ -65,7 +65,7 @@ export async function register(username, password) {
 // Вход
 export async function login(username, password) {
     try {
-        showLoading(true);
+        console.log('Вход в систему...');
         const data = await loginAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         updateGameData(data.user.gameData);
@@ -82,10 +82,10 @@ export async function login(username, password) {
             });
         }
         
-        showLoading(false);
+        console.log('Вход выполнен успешно');
         return true;
     } catch (error) {
-        showLoading(false);
+        console.error('Ошибка входа:', error);
         return false;
     }
 }
@@ -107,7 +107,7 @@ export async function checkAuth() {
     if (!token) return false;
     
     try {
-        showLoading(true);
+        console.log('Проверка авторизации...');
         const data = await loadGameData();
         gameState.currentUser = { username: data.username };
         updateGameData(data.gameData);
@@ -118,10 +118,10 @@ export async function checkAuth() {
             gameData.cars.forEach(car => initializeCarUpgrades(car));
         }
         
-        showLoading(false);
+        console.log('Авторизация подтверждена');
         return true;
     } catch (error) {
-        showLoading(false);
+        console.error('Ошибка проверки авторизации:', error);
         storage.removeItem('authToken');
         return false;
     }
@@ -198,11 +198,11 @@ export function showRegisterForm() {
 export function showGameFunc() {
     showGame();
     
-    // Обновляем аватары
+    // Обновляем аватары с новой цветовой схемой
     const avatars = document.querySelectorAll('.player-avatar, .profile-avatar');
     avatars.forEach(avatar => {
         if (gameState.currentUser) {
-            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=4ecdc4&color=1a1a1a&size=100`;
+            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=ff4444&color=ffffff&size=100`;
         }
     });
     

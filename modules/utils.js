@@ -1,5 +1,5 @@
 // modules/utils.js
-// Вспомогательные функции с новым UI
+// Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
 import { showNotification } from './ui-components.js';
@@ -35,24 +35,10 @@ export function showError(message) {
     showNotification(message, 'error');
 }
 
-// Показать/скрыть индикатор загрузки
+// Показать/скрыть индикатор загрузки (отключено)
 export function showLoading(show) {
-    let loadingIndicator = document.getElementById('loading-indicator');
-    
-    if (!loadingIndicator) {
-        loadingIndicator = document.createElement('div');
-        loadingIndicator.id = 'loading-indicator';
-        loadingIndicator.className = 'loading-overlay';
-        loadingIndicator.innerHTML = `
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <p>Загрузка...</p>
-            </div>
-        `;
-        document.body.appendChild(loadingIndicator);
-    }
-    
-    loadingIndicator.style.display = show ? 'flex' : 'none';
+    // Функция отключена - нет индикаторов загрузки
+    console.log(show ? 'Начало операции...' : 'Операция завершена');
 }
 
 // Автосохранение
@@ -84,20 +70,28 @@ export function stopAutoSave() {
 export function updatePlayerInfo() {
     // Обновляем ресурсы в header
     if (gameData) {
-        document.getElementById('header-level').textContent = gameData.level;
-        document.getElementById('header-money').textContent = gameData.money.toLocaleString();
+        const headerLevelEl = document.getElementById('header-level');
+        const headerMoneyEl = document.getElementById('header-money');
+        const headerFuelEl = document.getElementById('header-fuel');
+        
+        if (headerLevelEl) headerLevelEl.textContent = gameData.level;
+        if (headerMoneyEl) headerMoneyEl.textContent = gameData.money.toLocaleString();
         
         const currentCar = gameData.cars[gameData.currentCar];
-        if (currentCar) {
+        if (currentCar && headerFuelEl) {
             const currentFuel = fuelSystem.getCurrentFuel(currentCar);
-            document.getElementById('header-fuel').textContent = currentFuel;
+            headerFuelEl.textContent = currentFuel;
         }
         
         // Обновляем информацию в главном меню
         if (gameState.currentScreen === 'main-menu') {
-            document.getElementById('player-level').textContent = gameData.level;
-            document.getElementById('player-wins').textContent = gameData.stats.wins;
-            document.getElementById('player-cars').textContent = gameData.cars.length;
+            const playerLevelEl = document.getElementById('player-level');
+            const playerWinsEl = document.getElementById('player-wins');
+            const playerCarsEl = document.getElementById('player-cars');
+            
+            if (playerLevelEl) playerLevelEl.textContent = gameData.level;
+            if (playerWinsEl) playerWinsEl.textContent = gameData.stats.wins;
+            if (playerCarsEl) playerCarsEl.textContent = gameData.cars.length;
         }
         
         // Обновляем другие экраны
@@ -137,7 +131,10 @@ export function updateFuelDisplay() {
     const currentFuel = fuelSystem.getCurrentFuel(car);
     
     // Обновляем в header
-    document.getElementById('header-fuel').textContent = currentFuel;
+    const headerFuelEl = document.getElementById('header-fuel');
+    if (headerFuelEl) {
+        headerFuelEl.textContent = currentFuel;
+    }
     
     // Обновляем в гараже
     const carFuelDisplay = document.getElementById('car-fuel-display');
@@ -156,44 +153,14 @@ export function updateFuelDisplay() {
 export function showPlayerInfoBar() {}
 export function hidePlayerInfoBar() {}
 export function updatePlayerInfoBar() {}
-export function startInfoBarUpdates() {}
-
-// Добавляем стили для индикатора загрузки
-const loadingStyles = `
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-    }
+export function startInfoBarUpdates() {
+    // Запускаем обновление основной информации вместо инфобара
+    updatePlayerInfo();
     
-    .loading-content {
-        text-align: center;
-        color: white;
+    // Периодически обновляем данные
+    if (!gameState.infoBarUpdateInterval) {
+        gameState.infoBarUpdateInterval = setInterval(() => {
+            updatePlayerInfo();
+        }, 5000);
     }
-    
-    .loading-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-top-color: white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 16px;
-    }
-    
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-`;
-
-// Добавляем стили в head
-const styleSheet = document.createElement('style');
-styleSheet.textContent = loadingStyles;
-document.head.appendChild(styleSheet);
+}

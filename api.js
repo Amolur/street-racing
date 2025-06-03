@@ -1,173 +1,117 @@
-// API конфигурация
-const API_URL = 'https://street-racing-backend-wnse.onrender.com/api';
+// app.js
+// Главный файл приложения без экрана загрузки
 
-// Безопасная работа с localStorage
-const storage = {
-    getItem: (key) => {
-        try {
-            return localStorage.getItem(key);
-        } catch (e) {
-            console.warn('localStorage недоступен:', e);
-            return null;
-        }
-    },
-    setItem: (key, value) => {
-        try {
-            localStorage.setItem(key, value);
-        } catch (e) {
-            console.warn('Не удалось сохранить в localStorage:', e);
-        }
-    },
-    removeItem: (key) => {
-        try {
-            localStorage.removeItem(key);
-        } catch (e) {
-            console.warn('Не удалось удалить из localStorage:', e);
-        }
+import { gameState, gameData, updateGameData } from './modules/game-data.js';
+import * as navigation from './modules/navigation.js';
+import * as auth from './modules/auth.js';
+import * as garage from './modules/garage.js';
+import * as race from './modules/race.js';
+import * as shop from './modules/shop.js';
+import * as profile from './modules/profile.js';
+import * as upgrades from './modules/upgrades.js';
+import { startAutoSave } from './modules/utils.js';
+import * as dailyTasks from './modules/daily-tasks.js';
+import { dom } from './modules/dom-manager.js';
+
+// Делаем функции доступными глобально для onclick в HTML
+
+// Навигация
+window.showMainMenu = navigation.showMainMenu;
+window.showGarageScreen = navigation.showGarageScreen;
+window.showRaceMenu = navigation.showRaceMenu;
+window.showShopScreen = navigation.showShopScreen;
+window.showProfileScreen = navigation.showProfileScreen;
+window.showLeaderboardScreen = navigation.showLeaderboardScreen;
+window.showDailyTasksScreen = navigation.showDailyTasksScreen; 
+window.goBack = navigation.goBack;
+
+// Авторизация
+window.handleLogin = auth.handleLogin;
+window.handleRegister = auth.handleRegister;
+window.showLoginForm = auth.showLoginForm;
+window.showRegisterForm = auth.showRegisterForm;
+window.logout = auth.logout;
+
+// Гараж
+window.previousCar = garage.previousCar;
+window.nextCar = garage.nextCar;
+window.showGarageTab = garage.showGarageTab;
+window.updateGarageDisplay = garage.updateGarageDisplay;
+
+// Улучшения
+window.upgradeComponent = upgrades.upgradeComponent;
+window.buySpecialPart = upgrades.buySpecialPart;
+
+// Гонки
+window.showRacePreview = race.showRacePreview;
+window.confirmRace = race.confirmRace;
+window.closeRacePreview = race.closeRacePreview;
+window.startRace = race.startRace;
+window.displayOpponents = race.displayOpponents;
+
+// Магазин
+window.buyCar = shop.buyCar;
+window.sellCar = shop.sellCar;
+window.showShopTab = shop.showShopTab;
+window.updateShopDisplay = shop.updateShopDisplay;
+
+// Профиль
+window.updateProfileDisplay = profile.updateProfileDisplay;
+window.updateLeaderboard = profile.updateLeaderboard;
+
+// Инициализация при загрузке (без экрана загрузки)
+window.addEventListener('DOMContentLoaded', async function() {
+    console.log('🏁 Street Racing - Запуск игры...');
+    
+    // Сразу проверяем авторизацию без задержек
+    const isAuthorized = await auth.checkAuth();
+    
+    if (isAuthorized) {
+        console.log('✅ Пользователь авторизован, показываем игру');
+        auth.showGameFunc();
+        startDailyTasksTimer();
+    } else {
+        console.log('❌ Пользователь не авторизован, показываем авторизацию');
+        navigation.showAuthScreen();
     }
-};
+    
+    console.log('🎮 Игра готова к использованию');
+});
 
-let authToken = storage.getItem('authToken');
-
-// Проверка соединения
-function checkConnection() {
-    return navigator.onLine;
+// Таймер для ежедневных заданий
+function startDailyTasksTimer() {
+    dailyTasks.updateDailyTasksTimer();
+    setInterval(dailyTasks.updateDailyTasksTimer, 1000);
 }
 
-// Показать уведомление об ошибке
-function showError(message) {
-    let notification = document.getElementById('error-notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'error-notification';
-        notification.className = 'error-notification';
-        document.body.appendChild(notification);
-    }
-    
-    notification.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 5000);
-}
-
-// Базовая функция для API запросов
-async function apiRequest(endpoint, options = {}) {
-    if (!checkConnection()) {
-        showError('Нет соединения с интернетом');
-        throw new Error('No internet connection');
-    }
-    
-    const config = {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    };
-    
-    if (authToken) {
-        config.headers['Authorization'] = `Bearer ${authToken}`;
-    }
-    
-    try {
-    const response = await fetch(`${API_URL}${endpoint}`, config);
-    
-    // Специальная обработка для rate limit
-    if (response.status === 429) {
-        const data = await response.json();
-        throw new Error(data.error || 'Слишком много попыток');
-    }
-    
-    let data;
-        
-        // Пробуем распарсить JSON
+// Сохранение при закрытии/обновлении страницы
+window.addEventListener('beforeunload', async (e) => {
+    if (gameState.currentUser && gameData) {
         try {
-            data = await response.json();
-        } catch (e) {
-            // Если не удалось распарсить JSON
-            if (!response.ok) {
-                throw new Error('Ошибка сервера');
+            if (typeof window.saveGameData === 'function') {
+                await window.saveGameData(gameData);
+                console.log('💾 Данные сохранены при закрытии');
             }
-            data = {};
+        } catch (error) {
+            console.error('❌ Не удалось сохранить при закрытии:', error);
         }
-        
-        // Если ответ не успешный, выбрасываем ошибку
-        if (!response.ok) {
-            throw new Error(data.error || 'Ошибка сервера');
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        
-        // Не показываем техническую ошибку пользователю
-        if (error.message.includes('Failed to fetch')) {
-            showError('Сервер недоступен. Попробуйте позже.');
-        } else if (error.message.includes('Слишком много')) {
-            // Уже есть понятное сообщение
-            showError(error.message);
-        } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
-            // Для ошибок авторизации всегда показываем это сообщение
-            showError('Неверный логин или пароль');
-        } else {
-            showError(error.message);
-        }
-        
-        throw error;
     }
-}
-
-// Функции авторизации
-async function registerAPI(username, password) {
-    const data = await apiRequest('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ username, password })
-    });
-    
-    authToken = data.token;
-    storage.setItem('authToken', authToken);
-    return data;
-}
-
-async function loginAPI(username, password) {
-    const data = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password })
-    });
-    
-    authToken = data.token;
-    storage.setItem('authToken', authToken);
-    return data;
-}
-
-function logoutAPI() {
-    authToken = null;
-    storage.removeItem('authToken');
-}
-
-// Игровые функции
-async function loadGameData() {
-    return await apiRequest('/game/data', { method: 'GET' });
-}
-
-async function saveGameData(gameData) {
-    return await apiRequest('/game/save', {
-        method: 'POST',
-        body: JSON.stringify({ gameData })
-    });
-}
-
-async function getLeaderboard() {
-    return await apiRequest('/game/leaderboard', { method: 'GET' });
-}
-
-// Обработчики offline/online
-window.addEventListener('online', () => {
-    showError('Соединение восстановлено');
 });
 
-window.addEventListener('offline', () => {
-    showError('Нет соединения с интернетом');
-});
+// Периодическая синхронизация
+setInterval(async () => {
+    if (gameState.currentUser && navigator.onLine) {
+        try {
+            if (typeof window.saveGameData === 'function') {
+                await window.saveGameData(gameData);
+                console.log('🔄 Автосинхронизация выполнена');
+            }
+        } catch (error) {
+            // Тихо обрабатываем ошибку
+            console.warn('⚠️ Ошибка автосинхронизации:', error.message);
+        }
+    }
+}, 60000); // Каждую минуту
+
+// Экспортируем для использования в других модулях если нужно
+export { gameState, gameData };

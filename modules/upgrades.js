@@ -1,8 +1,8 @@
 // modules/upgrades.js
-// Система улучшений
+// Система улучшений без индикаторов загрузки
 
 import { gameData } from './game-data.js';
-import { showError, showLoading, updatePlayerInfo } from './utils.js';
+import { showError, updatePlayerInfo } from './utils.js';
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {
@@ -160,15 +160,13 @@ export async function upgradeComponent(type) {
     updatePlayerInfo();
     window.updateGarageDisplay();
     
-    // Показываем индикатор загрузки
-    showLoading(true);
+    console.log('💰 Покупка улучшения...');
     
     try {
         // Сохраняем на сервер
         await saveGameData(gameData);
-        showLoading(false);
         
-        console.log('Улучшение успешно сохранено на сервер');
+        console.log('✅ Улучшение успешно сохранено на сервер');
         showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
         
         // Обновляем прогресс заданий
@@ -179,8 +177,7 @@ export async function upgradeComponent(type) {
         checkUpgradeAchievements();
         
     } catch (error) {
-        showLoading(false);
-        console.error('Ошибка сохранения улучшения:', error);
+        console.error('❌ Ошибка сохранения улучшения:', error);
         
         // ОТКАТЫВАЕМ изменения при ошибке
         gameData.money = oldMoney;
@@ -223,13 +220,11 @@ export async function buySpecialPart(type, cost) {
     updatePlayerInfo();
     window.updateGarageDisplay();
     
-    // Показываем индикатор загрузки
-    showLoading(true);
+    console.log('🔧 Покупка специальной детали...');
     
     try {
         // Сохраняем на сервер
         await saveGameData(gameData);
-        showLoading(false);
         
         const partNames = {
             nitro: "Нитро",
@@ -237,7 +232,7 @@ export async function buySpecialPart(type, cost) {
             ecuTune: "Чип-тюнинг"
         };
         
-        console.log('Специальная деталь успешно сохранена на сервер');
+        console.log('✅ Специальная деталь успешно сохранена на сервер');
         showError(`${partNames[type]} установлен!`);
         
          // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
@@ -246,8 +241,7 @@ export async function buySpecialPart(type, cost) {
         }
         
     } catch (error) {
-        showLoading(false);
-        console.error('Ошибка сохранения детали:', error);
+        console.error('❌ Ошибка сохранения детали:', error);
         
         // ОТКАТЫВАЕМ изменения при ошибке
         gameData.money = oldMoney;
