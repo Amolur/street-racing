@@ -1,0 +1,356 @@
+/* ================================ */
+/* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ КОМПОНЕНТОВ */
+/* ================================ */
+
+/* Стили для карточек машин */
+.car-preview-card {
+    background: var(--ui-surface);
+    border-radius: var(--ui-radius-large);
+    padding: var(--ui-spacing-large);
+    margin-bottom: var(--ui-spacing);
+    box-shadow: 0 4px 12px var(--ui-shadow);
+    text-align: center;
+}
+
+.car-image-placeholder {
+    font-size: 80px;
+    margin: var(--ui-spacing-large) 0;
+    filter: grayscale(0.2);
+}
+
+.car-info {
+    margin: var(--ui-spacing-large) 0;
+}
+
+.car-stats {
+    background: var(--ui-surface-dark);
+    border-radius: var(--ui-radius);
+    padding: var(--ui-spacing);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--ui-spacing-small) 0;
+}
+
+.stat-row:not(:last-child) {
+    border-bottom: 1px solid var(--ui-border);
+}
+
+.car-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--ui-spacing-large);
+    margin-top: var(--ui-spacing);
+}
+
+.nav-button {
+    background: var(--ui-primary);
+    color: var(--ui-text-white);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Стили для списка соперников */
+.race-stakes {
+    display: flex;
+    gap: var(--ui-spacing);
+    margin-top: var(--ui-spacing-small);
+    font-size: 14px;
+    color: var(--ui-text-secondary);
+}
+
+.stake {
+    background: var(--ui-surface-dark);
+    padding: 4px 8px;
+    border-radius: var(--ui-radius-small);
+}
+
+/* Стили для улучшений */
+.upgrade-item {
+    align-items: center;
+}
+
+.upgrade-item.maxed {
+    opacity: 0.6;
+}
+
+.action-button.small {
+    padding: var(--ui-spacing-small) var(--ui-spacing);
+    font-size: 14px;
+    min-width: 80px;
+}
+
+/* Стили для статистики */
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-spacing);
+}
+
+.stat-item {
+    background: var(--ui-surface-dark);
+    padding: var(--ui-spacing);
+    border-radius: var(--ui-radius);
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--ui-text-secondary);
+    margin-bottom: var(--ui-spacing-small);
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ui-primary);
+    margin-bottom: var(--ui-spacing-small);
+}
+
+/* Стили для магазина */
+.car-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ui-spacing-small);
+    margin: var(--ui-spacing) 0;
+    font-size: 14px;
+}
+
+.car-stats-grid .stat {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--ui-spacing-small);
+    background: var(--ui-surface-dark);
+    border-radius: var(--ui-radius-small);
+}
+
+.car-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ui-success);
+    margin: var(--ui-spacing) 0;
+}
+
+.level-requirement {
+    color: var(--ui-accent);
+    font-weight: 600;
+    margin: var(--ui-spacing-small) 0;
+}
+
+.card.owned {
+    opacity: 0.6;
+}
+
+.card.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: var(--ui-spacing);
+    right: var(--ui-spacing);
+    font-size: 24px;
+}
+
+/* Стили для заданий */
+.task-card {
+    margin-bottom: var(--ui-spacing);
+}
+
+.task-card.completed {
+    border: 2px solid var(--ui-success);
+}
+
+.task-card.claimed {
+    opacity: 0.6;
+}
+
+.task-reward {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ui-success);
+}
+
+.task-description {
+    color: var(--ui-text-secondary);
+    margin-bottom: var(--ui-spacing);
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: var(--ui-spacing-small);
+    color: var(--ui-text-secondary);
+}
+
+.task-status {
+    text-align: center;
+    color: var(--ui-success);
+    font-weight: 600;
+}
+
+/* Стили для результата гонки */
+.race-result-container {
+    padding: var(--ui-spacing);
+}
+
+.result-win {
+    color: var(--ui-success);
+    font-size: 32px;
+    margin-bottom: var(--ui-spacing-large);
+}
+
+.result-lose {
+    color: var(--ui-accent);
+    font-size: 32px;
+    margin-bottom: var(--ui-spacing-large);
+}
+
+.race-times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ui-spacing);
+    margin: var(--ui-spacing-large) 0;
+}
+
+.race-times > div {
+    background: var(--ui-surface-dark);
+    padding: var(--ui-spacing);
+    border-radius: var(--ui-radius);
+    text-align: center;
+}
+
+.time-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ui-primary);
+    margin-top: var(--ui-spacing-small);
+}
+
+.race-rewards {
+    background: var(--ui-surface-dark);
+    padding: var(--ui-spacing);
+    border-radius: var(--ui-radius);
+    margin: var(--ui-spacing-large) 0;
+    text-align: center;
+}
+
+.reward-money {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: var(--ui-spacing-small);
+}
+
+.reward-money:first-child {
+    color: var(--ui-success);
+}
+
+.reward-money:first-child:before {
+    content: '💰 ';
+}
+
+.reward-xp {
+    color: var(--ui-warning);
+    font-size: 18px;
+}
+
+.result-actions {
+    display: flex;
+    gap: var(--ui-spacing);
+    margin-top: var(--ui-spacing-large);
+}
+
+.result-actions button {
+    flex: 1;
+}
+
+/* Стили для частей */
+.part-item {
+    align-items: center;
+}
+
+.part-item.owned {
+    background: var(--ui-surface-dark);
+}
+
+.part-owned {
+    color: var(--ui-success);
+    font-weight: 600;
+}
+
+.part-price {
+    color: var(--ui-warning);
+    font-weight: 600;
+}
+
+/* Стили для экрана информации */
+.screen-content {
+    padding: var(--ui-spacing);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card,
+.list-item,
+.menu-button {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Медиа запросы */
+@media (max-width: 380px) {
+    .race-stakes {
+        flex-direction: column;
+        gap: var(--ui-spacing-small);
+    }
+    
+    .car-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Утилитарные классы */
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.text-left { text-align: left !important; }
+
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: var(--ui-spacing-small) !important; }
+.mt-2 { margin-top: var(--ui-spacing) !important; }
+.mt-3 { margin-top: var(--ui-spacing-large) !important; }
+
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: var(--ui-spacing-small) !important; }
+.mb-2 { margin-bottom: var(--ui-spacing) !important; }
+.mb-3 { margin-bottom: var(--ui-spacing-large) !important; }
+
+.p-0 { padding: 0 !important; }
+.p-1 { padding: var(--ui-spacing-small) !important; }
+.p-2 { padding: var(--ui-spacing) !important; }
+.p-3 { padding: var(--ui-spacing-large) !important; }
+
+.hide { display: none !important; }
+.show { display: block !important; }
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
