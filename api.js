@@ -1,5 +1,5 @@
 // API функции для взаимодействия с сервером
-const API_BASE_URL = window.location.hostname === 'localhost' 
+const API_URL = 'https://street-racing-backend-wnse.onrender.com/api' 
     ? 'http://localhost:3000' 
     : 'https://amolur.github.io';
 
