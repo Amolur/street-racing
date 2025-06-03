@@ -4,7 +4,55 @@
 import { gameState } from './game-data.js';
 import { showPlayerInfoBar, hidePlayerInfoBar, updateQuickStats } from './utils.js';
 // Убираем импорт, так как используем глобальную функцию
+// Добавьте эту функцию в modules/navigation.js после импортов:
 
+// Очистка кеша DOM при переходах
+export function clearDOMCache() {
+    if (window.dom && window.dom.clearCache) {
+        window.dom.clearCache();
+    }
+}
+
+// Обновите функцию navigateTo:
+export function navigateTo(screenId) {
+    hideAllScreens();
+    clearDOMCache(); // Добавьте эту строку
+    
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.classList.add('active');
+        navigateToScreen(screenId);
+    }
+    
+    // Обновляем данные экрана если нужно
+    switch(screenId) {
+        case 'garage-screen':
+            if (window.updateGarageDisplay) {
+                setTimeout(() => window.updateGarageDisplay(), 100);
+            }
+            break;
+        case 'race-menu-screen':
+            if (window.displayOpponents) {
+                setTimeout(() => window.displayOpponents(), 100);
+            }
+            break;
+        case 'profile-screen':
+            if (window.updateProfileDisplay) {
+                setTimeout(() => window.updateProfileDisplay(), 100);
+            }
+            break;
+        case 'shop-screen':
+            if (window.updateShopDisplay) {
+                setTimeout(() => window.updateShopDisplay(), 100);
+            }
+            break;
+        case 'leaderboard-screen':
+            if (window.updateLeaderboard) {
+                setTimeout(() => window.updateLeaderboard(), 100);
+            }
+            break;
+    }
+}
 // Функция для отслеживания навигации
 export function navigateToScreen(screenId) {
     if (gameState.currentScreen !== screenId) {

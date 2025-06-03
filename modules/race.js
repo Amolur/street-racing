@@ -82,74 +82,73 @@ export function generateDynamicOpponents() {
 
 // Оптимизированное отображение соперников
 export function displayOpponents() {
-    const opponentsList = dom.get('#opponents-list');
+    const opponentsList = document.getElementById('opponents-list');
     if (!opponentsList) return;
     
     const currentCar = gameData.cars[gameData.currentCar];
     const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
     // Обновляем информационный баннер
-    dom.batchUpdate(() => {
-        dom.setHTML('.race-info-banner', `
+    const raceInfoBanner = document.querySelector('.race-info-banner');
+    if (raceInfoBanner) {
+        raceInfoBanner.innerHTML = `
             <p>Ваша машина: <strong id="race-current-car">${currentCar.name}</strong></p>
             <p>Топливо: <strong id="race-car-fuel">⛽ ${currentFuel}/${currentCar.maxFuel || 30}</strong></p>
             <p>Баланс: <strong>$<span id="race-balance">${gameData.money}</span></strong></p>
-        `);
-    });
+        `;
+    }
     
     // Генерируем соперников
     const opponents = generateDynamicOpponents();
-    const fragment = document.createDocumentFragment();
+    
+    // Очищаем список
+    opponentsList.innerHTML = '';
     
     opponents.forEach((opponent, index) => {
         const betAmount = Math.floor(opponent.reward / 2);
         const fuelCost = fuelSystem.calculateFuelCost(opponent.difficulty);
         const canAfford = gameData.money >= betAmount && currentFuel >= fuelCost;
         
-        const opponentCard = dom.createElement('div', {
-            className: 'opponent-card',
-            styles: { opacity: canAfford ? '1' : '0.5' },
-            html: `
-                <div class="opponent-info">
-                    <h3>${opponent.name}</h3>
-                    <p class="opponent-car">Машина: ${opponent.car}</p>
-                    <p class="opponent-difficulty ${opponent.difficultyClass}">
-                        Сложность: ${'⭐'.repeat(
-                            opponent.difficulty < 1.0 ? 1 : 
-                            opponent.difficulty < 1.4 ? 2 :
-                            opponent.difficulty < 1.8 ? 3 : 4
-                        )}
-                    </p>
-                    <div class="opponent-stakes">
-                        <span class="stake-item">
-                            <span class="stake-label">Ставка:</span>
-                            <span class="stake-value">${betAmount}</span>
-                        </span>
-                        <span class="stake-item">
-                            <span class="stake-label">Выигрыш:</span>
-                            <span class="stake-value">${opponent.reward}</span>
-                        </span>
-                        <span class="stake-item">
-                            <span class="stake-label">Топливо:</span>
-                            <span class="stake-value fuel-cost">⛽ ${fuelCost}</span>
-                        </span>
-                    </div>
-                </div>
-                <button class="btn-primary race-btn" 
-                        data-opponent-index="${index}"
-                        ${!canAfford ? 'disabled' : ''}>
-                    ${gameData.money < betAmount ? `Нужно ${betAmount}` : 
-                      currentFuel < fuelCost ? `Нужно ⛽${fuelCost}` : 'Вызвать на гонку'}
-                </button>
-            `
-        });
+        const opponentCard = document.createElement('div');
+        opponentCard.className = 'opponent-card';
+        opponentCard.style.opacity = canAfford ? '1' : '0.5';
         
-        fragment.appendChild(opponentCard);
+        opponentCard.innerHTML = `
+            <div class="opponent-info">
+                <h3>${opponent.name}</h3>
+                <p class="opponent-car">Машина: ${opponent.car}</p>
+                <p class="opponent-difficulty ${opponent.difficultyClass}">
+                    Сложность: ${'⭐'.repeat(
+                        opponent.difficulty < 1.0 ? 1 : 
+                        opponent.difficulty < 1.4 ? 2 :
+                        opponent.difficulty < 1.8 ? 3 : 4
+                    )}
+                </p>
+                <div class="opponent-stakes">
+                    <span class="stake-item">
+                        <span class="stake-label">Ставка:</span>
+                        <span class="stake-value">${betAmount}</span>
+                    </span>
+                    <span class="stake-item">
+                        <span class="stake-label">Выигрыш:</span>
+                        <span class="stake-value">${opponent.reward}</span>
+                    </span>
+                    <span class="stake-item">
+                        <span class="stake-label">Топливо:</span>
+                        <span class="stake-value fuel-cost">⛽ ${fuelCost}</span>
+                    </span>
+                </div>
+            </div>
+            <button class="btn-primary race-btn" 
+                    onclick="showRacePreview(${index})"
+                    ${!canAfford ? 'disabled' : ''}>
+                ${gameData.money < betAmount ? `Нужно ${betAmount}` : 
+                  currentFuel < fuelCost ? `Нужно ⛽${fuelCost}` : 'Вызвать на гонку'}
+            </button>
+        `;
+        
+        opponentsList.appendChild(opponentCard);
     });
-    
-    // Очищаем и добавляем все карточки за раз
-    dom.empty('#opponents-list');
-    opponentsList.appendChild(fragment);
 }
 
 // Показать превью гонки
@@ -552,14 +551,6 @@ function createLoseResultHTML(opponent, playerTime, opponentTime, xpGained, curr
         </div>
     `;
 }
-
-// Делегирование событий для кнопок гонки
-dom.delegate('#opponents-list', 'click', '.race-btn', function(e) {
-    const opponentIndex = parseInt(this.dataset.opponentIndex);
-    if (!isNaN(opponentIndex)) {
-        window.showRacePreview(opponentIndex);
-    }
-});
 
 // Делаем функцию доступной глобально
 window.displayOpponents = displayOpponents;
