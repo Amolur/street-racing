@@ -429,6 +429,7 @@ body {
     gap: 0.3rem;
     color: var(--text-primary);
     font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;      /* Добавьте эту строку */
 }
 
 .info-icon {
@@ -2018,17 +2019,19 @@ body {
     }
     
     .player-info-bar {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.8rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    flex-direction: row;      /* Добавлено - горизонтальное направление */
+    flex-wrap: nowrap;        /* Изменено - запрещаем перенос */
+    gap: 0.5rem;
+    overflow-x: auto;         /* Добавлено - прокрутка если не помещается */
+}
     
     .info-item {
-        flex: 1;
-        min-width: 45%;
-        justify-content: center;
-    }
+    flex: 0 0 auto;           /* Изменено - не растягиваем элементы */
+    min-width: auto;          /* Изменено - убираем минимальную ширину */
+    white-space: nowrap;      /* Добавлено - текст в одну строку */
+}
     
     .info-text {
         font-size: 0.7rem;
