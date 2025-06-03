@@ -160,13 +160,10 @@ export async function upgradeComponent(type) {
     updatePlayerInfo();
     window.updateGarageDisplay();
     
-    console.log('💰 Покупка улучшения...');
-    
     try {
         // Сохраняем на сервер
         await saveGameData(gameData);
         
-        console.log('✅ Улучшение успешно сохранено на сервер');
         showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
         
         // Обновляем прогресс заданий
@@ -176,10 +173,10 @@ export async function upgradeComponent(type) {
         
         checkUpgradeAchievements();
         if (window.checkAllAchievements) {
-    window.checkAllAchievements();
-}
+            window.checkAllAchievements();
+        }
     } catch (error) {
-        console.error('❌ Ошибка сохранения улучшения:', error);
+        console.error('Ошибка сохранения улучшения:', error);
         
         // ОТКАТЫВАЕМ изменения при ошибке
         gameData.money = oldMoney;
@@ -222,8 +219,6 @@ export async function buySpecialPart(type, cost) {
     updatePlayerInfo();
     window.updateGarageDisplay();
     
-    console.log('🔧 Покупка специальной детали...');
-    
     try {
         // Сохраняем на сервер
         await saveGameData(gameData);
@@ -234,16 +229,15 @@ export async function buySpecialPart(type, cost) {
             ecuTune: "Чип-тюнинг"
         };
         
-        console.log('✅ Специальная деталь успешно сохранена на сервер');
         showError(`${partNames[type]} установлен!`);
         
-         // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
+        // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
         if (window.updateTaskProgress) {
             window.updateTaskProgress('upgradesBought');
         }
         
     } catch (error) {
-        console.error('❌ Ошибка сохранения детали:', error);
+        console.error('Ошибка сохранения детали:', error);
         
         // ОТКАТЫВАЕМ изменения при ошибке
         gameData.money = oldMoney;
@@ -282,5 +276,6 @@ export function checkUpgradeAchievements() {
         showError("🏆 Достижение: Максимальная прокачка!");
     }
 }
+
 window.upgradeComponent = upgradeComponent;
 window.buySpecialPart = buySpecialPart;

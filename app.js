@@ -11,31 +11,7 @@ import * as profile from './modules/profile.js';
 import * as upgrades from './modules/upgrades.js';
 import { startAutoSave, showLoading } from './modules/utils.js';
 import * as dailyTasks from './modules/daily-tasks.js';
-import { dom } from './modules/dom-manager.js';
 import * as achievements from './modules/achievements.js';
-
-// Проверка структуры gameData при загрузке
-window.validateGameDataStructure = function() {
-    if (!gameData) {
-        console.error('gameData не определена');
-        return false;
-    }
-    
-    console.log('Структура gameData:', {
-        money: typeof gameData.money,
-        level: typeof gameData.level,
-        experience: typeof gameData.experience,
-        cars: Array.isArray(gameData.cars),
-        carsCount: gameData.cars ? gameData.cars.length : 0
-    });
-    
-    return true;
-};
-
-// Вызовите после загрузки данных
-setTimeout(() => {
-    window.validateGameDataStructure();
-}, 1000);
 
 // Делаем функции доступными глобально для onclick в HTML
 
@@ -128,18 +104,6 @@ window.addEventListener('beforeunload', async (e) => {
     }
 });
 
-// Периодическая синхронизация
-setInterval(async () => {
-    if (gameState.currentUser && navigator.onLine) {
-        try {
-            if (typeof window.saveGameData === 'function') {
-                await window.saveGameData(gameData);
-            }
-        } catch (error) {
-            // Тихо обрабатываем ошибку
-        }
-    }
-}, 60000); // Каждую минуту
 // Отключаем автосохранение при неактивности
 let lastActivity = Date.now();
 
@@ -151,7 +115,7 @@ document.addEventListener('keypress', () => {
     lastActivity = Date.now();
 });
 
-// Модифицируем периодическое сохранение
+// Периодическое сохранение с проверкой активности
 setInterval(async () => {
     // Сохраняем только если была активность в последние 30 секунд
     if (gameState.currentUser && navigator.onLine && (Date.now() - lastActivity < 30000)) {
@@ -164,6 +128,7 @@ setInterval(async () => {
             console.log('Автосохранение пропущено');
         }
     }
-}, 60000);
+}, 60000); // Каждую минуту
+
 // Экспортируем для использования в других модулях если нужно
 export { gameState, gameData };

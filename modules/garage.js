@@ -219,9 +219,8 @@ export function showGarageTab(tab) {
             break;
     }
 }
+
 window.previousCar = previousCar;
 window.nextCar = nextCar;
 window.showGarageTab = showGarageTab;
-window.updateGarageDisplay = updateGarageDisplay;
-// Делаем функции доступными глобально
 window.updateGarageDisplay = updateGarageDisplay;
