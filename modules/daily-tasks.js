@@ -29,15 +29,13 @@ export function initializeDailyTasks() {
     if (!gameData.dailyTasks) {
         gameData.dailyTasks = {
             tasks: [],
-            lastReset: new Date().toDateString(),
+            expiresAt: null,
             completedToday: 0
         };
     }
-    
-    checkAndResetDailyTasks();
 }
 
-// Проверка и сброс заданий в полночь
+// Проверка и сброс заданий
 export function checkAndResetDailyTasks() {
     if (!gameData.dailyTasks || !gameData.dailyTasks.expiresAt) {
         return; // Не сбрасываем на фронтенде, пусть сервер управляет
@@ -50,70 +48,6 @@ export function checkAndResetDailyTasks() {
     if (now >= expiresAt) {
         showError('⏰ Задания истекли! Обновите страницу для получения новых.');
     }
-}
-
-// Обновите также функцию generateDailyTasks:
-function generateDailyTasks() {
-    // Эта функция больше не должна вызываться на фронтенде
-    // Задания генерируются только на сервере
-    console.warn('generateDailyTasks вызвана на фронтенде - это не должно происходить');
-}
-
-// Конфигурация ежедневных заданий
-const DAILY_TASKS_CONFIG = [
-    {
-        id: 'daily_races',
-        name: '🏁 Гонщик дня',
-        description: 'Проведи 3 гонки',
-        required: 3,
-        reward: 500,
-        trackStat: 'totalRaces'
-    },
-    {
-        id: 'daily_wins',
-        name: '🏆 Победитель',
-        description: 'Выиграй 2 гонки',
-        required: 2,
-        reward: 1000,
-        trackStat: 'wins'
-    },
-    {
-        id: 'daily_fuel',
-        name: '⛽ Экономист',
-        description: 'Потрать 15 топлива',
-        required: 15,
-        reward: 300,
-        trackStat: 'fuelSpent'
-    },
-    {
-        id: 'daily_upgrade',
-        name: '🔧 Механик',
-        description: 'Купи 1 улучшение',
-        required: 1,
-        reward: 800,
-        trackStat: 'upgradesBought'
-    },
-    {
-        id: 'daily_money',
-        name: '💰 Богач',
-        description: 'Заработай $2000',
-        required: 2000,
-        reward: 500,
-        trackStat: 'moneyEarned'
-    }
-];
-
-// Генерация случайных заданий на день
-function generateDailyTasks() {
-    const shuffled = [...DAILY_TASKS_CONFIG].sort(() => Math.random() - 0.5);
-    const selectedTasks = shuffled.slice(0, 3);
-    
-    gameData.dailyTasks.tasks = selectedTasks.map(config => ({
-        ...config,
-        progress: 0,
-        completed: false,
-        claimed: false
-    }));
 }
 
 // Обновление прогресса заданий
@@ -177,13 +111,13 @@ export async function claimTaskReward(taskId) {
     updatePlayerInfo();
     updateDailyTasksDisplay();
     
-    showError(`🎁 Получено ${task.reward} за задание "${task.name}"!`);
+    showError(`🎁 Получено $${task.reward} за задание "${task.name}"!`);
     
     // Бонус за выполнение всех заданий
     if (gameData.dailyTasks.completedToday === 3) {
         const bonus = 1000;
         gameData.money += bonus;
-        showError(`🌟 Бонус за все задания дня: ${bonus}!`);
+        showError(`🌟 Бонус за все задания дня: $${bonus}!`);
     }
     
     // Сохраняем
@@ -199,6 +133,11 @@ export function updateDailyTasksDisplay() {
     const tasksContainer = document.getElementById('daily-tasks-list');
     if (!tasksContainer) return;
     
+    if (!gameData.dailyTasks || !gameData.dailyTasks.tasks || gameData.dailyTasks.tasks.length === 0) {
+        tasksContainer.innerHTML = '<p class="no-tasks">Задания загружаются...</p>';
+        return;
+    }
+    
     const tasksHTML = gameData.dailyTasks.tasks.map(task => {
         const progressPercent = Math.min((task.progress / task.required) * 100, 100);
         const statusClass = task.claimed ? 'claimed' : task.completed ? 'completed' : 'active';
@@ -207,7 +146,7 @@ export function updateDailyTasksDisplay() {
             <div class="daily-task-card ${statusClass}">
                 <div class="task-header">
                     <span class="task-name">${task.name}</span>
-                    <span class="task-reward">${task.reward}</span>
+                    <span class="task-reward">$${task.reward}</span>
                 </div>
                 <div class="task-description">${task.description}</div>
                 <div class="task-progress">
@@ -224,7 +163,7 @@ export function updateDailyTasksDisplay() {
         `;
     }).join('');
     
-    tasksContainer.innerHTML = tasksHTML || '<p class="no-tasks">Задания загружаются...</p>';
+    tasksContainer.innerHTML = tasksHTML;
     
     // Обновляем счетчик
     const taskCounter = document.getElementById('daily-tasks-counter');
@@ -237,18 +176,24 @@ export function updateDailyTasksDisplay() {
             taskCounter.style.display = 'none';
         }
     }
+    
+    // Обновляем счетчик выполненных
+    const completedEl = document.getElementById('tasks-completed');
+    if (completedEl && gameData.dailyTasks) {
+        const completed = gameData.dailyTasks.tasks.filter(t => t.claimed).length;
+        completedEl.textContent = `${completed}/3`;
+    }
 }
 
 // Функция для отображения экрана заданий
 export function initDailyTasksScreen() {
     checkAndResetDailyTasks();
     updateDailyTasksDisplay();
+    updateDailyTasksTimer();
 }
 
 // Делаем функции доступными глобально
 window.claimTaskReward = claimTaskReward;
-window.showDailyTasksScreen = initDailyTasksScreen;
-window.initDailyTasksScreen = initDailyTasksScreen;
 window.updateTaskProgress = updateTaskProgress;
 window.updateDailyTasksDisplay = updateDailyTasksDisplay;
-window.checkAndResetDailyTasks = checkAndResetDailyTasks;
+export { initDailyTasksScreen };

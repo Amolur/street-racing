@@ -3,6 +3,7 @@
 
 import { gameState } from './game-data.js';
 import { showPlayerInfoBar, hidePlayerInfoBar, updateQuickStats } from './utils.js';
+import { initDailyTasksScreen } from './daily-tasks.js';
 
 // Функция для отслеживания навигации
 export function navigateToScreen(screenId) {
@@ -162,11 +163,8 @@ export function showDailyTasksScreen(addToHistory = true) {
     if (addToHistory) navigateToScreen('daily-tasks-screen');
     
     // Обновляем задания при открытии
-    // Импортируем функции из daily-tasks
-    if (window.checkAndResetDailyTasks) {
-        window.checkAndResetDailyTasks();
-    }
-    if (window.updateDailyTasksDisplay) {
-        window.updateDailyTasksDisplay();
+    // Используем функцию, которая действительно существует
+    if (window.initDailyTasksScreen) {
+        window.initDailyTasksScreen();
     }
 }
