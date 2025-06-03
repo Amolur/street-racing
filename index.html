@@ -168,9 +168,13 @@
                             <span class="badge" id="daily-tasks-counter" style="display: none;">0</span>
                         </button>
                         
-                        <button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
-                            <span class="menu-button-title">🏆 Таблица лидеров</span>
-                        </button>
+                        <button class="menu-button full-width secondary" onclick="showProfileScreen()">
+    <span class="menu-button-title">👤 Мой профиль</span>
+</button>
+
+<button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
+    <span class="menu-button-title">🏆 Таблица лидеров</span>
+</button>
                         
                         <button class="menu-button full-width critical-button" onclick="logout()">
                             <span class="menu-button-title">🚪 Выход</span>
@@ -329,21 +333,88 @@
                 </div>
             </div>
 
-            <!-- Скрытый экран профиля для совместимости -->
-            <div id="profile-screen" class="mobile-screen" style="display: none;">
-                <span id="profile-username"></span>
-                <span id="profile-level"></span>
-                <span id="profile-xp"></span>
-                <span id="profile-xp-next"></span>
-                <div id="profile-xp-fill"></div>
-                <span id="profile-wins"></span>
-                <span id="profile-cars"></span>
-                <span id="profile-rating"></span>
-                <div id="profile-stats"></div>
-                <div id="profile-skills-display"></div>
-            </div>
-        </main>
+            <!-- Замени существующий profile-screen на этот код -->
+<div id="profile-screen" class="mobile-screen">
+    <div class="screen-header">
+        <button class="back-button" onclick="goBack()">←</button>
+        <h2 class="screen-title">Профиль</h2>
     </div>
+    
+    <div class="screen-content">
+        <!-- Карточка игрока -->
+        <div class="player-profile-card">
+            <div class="profile-avatar-section">
+                <img src="" alt="Avatar" class="profile-avatar" id="profile-avatar">
+                <div class="profile-basic-info">
+                    <h2 class="profile-username" id="profile-username">Игрок</h2>
+                    <div class="profile-level-info">
+                        <span class="profile-level" id="profile-level">1</span>
+                        <span class="level-label">уровень</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Прогресс опыта -->
+            <div class="xp-section">
+                <div class="xp-info">
+                    <span class="xp-current" id="profile-xp">0</span>
+                    <span class="xp-separator">/</span>
+                    <span class="xp-next" id="profile-xp-next">100</span>
+                    <span class="xp-label">XP</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="profile-xp-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-section">
+            <h3 class="section-title">📊 Статистика</h3>
+            <div class="stats-grid" id="profile-stats">
+                <!-- Статистика будет добавлена через JS -->
+            </div>
+        </div>
+
+        <!-- Навыки -->
+        <div class="skills-section">
+            <h3 class="section-title">⚡ Навыки</h3>
+            <div class="skills-grid" id="profile-skills-display">
+                <!-- Навыки будут добавлены через JS -->
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="profile-actions">
+            <button class="action-button" onclick="showAchievementsScreen()">
+                🏆 Достижения (<span id="achievements-count">0</span>)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Экран достижений -->
+<div id="achievements-screen" class="mobile-screen">
+    <div class="screen-header">
+        <button class="back-button" onclick="goBack()">←</button>
+        <h2 class="screen-title">Достижения</h2>
+    </div>
+    
+    <div class="screen-content">
+        <div class="achievements-stats">
+            <div class="achievements-progress">
+                <span id="unlocked-achievements">0</span>
+                <span>/</span>
+                <span id="total-achievements">0</span>
+                <span>разблокировано</span>
+            </div>
+        </div>
+        
+        <div id="achievements-list">
+            <!-- Достижения будут добавлены через JS -->
+        </div>
+    </div>
+</div>
 
     <!-- Уведомления -->
     <div id="error-notification" class="notification"></div>

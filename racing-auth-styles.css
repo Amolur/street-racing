@@ -138,4 +138,272 @@
     transform: translate(-50%, -50%);
     font-size: 20px;
     color: var(--race-primary);
+}/* ================================ */
+/* СТИЛИ ПРОФИЛЯ ИГРОКА */
+/* ================================ */
+
+.player-profile-card {
+    background: var(--race-surface);
+    border-radius: var(--race-radius-large);
+    padding: var(--race-spacing-large);
+    margin-bottom: var(--race-spacing);
+    border: 2px solid var(--race-primary);
+}
+
+.profile-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--race-spacing);
+    margin-bottom: var(--race-spacing-large);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--race-primary);
+}
+
+.profile-basic-info {
+    flex: 1;
+}
+
+.profile-username {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--race-primary);
+    margin-bottom: var(--race-spacing-small);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profile-level-info {
+    display: flex;
+    align-items: baseline;
+    gap: var(--race-spacing-small);
+}
+
+.profile-level {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--race-warning);
+}
+
+.level-label {
+    font-size: 14px;
+    color: var(--race-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.xp-section {
+    background: var(--race-surface-dark);
+    padding: var(--race-spacing);
+    border-radius: var(--race-radius);
+    border: 1px solid var(--race-border);
+}
+
+.xp-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: var(--race-spacing-small);
+    font-weight: 600;
+}
+
+.xp-current {
+    color: var(--race-accent);
+    font-size: 16px;
+}
+
+.xp-separator {
+    color: var(--race-text-secondary);
+}
+
+.xp-next {
+    color: var(--race-text-secondary);
+    font-size: 16px;
+}
+
+.xp-label {
+    color: var(--race-text-light);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: var(--race-spacing-small);
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--race-primary);
+    margin-bottom: var(--race-spacing);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--race-border);
+    padding-bottom: var(--race-spacing-small);
+}
+
+.stats-section,
+.skills-section {
+    background: var(--race-surface);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing);
+    border: 1px solid var(--race-border);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--race-spacing-small);
+}
+
+.profile-stat-item {
+    background: var(--race-surface-dark);
+    padding: var(--race-spacing-small);
+    border-radius: var(--race-radius-small);
+    text-align: center;
+    border: 1px solid var(--race-border);
+}
+
+.profile-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--race-primary);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.profile-stat-label {
+    font-size: 10px;
+    color: var(--race-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.skills-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--race-spacing-small);
+}
+
+.skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--race-surface-dark);
+    padding: var(--race-spacing-small);
+    border-radius: var(--race-radius-small);
+    border: 1px solid var(--race-border);
+}
+
+.skill-name {
+    font-size: 12px;
+    color: var(--race-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.skill-level {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--race-warning);
+}
+
+.profile-actions {
+    margin-top: var(--race-spacing);
+}
+
+/* ================================ */
+/* СТИЛИ ДОСТИЖЕНИЙ */
+/* ================================ */
+
+.achievements-stats {
+    background: var(--race-surface);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing);
+    text-align: center;
+    border: 1px solid var(--race-border);
+}
+
+.achievements-progress {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--race-text-primary);
+}
+
+.achievements-progress span:first-child {
+    color: var(--race-accent);
+    font-size: 20px;
+}
+
+.achievement-card {
+    background: var(--race-surface);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing-small);
+    border: 1px solid var(--race-border);
+    display: flex;
+    align-items: center;
+    gap: var(--race-spacing);
+}
+
+.achievement-card.unlocked {
+    border-color: var(--race-accent);
+    background: var(--race-surface-dark);
+}
+
+.achievement-card.locked {
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    font-size: 24px;
+    width: 40px;
+    text-align: center;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--race-text-primary);
+    margin-bottom: 2px;
+}
+
+.achievement-description {
+    font-size: 11px;
+    color: var(--race-text-secondary);
+    line-height: 1.3;
+}
+
+.achievement-progress {
+    font-size: 10px;
+    color: var(--race-text-light);
+    margin-top: 2px;
+}
+
+.achievement-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--race-radius-small);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.achievement-status.unlocked {
+    color: var(--race-accent);
+    background: rgba(51, 170, 51, 0.2);
+}
+
+.achievement-status.locked {
+    color: var(--race-text-light);
+    background: var(--race-surface-dark);
 }

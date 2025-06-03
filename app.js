@@ -12,6 +12,7 @@ import * as upgrades from './modules/upgrades.js';
 import { startAutoSave, showLoading } from './modules/utils.js';
 import * as dailyTasks from './modules/daily-tasks.js';
 import { dom } from './modules/dom-manager.js';
+import * as achievements from './modules/achievements.js';
 
 // Делаем функции доступными глобально для onclick в HTML
 
@@ -58,6 +59,11 @@ window.updateShopDisplay = shop.updateShopDisplay;
 // Профиль
 window.updateProfileDisplay = profile.updateProfileDisplay;
 window.updateLeaderboard = profile.updateLeaderboard;
+
+// Достижения
+window.showAchievementsScreen = navigation.showAchievementsScreen;
+window.updateAchievementsDisplay = achievements.updateAchievementsDisplay;
+window.checkAllAchievements = achievements.checkAllAchievements;
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {

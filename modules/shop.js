@@ -85,7 +85,9 @@ export async function buyCar(carId) {
     if (!confirm(`Купить ${car.name} за $${car.price.toLocaleString()}?`)) {
         return;
     }
-    
+    if (window.checkAllAchievements) {
+    window.checkAllAchievements();
+}
     // Сохраняем старые значения для отката
     const oldMoney = gameData.money;
     const oldSpent = gameData.stats.moneySpent;

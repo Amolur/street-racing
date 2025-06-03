@@ -1,10 +1,126 @@
 // modules/profile.js
-// Функционал таблицы лидеров с новым UI
+// Функционал профиля игрока и таблицы лидеров
 
-import { gameData, gameState } from './game-data.js';
+import { gameData, gameState, levelSystem } from './game-data.js';
 import { showError } from './utils.js';
+import { checkAllAchievements, getAchievementsStats } from './achievements.js';
 
-// Обновление таблицы лидеров
+// Обновление отображения профиля
+export function updateProfileDisplay() {
+    if (!gameData || !gameState.currentUser) return;
+    
+    // Обновляем базовую информацию
+    const usernameEl = document.getElementById('profile-username');
+    const levelEl = document.getElementById('profile-level');
+    const avatarEl = document.getElementById('profile-avatar');
+    
+    if (usernameEl) usernameEl.textContent = gameState.currentUser.username;
+    if (levelEl) levelEl.textContent = gameData.level;
+    if (avatarEl) {
+        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=ff4444&color=ffffff&size=160`;
+    }
+    
+    // Обновляем XP
+    updateXPBar();
+    
+    // Обновляем статистику
+    updateProfileStats();
+    
+    // Обновляем навыки
+    updateProfileSkills();
+    
+    // Проверяем достижения
+    checkAllAchievements();
+    
+    // Обновляем счетчик достижений
+    updateAchievementsCount();
+}
+
+// Обновление XP бара
+export function updateXPBar() {
+    const currentXP = gameData.experience || 0;
+    const currentLevel = gameData.level;
+    const nextLevelXP = levelSystem.getRequiredXP(currentLevel + 1);
+    const prevLevelXP = currentLevel > 1 ? levelSystem.getRequiredXP(currentLevel) : 0;
+    
+    const xpInCurrentLevel = currentXP - prevLevelXP;
+    const xpNeededForLevel = nextLevelXP - prevLevelXP;
+    const progressPercent = Math.min((xpInCurrentLevel / xpNeededForLevel) * 100, 100);
+    
+    const xpCurrentEl = document.getElementById('profile-xp');
+    const xpNextEl = document.getElementById('profile-xp-next');
+    const xpFillEl = document.getElementById('profile-xp-fill');
+    
+    if (xpCurrentEl) xpCurrentEl.textContent = xpInCurrentLevel;
+    if (xpNextEl) xpNextEl.textContent = xpNeededForLevel;
+    if (xpFillEl) xpFillEl.style.width = `${progressPercent}%`;
+}
+
+// Обновление статистики профиля
+function updateProfileStats() {
+    const statsContainer = document.getElementById('profile-stats');
+    if (!statsContainer) return;
+    
+    const winRate = gameData.stats.totalRaces > 0 
+        ? Math.round((gameData.stats.wins / gameData.stats.totalRaces) * 100)
+        : 0;
+    
+    const stats = [
+        { label: 'Побед', value: gameData.stats.wins },
+        { label: 'Гонок', value: gameData.stats.totalRaces },
+        { label: 'Процент побед', value: `${winRate}%` },
+        { label: 'Машин', value: gameData.cars.length },
+        { label: 'Заработано', value: `$${gameData.stats.moneyEarned.toLocaleString()}` },
+        { label: 'Потрачено', value: `$${gameData.stats.moneySpent.toLocaleString()}` }
+    ];
+    
+    const statsHTML = stats.map(stat => `
+        <div class="profile-stat-item">
+            <span class="profile-stat-value">${stat.value}</span>
+            <span class="profile-stat-label">${stat.label}</span>
+        </div>
+    `).join('');
+    
+    statsContainer.innerHTML = statsHTML;
+}
+
+// Обновление навыков
+function updateProfileSkills() {
+    const skillsContainer = document.getElementById('profile-skills-display');
+    if (!skillsContainer) return;
+    
+    const skillNames = {
+        driving: 'Вождение',
+        speed: 'Скорость',
+        reaction: 'Реакция',
+        technique: 'Техника'
+    };
+    
+    const skillsHTML = Object.keys(skillNames).map(skillKey => {
+        const skillLevel = gameData.skills[skillKey] || 1;
+        const skillName = skillNames[skillKey];
+        
+        return `
+            <div class="skill-item">
+                <span class="skill-name">${skillName}</span>
+                <span class="skill-level">${skillLevel}/10</span>
+            </div>
+        `;
+    }).join('');
+    
+    skillsContainer.innerHTML = skillsHTML;
+}
+
+// Обновление счетчика достижений
+function updateAchievementsCount() {
+    const stats = getAchievementsStats();
+    const countEl = document.getElementById('achievements-count');
+    if (countEl) {
+        countEl.textContent = stats.unlocked;
+    }
+}
+
+// Обновление таблицы лидеров (оставляем как было)
 export async function updateLeaderboard() {
     try {
         const leaderboardList = document.getElementById('leaderboard-list');
@@ -45,70 +161,6 @@ export async function updateLeaderboard() {
     }
 }
 
-// Заглушки для совместимости
-export function updateProfileDisplay() {
-    // Профиль скрыт в новом дизайне
-}
-
-export function updateXPBar() {
-    // XP бар скрыт в новом дизайне
-}
-
 // Делаем функции доступными глобально
 window.updateLeaderboard = updateLeaderboard;
 window.updateProfileDisplay = updateProfileDisplay;
-
-// Добавляем стили для таблицы лидеров
-const leaderboardStyles = `
-    .leaderboard-item {
-        display: flex;
-        align-items: center;
-        gap: var(--ui-spacing);
-    }
-    
-    .leaderboard-item .position {
-        font-size: 20px;
-        font-weight: 700;
-        min-width: 40px;
-        text-align: center;
-    }
-    
-    .position.gold {
-        color: #FFD700;
-    }
-    
-    .position.silver {
-        color: #C0C0C0;
-    }
-    
-    .position.bronze {
-        color: #CD7F32;
-    }
-    
-    .leaderboard-item.current-user {
-        background: var(--ui-surface-dark);
-    }
-    
-    .loading {
-        text-align: center;
-        padding: var(--ui-spacing-large);
-        color: var(--ui-text-secondary);
-    }
-    
-    .error {
-        text-align: center;
-        padding: var(--ui-spacing-large);
-        color: var(--ui-accent);
-    }
-    
-    .no-data {
-        text-align: center;
-        padding: var(--ui-spacing-large);
-        color: var(--ui-text-secondary);
-    }
-`;
-
-// Добавляем стили в head
-const styleSheet = document.createElement('style');
-styleSheet.textContent = leaderboardStyles;
-document.head.appendChild(styleSheet);

@@ -197,7 +197,10 @@ export async function startRace(opponentIndex) {
         gameData.stats.moneySpent += betAmount;
         gameData.money -= betAmount;
     }
-
+    // Проверяем достижения
+    if (window.checkAllAchievements) {
+    window.checkAllAchievements();
+    }
     // Обновляем прогресс заданий
     if (window.updateTaskProgress) {
         window.updateTaskProgress('totalRaces');

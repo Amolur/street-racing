@@ -175,7 +175,9 @@ export async function upgradeComponent(type) {
         }
         
         checkUpgradeAchievements();
-        
+        if (window.checkAllAchievements) {
+    window.checkAllAchievements();
+}
     } catch (error) {
         console.error('❌ Ошибка сохранения улучшения:', error);
         

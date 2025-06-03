@@ -209,6 +209,23 @@ export function showGame() {
 
 // Функции для совместимости
 export function showProfileScreen(addToHistory = true) {
-    // Профиль скрыт в новом дизайне, показываем главное меню
-    showMainMenu(addToHistory);
+    hideAllScreens();
+    document.getElementById('profile-screen').classList.add('active');
+    if (addToHistory) navigateToScreen('profile-screen');
+    
+    // Обновляем профиль
+    if (window.updateProfileDisplay) {
+        window.updateProfileDisplay();
+    }
+}
+
+// Добавь новую функцию для экрана достижений
+export function showAchievementsScreen(addToHistory = true) {
+    hideAllScreens();
+    document.getElementById('achievements-screen').classList.add('active');
+    if (addToHistory) navigateToScreen('achievements-screen');
+    
+    if (window.updateAchievementsDisplay) {
+        window.updateAchievementsDisplay();
+    }
 }
