@@ -33,14 +33,20 @@ export function updateGarageDisplay() {
     // Обновляем активную вкладку
     const activeTab = document.querySelector('.tab-minimal.active');
     if (activeTab) {
-        const tabText = activeTab.textContent.trim();
-        if (tabText.includes('Улучшения')) {
-            updateUpgradesMinimal();
-        } else if (tabText.includes('Статистика')) {
-            updateStatsDisplay();
-        } else if (tabText.includes('Детали')) {
-            updatePartsMinimal();
+        const tabIcon = activeTab.querySelector('.tab-icon');
+        if (tabIcon) {
+            const iconText = tabIcon.textContent;
+            if (iconText === '🔧') {
+                updateUpgradesMinimal();
+            } else if (iconText === '📊') {
+                updateStatsDisplay();
+            } else if (iconText === '⚡') {
+                updatePartsMinimal();
+            }
         }
+    } else {
+        // По умолчанию показываем улучшения
+        updateUpgradesMinimal();
     }
 }
 
@@ -453,5 +459,8 @@ export function updateSpecialPartsDisplay() {
     });
 }
 
-// Делаем функцию доступной глобально для обновления из других модулей
+// Делаем функции доступными глобально
 window.updateGarageDisplay = updateGarageDisplay;
+window.updateUpgradesMinimal = updateUpgradesMinimal;
+window.updateStatsDisplay = updateStatsDisplay;
+window.updatePartsMinimal = updatePartsMinimal; 

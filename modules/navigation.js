@@ -87,7 +87,13 @@ export function showGarageScreen(addToHistory = true) {
     hidePlayerInfoBar();
     hideAllScreens();
     document.getElementById('garage-screen').classList.add('active');
-    if (window.updateGarageDisplay) window.updateGarageDisplay();
+    if (window.updateGarageDisplay) {
+        window.updateGarageDisplay();
+        // Убедимся, что первая вкладка активна
+        if (window.showGarageTab) {
+            window.showGarageTab('upgrades');
+        }
+    }
     if (addToHistory) navigateToScreen('garage-screen');
 }
 
