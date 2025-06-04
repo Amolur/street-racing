@@ -245,15 +245,6 @@ export function closeRacePreview() {
     }
 }
 
-// Подтвердить и начать гонку
-export function confirmRace(opponentIndex) {
-    closeRacePreview();
-    setTimeout(() => {
-        startRace(opponentIndex);
-    }, 100);
-}
-
-// Старт гонки - ТЕПЕРЬ С УЧЕТОМ ТИПА ГОНКИ
 export async function startRace(opponentIndex) {
     const opponent = serverOpponents[opponentIndex];
     if (!opponent) return;
@@ -263,20 +254,20 @@ export async function startRace(opponentIndex) {
     const betAmount = Math.floor(opponent.reward * raceType.rewardMultiplier / 2);
     const fuelCost = Math.ceil(opponent.fuelCost * raceType.fuelMultiplier);
     
+    // Простые проверки на клиенте (дублируются на сервере)
     if (gameData.money < betAmount) {
         window.notify(`Недостаточно денег! Нужно минимум $${betAmount}`, 'error');
         return;
     }
     
-   // Получаем актуальное топливо
-const currentFuel = fuelSystem.getCurrentFuel(currentCar);
-if (currentFuel < fuelCost) {
-    window.notify(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`, 'error');
-    return;
-}
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    if (currentFuel < fuelCost) {
+        window.notify(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`, 'error');
+        return;
+    }
     
     try {
-        // Отправляем запрос на сервер для проведения гонки
+        // ВСЁ отправляем на сервер - никаких расчетов на клиенте!
         const response = await fetch(`${window.API_URL}/game/race`, {
             method: 'POST',
             headers: {
@@ -300,74 +291,19 @@ if (currentFuel < fuelCost) {
         
         const result = await response.json();
         
-        // ВАЖНО: Обновляем ВСЕ локальные данные из ответа сервера
+        // ВАЖНО: Обновляем ВСЕ данные только из ответа сервера
         gameData.money = result.gameData.money;
         gameData.experience = result.gameData.experience;
         gameData.level = result.gameData.level;
+        gameData.stats = result.gameData.stats;
+        gameData.skills = result.gameData.skills;
         currentCar.fuel = result.gameData.fuel;
-        // НОВОЕ: Моментальная синхронизация отображения
-            updatePlayerInfo();
+        
+        // Обновляем интерфейс
+        updatePlayerInfo();
         if (window.updateFuelDisplay) {
             window.updateFuelDisplay();
         }
-        // НОВОЕ: Обновляем статистику локально
-        gameData.stats.totalRaces++;
-        if (result.result.won) {
-            gameData.stats.wins++;
-            gameData.stats.moneyEarned += result.result.reward;
-        } else {
-            gameData.stats.losses++;
-            gameData.stats.moneySpent += betAmount;
-        }
-        
-        // Обновляем статистику в зависимости от типа гонки
-        if (currentRaceType === 'drift' && result.result.won) {
-            gameData.stats.driftWins = (gameData.stats.driftWins || 0) + 1;
-        } else if (currentRaceType === 'sprint' && result.result.won) {
-            gameData.stats.sprintWins = (gameData.stats.sprintWins || 0) + 1;
-        } else if (currentRaceType === 'endurance' && result.result.won) {
-            gameData.stats.enduranceWins = (gameData.stats.enduranceWins || 0) + 1;
-        }
-        
-        // КРИТИЧЕСКОЕ СОХРАНЕНИЕ после гонки
-        if (window.queueSave) {
-            await window.queueSave(gameData, 'critical');
-        }
-        
-        // Показываем уведомления
-        if (result.result.nitroActivated) {
-            window.notify("🚀 Нитро активировано!", 'info');
-        }
-        
-        if (result.result.leveledUp) {
-            window.notify(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`, 'level');
-        }
-        
-        // Специальные уведомления для разных типов гонок
-        if (currentRaceType === 'drift' && result.result.won) {
-            window.notify("🌀 Отличный дрифт! Бонус к технике", 'skill');
-        } else if (currentRaceType === 'endurance' && result.result.won) {
-            window.notify("🏃 Невероятная выносливость! Двойной опыт", 'reward');
-        }
-        
-        // Проверяем достижения
-        if (window.checkAllAchievements) {
-            window.checkAllAchievements();
-        }
-        
-        // Проверяем получение навыка с сервера
-            if (result.skillGained) {
-        const skillNames = {
-        driving: 'Вождение',
-        speed: 'Скорость',
-        reaction: 'Реакция',
-        technique: 'Техника'
-    };
-            window.notify(`⚡ "${skillNames[result.skillGained.skill]}" повышен до ${result.skillGained.newLevel}!`, 'skill');
-    
-    // Обновляем локальные данные
-    gameData.skills[result.skillGained.skill] = result.skillGained.newLevel;
-}
         
         // Показываем результат
         showRaceResult(
@@ -379,11 +315,9 @@ if (currentFuel < fuelCost) {
             },
             result.result.playerTime,
             result.result.opponentTime,
-            Math.floor(result.result.xpGained * raceType.xpMultiplier),
+            result.result.xpGained,
             currentRaceType
         );
-        
-        updatePlayerInfo();
         
     } catch (error) {
         console.error('Ошибка гонки:', error);

@@ -90,42 +90,36 @@ export function updateTaskProgress(statType, amount = 1) {
 
 // Получение награды за задание
 export async function claimTaskReward(taskId) {
-    const task = gameData.dailyTasks.tasks.find(t => t.id === taskId);
-    
-    if (!task) {
-        window.notify('Задание не найдено!', 'error');
-        return;
-    }
-    
-    if (!task.completed) {
-        window.notify('Задание еще не выполнено!', 'warning');
-        return;
-    }
-    
-    if (task.claimed) {
-        window.notify('Награда уже получена!', 'info');
-        return;
-    }
-    
-    gameData.money += task.reward;
-    task.claimed = true;
-    gameData.dailyTasks.completedToday++;
-    
-    updatePlayerInfo();
-    updateDailyTasksDisplay();
-    
-    window.notify(`🎁 Получено $${task.reward} за задание "${task.name}"!`, 'reward');
-    
-    // Бонус за выполнение всех заданий
-    if (gameData.dailyTasks.completedToday === 3) {
-        const bonus = 1000;
-        gameData.money += bonus;
-        window.notify(`🌟 Бонус за все задания дня: $${bonus}!`, 'reward');
-    }
-    
-    // Сохраняем через очередь
-    if (window.queueSave) {
-        await window.queueSave(gameData, 'normal');
+    try {
+        const response = await fetch(`${window.API_URL}/game/claim-daily-task`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ taskId })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            window.notify(error.error, 'error');
+            return;
+        }
+        
+        const result = await response.json();
+        
+        // Обновляем данные только из ответа сервера
+        gameData.money = result.gameData.money;
+        gameData.dailyTasks = result.gameData.dailyTasks;
+        
+        updatePlayerInfo();
+        updateDailyTasksDisplay();
+        
+        window.notify(result.message, 'reward');
+        
+    } catch (error) {
+        console.error('Ошибка получения награды:', error);
+        window.notify('Ошибка соединения с сервером', 'error');
     }
 }
 

@@ -17,7 +17,28 @@ import * as chat from './modules/chat.js';
 import * as events from './modules/events.js';
 import { notifications } from './modules/notifications.js';
 
-
+// Защита от консольных читов
+if (typeof window !== 'undefined') {
+    // Скрываем глобальные переменные
+    Object.defineProperty(window, 'gameData', {
+        get: function() {
+            console.warn('🚫 Доступ к игровым данным запрещен!');
+            return undefined;
+        },
+        set: function() {
+            console.warn('🚫 Изменение игровых данных запрещено!');
+            return false;
+        }
+    });
+    
+    // Отключаем DevTools (частично)
+    setInterval(() => {
+        if (window.outerHeight - window.innerHeight > 200 || 
+            window.outerWidth - window.innerWidth > 200) {
+            document.body.innerHTML = '<h1>🚫 Консоль разработчика запрещена!</h1>';
+        }
+    }, 1000);
+}
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
     if (!gameData) {

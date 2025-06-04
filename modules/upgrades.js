@@ -152,9 +152,30 @@ export async function upgradeComponent(type) {
     const oldSpent = gameData.stats.moneySpent;
     const oldLevel = currentCar.upgrades[type];
     
-    // Применяем изменения локально (для UI)
-    gameData.money -= cost;
-    gameData.stats.moneySpent += cost;
+    // Отправляем запрос на сервер
+const response = await fetch(`${window.API_URL}/game/upgrade`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    },
+    body: JSON.stringify({ 
+        carIndex: gameData.currentCar, 
+        upgradeType: type 
+    })
+});
+
+if (!response.ok) {
+    const error = await response.json();
+    window.notify(error.error, 'error');
+    return;
+}
+
+const result = await response.json();
+// Обновляем только из ответа сервера
+gameData.money = result.gameData.money;
+gameData.cars[gameData.currentCar] = result.gameData.car;
+
     currentCar.upgrades[type]++;
     
     // Обновляем интерфейс сразу

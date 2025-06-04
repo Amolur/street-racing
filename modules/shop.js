@@ -86,9 +86,26 @@ export async function buyCar(carId) {
         return;
     }
     
-    // Применяем изменения
-    gameData.money -= car.price;
-    gameData.stats.moneySpent += car.price;
+    // Отправляем запрос на сервер
+const response = await fetch(`${window.API_URL}/game/buy-car`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+    },
+    body: JSON.stringify({ carId })
+});
+
+if (!response.ok) {
+    const error = await response.json();
+    window.notify(error.error, 'error');
+    return;
+}
+
+const result = await response.json();
+// Обновляем локальные данные из ответа сервера
+gameData.money = result.gameData.money;
+gameData.cars = result.gameData.cars;
     
     const newCar = {...car, owned: true};
     initializeCarUpgrades(newCar);
