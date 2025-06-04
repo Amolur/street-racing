@@ -165,7 +165,7 @@ export async function handleLogin() {
     const password = document.getElementById('login-password').value;
     
     if (!username || !password) {
-        showError('Введите логин и пароль');
+        window.notifyError('📝 Введите логин и пароль');
         return;
     }
     
@@ -185,22 +185,22 @@ export async function handleRegister() {
     const passwordConfirm = document.getElementById('register-password-confirm').value;
     
     if (!username || !password) {
-        showError('Введите логин и пароль');
+        window.notifyError('📝 Введите логин и пароль');
         return;
     }
     
     if (username.length < 3) {
-        showError('Логин должен быть не менее 3 символов');
+        window.notifyError('📝 Логин должен быть не менее 3 символов');
         return;
     }
     
     if (password.length < 6) {
-        showError('Пароль должен быть не менее 6 символов');
+        window.notifyError('📝 Пароль должен быть не менее 6 символов');
         return;
     }
     
     if (password !== passwordConfirm) {
-        showError('Пароли не совпадают!');
+        window.notifyError('📝 Пароли не совпадают!');
         return;
     }
     

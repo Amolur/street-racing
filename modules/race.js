@@ -146,20 +146,12 @@ export async function startRace(opponentIndex) {
     const betAmount = Math.floor(opponent.reward / 2);
     
     if (gameData.money < betAmount) {
-        if (window.notify) {
-            window.notify(`Недостаточно денег! Нужно минимум $${betAmount}`, 'error');
-        } else {
-            showError(`Недостаточно денег! Нужно минимум $${betAmount}`);
-        }
+        window.notifyError(`💰 Недостаточно денег! Нужно минимум $${betAmount}`);
         return;
     }
     
     if (currentCar.fuel < opponent.fuelCost) {
-        if (window.notify) {
-            window.notify(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`, 'error');
-        } else {
-            showError(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`);
-        }
+        window.notifyError(`⛽ Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`);
         return;
     }
     
@@ -180,11 +172,7 @@ export async function startRace(opponentIndex) {
         
         if (!response.ok) {
             const error = await response.json();
-            if (window.notify) {
-                window.notify(error.error || 'Ошибка проведения гонки', 'error');
-            } else {
-                showError(error.error || 'Ошибка проведения гонки');
-            }
+            window.notifyError(`🏁 ${error.error || 'Ошибка проведения гонки'}`);
             return;
         }
         
@@ -203,19 +191,11 @@ export async function startRace(opponentIndex) {
         
         // Показываем уведомления
         if (result.result.nitroActivated) {
-            if (window.notify) {
-                window.notify("🚀 Нитро активировано!", 'info');
-            } else {
-                showError("🚀 Нитро активировано!");
-            }
+            window.notify("🚀 Нитро активировано!", 'race');
         }
         
         if (result.result.leveledUp) {
-            if (window.notify) {
-                window.notify(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`, 'level');
-            } else {
-                showError(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`);
-            }
+            window.notifyLevel(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`);
         }
         
         // Проверяем достижения
@@ -233,11 +213,7 @@ export async function startRace(opponentIndex) {
                     reaction: 'Реакция',
                     technique: 'Техника'
                 };
-                if (window.notify) {
-                    window.notify(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`, 'skill');
-                } else {
-                    showError(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`);
-                }
+                window.notifySkill(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`);
             }
         }
         
@@ -258,11 +234,7 @@ export async function startRace(opponentIndex) {
         
     } catch (error) {
         console.error('Ошибка гонки:', error);
-        if (window.notify) {
-            window.notify('Ошибка соединения с сервером', 'error');
-        } else {
-            showError('Ошибка соединения с сервером');
-        }
+        window.notifyError('🔌 Ошибка соединения с сервером');
     }
 }
 

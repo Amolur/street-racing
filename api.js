@@ -40,20 +40,11 @@ function checkConnection() {
 
 // Показать уведомление об ошибке
 function showError(message) {
-    let notification = document.getElementById('error-notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'error-notification';
-        notification.className = 'error-notification';
-        document.body.appendChild(notification);
+    if (window.notify) {
+        window.notify(message, 'error');
+    } else {
+        console.error(message);
     }
-    
-    notification.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 5000);
 }
 
 // Базовая функция для API запросов
@@ -339,9 +330,9 @@ window.getLeaderboard = getLeaderboard;
 
 // Обработчики offline/online
 window.addEventListener('online', () => {
-    showError('Соединение восстановлено');
+    window.notify('🔌 Соединение восстановлено', 'success');
 });
 
 window.addEventListener('offline', () => {
-    showError('Нет соединения с интернетом');
+    window.notify('🔌 Нет соединения с интернетом', 'warning');
 });

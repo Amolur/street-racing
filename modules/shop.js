@@ -120,11 +120,7 @@ export async function buyCar(carId) {
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
     if (!car || gameData.money < car.price || gameData.level < requiredLevel) {
-        if (window.notify) {
-            window.notify('Невозможно купить эту машину!', 'error');
-        } else {
-            showError('Невозможно купить эту машину!');
-        }
+        window.notifyError('🚗 Невозможно купить эту машину!');
         return;
     }
     
@@ -148,11 +144,7 @@ export async function buyCar(carId) {
     updatePlayerInfo();
     updateShopDisplay();
     
-    if (window.notify) {
-        window.notify(`✅ Вы купили ${car.name}!`, 'success');
-    } else {
-        showError(`✅ Вы купили ${car.name}!`);
-    }
+    window.notify(`🚗 Вы купили ${car.name}!`, 'car');
     
     if (window.updateTaskProgress) {
         window.updateTaskProgress('moneySpent', car.price);
@@ -166,11 +158,7 @@ export async function buyCar(carId) {
 // Функция продажи машины
 export async function sellCar(index) {
     if (gameData.cars.length <= 1) {
-        if (window.notify) {
-            window.notify('Нельзя продать последнюю машину!', 'error');
-        } else {
-            showError('Нельзя продать последнюю машину!');
-        }
+        window.notifyError('🚗 Нельзя продать последнюю машину!');
         return;
     }
     
@@ -194,11 +182,7 @@ export async function sellCar(index) {
         updatePlayerInfo();
         updateShopDisplay();
         
-        if (window.notify) {
-            window.notify(`${car.name} продана за $${sellPrice.toLocaleString()}`, 'success');
-        } else {
-            showError(`${car.name} продана за $${sellPrice.toLocaleString()}`);
-        }
+        window.notify(`🚗 ${car.name} продана за $${sellPrice.toLocaleString()}`, 'car');
     }
 }
 

@@ -75,7 +75,7 @@ export function checkAndResetDailyTasks() {
     const expiresAt = new Date(gameData.dailyTasks.expiresAt);
     
     if (now >= expiresAt) {
-        showError('⏰ Задания истекли! Обновите страницу для получения новых.');
+        window.notify('⏰ Задания истекли! Обновите страницу для получения новых.', 'warning');
     }
 }
 
@@ -109,7 +109,7 @@ export function updateTaskProgress(statType, amount = 1) {
         if (task.progress >= task.required) {
             task.progress = task.required;
             task.completed = true;
-            showError(`✅ Задание "${task.name}" выполнено!`);
+            window.notifySuccess(`📋 Задание "${task.name}" выполнено!`);
         }
     });
     
@@ -121,17 +121,17 @@ export async function claimTaskReward(taskId) {
     const task = gameData.dailyTasks.tasks.find(t => t.id === taskId);
     
     if (!task) {
-        showError('Задание не найдено!');
+        window.notifyError('📋 Задание не найдено!');
         return;
     }
     
     if (!task.completed) {
-        showError('Задание еще не выполнено!');
+        window.notifyError('📋 Задание еще не выполнено!');
         return;
     }
     
     if (task.claimed) {
-        showError('Награда уже получена!');
+        window.notifyError('📋 Награда уже получена!');
         return;
     }
     
@@ -142,13 +142,13 @@ export async function claimTaskReward(taskId) {
     updatePlayerInfo();
     updateDailyTasksDisplay();
     
-    showError(`🎁 Получено $${task.reward} за задание "${task.name}"!`);
+    window.notifyReward(`🎁 Получено $${task.reward} за задание "${task.name}"!`);
     
     // Бонус за выполнение всех заданий
     if (gameData.dailyTasks.completedToday === 3) {
         const bonus = 1000;
         gameData.money += bonus;
-        showError(`🌟 Бонус за все задания дня: $${bonus}!`);
+        window.notifyReward(`🌟 Бонус за все задания дня: $${bonus}!`);
     }
     
     // Сохраняем через очередь

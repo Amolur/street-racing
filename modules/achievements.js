@@ -237,7 +237,7 @@ export async function checkAllAchievements() {
                 if (result.success) {
                     // Показываем уведомления о новых достижениях
                     newAchievements.forEach(achievement => {
-                        showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                        window.notifyAchievement(`🏆 ${achievement.name}`);
                     });
                     
                     console.log(`✅ ${newAchievements.length} достижений сохранено на сервер`);
@@ -246,14 +246,14 @@ export async function checkAllAchievements() {
                 console.warn('⚠️ Функция unlockAchievementsBatch недоступна');
                 // Показываем уведомления локально
                 newAchievements.forEach(achievement => {
-                    showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                    window.notifyAchievement(`🏆 ${achievement.name}`);
                 });
             }
         } catch (error) {
             console.error('❌ Ошибка сохранения достижений на сервер:', error);
             // Показываем уведомления локально
             newAchievements.forEach(achievement => {
-                showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                window.notifyAchievement(`🏆 ${achievement.name}`);
             });
         }
     }
