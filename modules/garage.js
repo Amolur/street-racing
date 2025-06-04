@@ -11,6 +11,14 @@ export function previousCar() {
     if (gameData.currentCar > 0) {
         gameData.currentCar--;
         updateGarageDisplay();
+        
+        // НОВОЕ: Моментальное обновление топлива при смене машины
+        if (window.updateFuelDisplay) {
+            window.updateFuelDisplay();
+        }
+        if (window.updatePlayerInfo) {
+            window.updatePlayerInfo();
+        }
     }
 }
 
@@ -18,6 +26,14 @@ export function nextCar() {
     if (gameData.currentCar < gameData.cars.length - 1) {
         gameData.currentCar++;
         updateGarageDisplay();
+        
+        // НОВОЕ: Моментальное обновление топлива при смене машины
+        if (window.updateFuelDisplay) {
+            window.updateFuelDisplay();
+        }
+        if (window.updatePlayerInfo) {
+            window.updatePlayerInfo();
+        }
     }
 }
 

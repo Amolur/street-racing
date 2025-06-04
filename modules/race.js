@@ -305,7 +305,11 @@ if (currentFuel < fuelCost) {
         gameData.experience = result.gameData.experience;
         gameData.level = result.gameData.level;
         currentCar.fuel = result.gameData.fuel;
-        
+        // НОВОЕ: Моментальная синхронизация отображения
+            updatePlayerInfo();
+        if (window.updateFuelDisplay) {
+            window.updateFuelDisplay();
+        }
         // НОВОЕ: Обновляем статистику локально
         gameData.stats.totalRaces++;
         if (result.result.won) {
@@ -400,6 +404,16 @@ export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained
     };
     
     resultDiv.innerHTML = createRaceResult(won, opponent, playerTime, opponentTime, rewards);
+    
+    // НОВОЕ: Обновляем отображение после показа результата
+    setTimeout(() => {
+        if (window.updateFuelDisplay) {
+            window.updateFuelDisplay();
+        }
+        if (window.updatePlayerInfo) {
+            window.updatePlayerInfo();
+        }
+    }, 100);
 }
 
 window.displayOpponents = displayOpponents;

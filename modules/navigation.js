@@ -139,6 +139,11 @@ export function showRaceMenu(addToHistory = true) {
     document.getElementById('race-menu-screen').classList.add('active');
     if (window.displayOpponents) window.displayOpponents();
     if (addToHistory) navigateToScreen('race-menu-screen');
+    
+    // НОВОЕ: Обновляем топливо при входе в меню гонок
+    if (window.updateFuelDisplay) {
+        window.updateFuelDisplay();
+    }
 }
 
 export function showShopScreen(addToHistory = true) {
