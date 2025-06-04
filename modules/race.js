@@ -100,9 +100,19 @@ export async function displayOpponents() {
     
     // Обновляем информацию
     document.getElementById('race-current-car').textContent = currentCar.name;
+    
+    // ВАЖНО: Получаем актуальное топливо с учетом регенерации
     const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    
+    // Обновляем отображение топлива
     document.getElementById('race-car-fuel').textContent = `${currentFuel}/${currentCar.maxFuel || 30}`;
     document.getElementById('race-balance').textContent = gameData.money;
+    
+    // Обновляем топливо в header
+    const headerFuelEl = document.getElementById('header-fuel');
+    if (headerFuelEl) {
+        headerFuelEl.textContent = currentFuel;
+    }
     
     // Показываем описание режима
     const raceTypeInfo = document.getElementById('race-type-info');
@@ -126,21 +136,21 @@ export async function displayOpponents() {
     }
     
     // Дополняем данные для отображения с учетом типа гонки
-const opponents = serverOpponents.map((opp, index) => {
-    const baseFuelCost = opp.fuelCost;
-    const adjustedFuelCost = Math.ceil(baseFuelCost * raceType.fuelMultiplier);
-    const adjustedReward = Math.floor(opp.reward * raceType.rewardMultiplier);
-    
-    return {
-        ...opp,
-        name: getOpponentName(opp.difficultyClass, currentRaceType),
-        car: getOpponentCar(opp.difficultyClass),
-        betAmount: Math.floor(adjustedReward / 2),
-        fuelCost: adjustedFuelCost,
-        reward: adjustedReward,
-        originalIndex: index
-    };
-});
+    const opponents = serverOpponents.map((opp, index) => {
+        const baseFuelCost = opp.fuelCost;
+        const adjustedFuelCost = Math.ceil(baseFuelCost * raceType.fuelMultiplier);
+        const adjustedReward = Math.floor(opp.reward * raceType.rewardMultiplier);
+        
+        return {
+            ...opp,
+            name: getOpponentName(opp.difficultyClass, currentRaceType),
+            car: getOpponentCar(opp.difficultyClass),
+            betAmount: Math.floor(adjustedReward / 2),
+            fuelCost: adjustedFuelCost,
+            reward: adjustedReward,
+            originalIndex: index
+        };
+    });
     
     // Создаем список
     const opponentsHTML = opponents.map((opponent, index) => {
@@ -258,11 +268,12 @@ export async function startRace(opponentIndex) {
         return;
     }
     
-    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
-    if (currentFuel < fuelCost) {
-        window.notify(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`, 'error');
-        return;
-    }
+   // Получаем актуальное топливо
+const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+if (currentFuel < fuelCost) {
+    window.notify(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`, 'error');
+    return;
+}
     
     try {
         // Отправляем запрос на сервер для проведения гонки

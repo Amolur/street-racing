@@ -159,15 +159,22 @@ export const fuelSystem = {
     },
     
     getCurrentFuel: function(car) {
-        if (!car.lastFuelUpdate) return car.fuel || 30;
-        
-        const now = new Date();
-        const lastUpdate = new Date(car.lastFuelUpdate);
-        const minutesPassed = (now - lastUpdate) / 60000;
-        const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
-        
-        return Math.min((car.fuel || 0) + fuelRegenerated, car.maxFuel || 30);
+    if (!car || car.fuel === undefined) return 30;
+    if (!car.lastFuelUpdate) return car.fuel;
+    
+    const now = new Date();
+    const lastUpdate = new Date(car.lastFuelUpdate);
+    const minutesPassed = (now - lastUpdate) / 60000;
+    const fuelRegenerated = Math.floor(minutesPassed / this.regenRate);
+    
+    const currentFuel = Math.min((car.fuel || 0) + fuelRegenerated, car.maxFuel || 30);
+    if (fuelRegenerated > 0) {
+        car.fuel = currentFuel;
+        car.lastFuelUpdate = now.toISOString();
     }
+    
+    return currentFuel;
+}
 };
 
 // Система получения навыков
