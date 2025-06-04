@@ -199,8 +199,7 @@ if (skillResult.success) {
         reaction: 'Реакция',
         technique: 'Техника'
     };
-    showError(`⚡ Навык "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}! (Шанс был ${skillResult.chance}%)`);
-}
+showError(`⚡ Навык "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`);}
         // Показываем результат
         showRaceResult(
             result.result.won,
