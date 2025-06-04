@@ -2,7 +2,6 @@
 // Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
-import { showNotification } from './ui-components.js';
 
 // Безопасная работа с localStorage
 export const storage = {
@@ -124,8 +123,6 @@ export function updateSaveIndicator(success = null) {
 export function showError(message) {
     if (window.notify) {
         window.notify(message, 'error');
-    } else {
-        showNotification(message, 'error');
     }
 }
 
