@@ -102,9 +102,6 @@ window.checkChatScroll = chat.checkChatScroll;
 window.loadNews = chat.loadNews;
 window.switchNewsCategory = chat.switchNewsCategory;
 
-// Инициализация системы уведомлений
-window.notify('Добро пожаловать в игру!', 'info');
-
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {
     // Проверка доступных функций

@@ -100,23 +100,15 @@ export function updateSaveIndicator(success = null) {
     const indicator = document.getElementById('save-indicator');
     if (!indicator) return;
     
-    indicator.classList.remove('saving', 'saved', 'error');
+    indicator.classList.remove('saving', 'saved', 'error', 'show');
     
-    if (success === null) {
-        // Сохранение в процессе
-        indicator.classList.add('show', 'saving');
-        indicator.querySelector('.save-text').textContent = 'Сохранение...';
-    } else if (success) {
-        // Успешно сохранено
-        indicator.classList.add('show', 'saved');
-        indicator.querySelector('.save-text').textContent = 'Сохранено';
-        setTimeout(() => {
-            indicator.classList.remove('show');
-        }, 2000);
-    } else {
-        // Ошибка
+    // Можете оставить только критические ошибки (по желанию)
+    if (success === false) {
         indicator.classList.add('show', 'error');
         indicator.querySelector('.save-text').textContent = 'Ошибка!';
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 3000);
     }
 }
 
@@ -145,12 +137,12 @@ export function startAutoSave() {
         if (gameState.currentUser && gameData) {
             try {
                 await queueSave(gameData, 'normal');
-                console.log('✅ Автосохранение добавлено в очередь');
+                // console.log('✅ Автосохранение добавлено в очередь'); // ЗАКОММЕНТИРУЙТЕ
             } catch (error) {
                 console.error('❌ Ошибка автосохранения:', error);
             }
         }
-    }, 60000); // Каждую минуту добавляем в очередь
+    }, 60000);
 }
 
 export function stopAutoSave() {
