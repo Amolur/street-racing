@@ -255,6 +255,9 @@ export function showGameFunc() {
         window.updateDailyTasksDisplay();
     }
     
+    if (window.startEventChecking) {
+    window.startEventChecking();
+}
     gameState.navigationHistory = [];
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);

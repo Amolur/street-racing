@@ -14,7 +14,9 @@ import * as dailyTasks from './modules/daily-tasks.js';
 import { dom } from './modules/dom-manager.js';
 import * as achievements from './modules/achievements.js';
 import * as chat from './modules/chat.js';
+import * as events from './modules/events.js';
 import { notifications } from './modules/notifications.js';
+
 
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
@@ -194,3 +196,5 @@ setInterval(async () => {
 
 // Экспортируем для использования в других модулях если нужно
 export { gameState, gameData };
+window.showEventScreen = events.showEventScreen;
+window.checkCurrentEvent = events.checkCurrentEvent;

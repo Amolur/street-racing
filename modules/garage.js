@@ -1,5 +1,5 @@
 // modules/garage.js
-// Функционал гаража с новым UI
+// Функционал гаража с новым UI и поддержкой событий
 
 import { gameData, fuelSystem } from './game-data.js';
 import { updatePlayerInfo } from './utils.js';
@@ -79,7 +79,7 @@ function updateCarInfo(car) {
     if (nextBtn) nextBtn.disabled = gameData.currentCar === gameData.cars.length - 1;
 }
 
-// Вкладка улучшений
+// Вкладка улучшений с поддержкой событий
 function updateUpgradesTab() {
     const container = document.getElementById('upgrades-list');
     if (!container) return;
@@ -93,16 +93,61 @@ function updateUpgradesTab() {
         maxUpgradeLevel = 7;
     }
     
+    // Проверяем событие скидок
+    const currentEvent = window.getCurrentEvent && window.getCurrentEvent();
+    const hasDiscountEvent = currentEvent && currentEvent.type === 'upgrade_discount';
+    
     const upgradesHTML = Object.keys(upgradeConfig).map(upgradeType => {
         const config = upgradeConfig[upgradeType];
         const currentLevel = currentCar.upgrades[upgradeType] || 0;
-        const cost = getUpgradeCost(upgradeType, currentLevel);
-        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= cost;
+        const originalCost = getUpgradeCost(upgradeType, currentLevel);
         
-        return createUpgradeItem(upgradeType, config, currentLevel, maxUpgradeLevel, cost, canUpgrade);
+        // Применяем скидку если есть событие
+        let displayCost = originalCost;
+        let hasDiscount = false;
+        
+        if (hasDiscountEvent && currentLevel < maxUpgradeLevel) {
+            displayCost = Math.floor(originalCost * 0.5);
+            hasDiscount = true;
+        }
+        
+        const canUpgrade = currentLevel < maxUpgradeLevel && gameData.money >= displayCost;
+        const isMaxed = currentLevel >= maxUpgradeLevel;
+        
+        return `
+            <div class="list-item upgrade-item ${isMaxed ? 'maxed' : ''}">
+                <div class="list-item-content">
+                    <div class="list-item-title">${config.name}</div>
+                    <div class="list-item-subtitle">
+                        Уровень ${currentLevel}/${maxUpgradeLevel}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(currentLevel / maxUpgradeLevel) * 100}%"></div>
+                    </div>
+                </div>
+                <button class="action-button small" 
+                        onclick="upgradeComponent('${upgradeType}')"
+                        ${!canUpgrade ? 'disabled' : ''}>
+                    ${isMaxed ? 'MAX' : hasDiscount ? 
+                        `<span style="text-decoration: line-through; color: #888; font-size: 10px;">$${originalCost}</span> $${displayCost}` : 
+                        `$${displayCost}`}
+                </button>
+            </div>
+        `;
     }).join('');
     
-    container.innerHTML = upgradesHTML;
+    // Добавляем индикатор события если есть скидки
+    let eventIndicator = '';
+    if (hasDiscountEvent) {
+        eventIndicator = `
+            <div class="event-banner">
+                <span class="event-icon">🔧</span>
+                <span class="event-text">Скидка 50% на все улучшения!</span>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = eventIndicator + upgradesHTML;
 }
 
 // Вкладка статистики
@@ -219,9 +264,9 @@ export function showGarageTab(tab) {
             break;
     }
 }
+
+// Делаем функции доступными глобально
 window.previousCar = previousCar;
 window.nextCar = nextCar;
 window.showGarageTab = showGarageTab;
-window.updateGarageDisplay = updateGarageDisplay;
-// Делаем функции доступными глобально
 window.updateGarageDisplay = updateGarageDisplay;

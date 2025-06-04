@@ -159,6 +159,14 @@
                             <span class="badge" id="daily-tasks-counter" style="display: none;">0</span>
                         </button>
                         
+<!-- Добавьте после кнопки "Задания" -->
+<button id="event-button" class="menu-button event" onclick="showEventScreen()" style="display: none;">
+    <div>
+        <span class="menu-button-title">🎉 Событие</span>
+        <span class="menu-button-subtitle">Активно сейчас!</span>
+    </div>
+</button>
+
                         <button class="menu-button community" onclick="showCommunityScreen()">
                     <div>
                          <span class="menu-button-title">💬 Сообщество</span>
@@ -412,6 +420,21 @@
         </div>
     </div>
 </div>
+
+<!-- Экран события -->
+<div id="event-screen" class="mobile-screen">
+    <div class="screen-header">
+        <button class="back-button" onclick="goBack()">←</button>
+        <h2 class="screen-title">Текущее событие</h2>
+    </div>
+    
+    <div class="screen-content">
+        <div id="event-content">
+            <!-- Контент события будет добавлен через JS -->
+        </div>
+    </div>
+</div>
+
 <div id="community-screen" class="mobile-screen">
     <div class="screen-header">
         <button class="back-button" onclick="goBack()">←</button>

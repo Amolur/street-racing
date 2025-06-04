@@ -1191,3 +1191,167 @@ body {
 .full-width-logo {
     transition: background-color 0.1s ease, transform 0.1s ease !important;
 }
+/* Кнопка события в главном меню */
+.menu-button.event {
+    border-left: 4px solid var(--race-primary);
+    background: rgba(255, 68, 68, 0.1);
+    position: relative;
+    overflow: visible;
+}
+
+.menu-button.event.pulse {
+    animation: eventPulse 2s infinite;
+}
+
+@keyframes eventPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
+    }
+}
+
+/* Карточка события */
+.event-card {
+    background: var(--race-surface);
+    border-radius: var(--race-radius-large);
+    padding: var(--race-spacing-large);
+    border: 2px solid var(--race-primary);
+    text-align: center;
+    position: relative;
+}
+
+.event-card.active {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 68, 68, 0.1) 0%,
+        rgba(45, 45, 45, 1) 100%
+    );
+}
+
+.event-icon {
+    font-size: 64px;
+    margin-bottom: var(--race-spacing);
+    filter: drop-shadow(0 0 20px rgba(255, 68, 68, 0.5));
+}
+
+.event-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--race-primary);
+    margin-bottom: var(--race-spacing);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.event-description {
+    font-size: 16px;
+    color: var(--race-text-primary);
+    margin-bottom: var(--race-spacing-large);
+    line-height: 1.5;
+}
+.event-banner {
+    background: var(--race-primary);
+    color: var(--race-text-primary);
+    padding: var(--race-spacing-small) var(--race-spacing);
+    border-radius: var(--race-radius);
+    margin-bottom: var(--race-spacing);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--race-spacing-small);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: eventPulse 2s infinite;
+}
+
+.event-banner .event-icon {
+    font-size: 16px;
+}
+/* Таймер события */
+.event-timer {
+    background: var(--race-surface-dark);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing-large);
+    border: 1px solid var(--race-border);
+}
+
+.timer-label {
+    display: block;
+    font-size: 12px;
+    color: var(--race-text-secondary);
+    margin-bottom: var(--race-spacing-small);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--race-warning);
+}
+
+/* Эффекты события */
+.event-effects {
+    background: var(--race-surface-dark);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing-large);
+    border: 1px solid var(--race-border);
+}
+
+.effect-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--race-spacing);
+    padding: var(--race-spacing-small);
+}
+
+.effect-icon {
+    font-size: 24px;
+}
+
+.effect-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--race-text-primary);
+}
+
+/* Индикатор события в других экранах */
+.event-indicator {
+    position: absolute;
+    top: var(--race-spacing-small);
+    right: var(--race-spacing-small);
+    background: var(--race-primary);
+    color: var(--race-text-primary);
+    padding: 4px 8px;
+    border-radius: var(--race-radius-small);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Адаптивность */
+@media (max-width: 380px) {
+    .event-icon {
+        font-size: 48px;
+    }
+    
+    .event-title {
+        font-size: 20px;
+    }
+    
+    .timer-value {
+        font-size: 24px;
+    }
+}
