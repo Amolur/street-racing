@@ -2,7 +2,7 @@
 // Функции авторизации
 
 import { gameState, gameData, updateGameData } from './game-data.js';
-import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates } from './utils.js';
+import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
 
 // Инициализация улучшений для машины
@@ -43,7 +43,7 @@ function initializeCarUpgrades(car) {
 export async function register(username, password) {
     try {
         console.log('📝 Регистрация пользователя...');
-        const data = await window.registerAPI(username, password);
+        const data = await registerAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
@@ -75,7 +75,7 @@ export async function register(username, password) {
 export async function login(username, password) {
     try {
         console.log('🔐 Вход в систему...');
-        const data = await window.loginAPI(username, password);
+        const data = await loginAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
@@ -114,7 +114,7 @@ export function logout() {
     if (confirm('Вы уверены, что хотите выйти?')) {
         stopAutoSave();
         stopFuelUpdates();
-        window.logoutAPI();
+        logoutAPI();
         gameState.currentUser = null;
         showAuthScreen();
     }
@@ -130,7 +130,7 @@ export async function checkAuth() {
     
     try {
         console.log('🔍 Проверка авторизации...');
-        const data = await window.loadGameData();
+        const data = await loadGameData();
         gameState.currentUser = { username: data.username };
         gameState.currentUserId = data.userId;
         updateGameData(data.gameData);
@@ -165,7 +165,7 @@ export async function handleLogin() {
     const password = document.getElementById('login-password').value;
     
     if (!username || !password) {
-        window.notifyError('📝 Введите логин и пароль');
+        showError('Введите логин и пароль');
         return;
     }
     
@@ -185,22 +185,22 @@ export async function handleRegister() {
     const passwordConfirm = document.getElementById('register-password-confirm').value;
     
     if (!username || !password) {
-        window.notifyError('📝 Введите логин и пароль');
+        showError('Введите логин и пароль');
         return;
     }
     
     if (username.length < 3) {
-        window.notifyError('📝 Логин должен быть не менее 3 символов');
+        showError('Логин должен быть не менее 3 символов');
         return;
     }
     
     if (password.length < 6) {
-        window.notifyError('📝 Пароль должен быть не менее 6 символов');
+        showError('Пароль должен быть не менее 6 символов');
         return;
     }
     
     if (password !== passwordConfirm) {
-        window.notifyError('📝 Пароли не совпадают!');
+        showError('Пароли не совпадают!');
         return;
     }
     
@@ -216,23 +216,18 @@ export async function handleRegister() {
 
 // Показать форму входа
 export function showLoginForm() {
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    
-    if (loginForm) loginForm.classList.add('active');
-    if (registerForm) registerForm.classList.remove('active');
+    document.getElementById('login-form').classList.add('active');
+    document.getElementById('register-form').classList.remove('active');
 }
 
 // Показать форму регистрации
 export function showRegisterForm() {
-    const registerForm = document.getElementById('register-form');
-    const loginForm = document.getElementById('login-form');
-    
-    if (registerForm) registerForm.classList.add('active');
-    if (loginForm) loginForm.classList.remove('active');
+    document.getElementById('register-form').classList.add('active');
+    document.getElementById('login-form').classList.remove('active');
 }
 
-// Показать игру
+
+window.showGameFunc = showGameFunc;
 export function showGameFunc() {
     showGame();
     
@@ -264,11 +259,5 @@ export function showGameFunc() {
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);
 }
-
-// Экспорт функций для глобального доступа
+// Экспортируем showGameFunc
 window.showGameFunc = showGameFunc;
-window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
-window.showLoginForm = showLoginForm;
-window.showRegisterForm = showRegisterForm;
-window.logout = logout;

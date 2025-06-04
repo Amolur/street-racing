@@ -30,23 +30,33 @@ const storage = {
 
 let authToken = storage.getItem('authToken');
 
-// Делаем authToken доступным глобально
-window.getAuthToken = () => authToken;
-
 // Проверка соединения
 function checkConnection() {
     return navigator.onLine;
 }
 
-// ПОЛНОСТЬЮ УДАЛЯЕМ старую функцию showError!
-// Теперь используем только window.notify
+// Показать уведомление об ошибке
+function showError(message) {
+    let notification = document.getElementById('error-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'error-notification';
+        notification.className = 'error-notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 5000);
+}
 
 // Базовая функция для API запросов
 async function apiRequest(endpoint, options = {}) {
     if (!checkConnection()) {
-        if (window.notify) {
-            window.notify('🔌 Нет соединения с интернетом', 'warning');
-        }
+        showError('Нет соединения с интернетом');
         throw new Error('No internet connection');
     }
     
@@ -93,17 +103,17 @@ async function apiRequest(endpoint, options = {}) {
     } catch (error) {
         console.error('API Error:', error);
         
-        // Показываем уведомления через новую систему
-        if (window.notify) {
-            if (error.message.includes('Failed to fetch')) {
-                window.notify('🔌 Сервер недоступен. Попробуйте позже.', 'error');
-            } else if (error.message.includes('Слишком много')) {
-                window.notify('⚠️ Слишком много попыток', 'warning');
-            } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
-                window.notify('🔐 Неверный логин или пароль', 'error');
-            } else {
-                window.notify(`❌ ${error.message}`, 'error');
-            }
+        // Не показываем техническую ошибку пользователю
+        if (error.message.includes('Failed to fetch')) {
+            showError('Сервер недоступен. Попробуйте позже.');
+        } else if (error.message.includes('Слишком много')) {
+            // Уже есть понятное сообщение
+            showError(error.message);
+        } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
+            // Для ошибок авторизации всегда показываем это сообщение
+            showError('Неверный логин или пароль');
+        } else {
+            showError(error.message);
         }
         
         throw error;
@@ -143,6 +153,20 @@ async function loadGameData() {
     return await apiRequest('/game/data', { method: 'GET' });
 }
 
+async function saveGameData(gameData) {
+    console.log('Отправка данных на сервер:', {
+        money: gameData.money,
+        level: gameData.level,
+        carsCount: gameData.cars ? gameData.cars.length : 0,
+        hasStats: !!gameData.stats
+    });
+    
+    return await apiRequest('/game/save', {
+        method: 'POST',
+        body: JSON.stringify({ gameData })
+    });
+}
+// Около строки 98 в api.js
 async function saveGameData(gameData) {
     try {
         // Проверяем данные перед отправкой
@@ -325,9 +349,9 @@ window.getLeaderboard = getLeaderboard;
 
 // Обработчики offline/online
 window.addEventListener('online', () => {
-    window.notify('🔌 Соединение восстановлено', 'success');
+    showError('Соединение восстановлено');
 });
 
 window.addEventListener('offline', () => {
-    window.notify('🔌 Нет соединения с интернетом', 'warning');
+    showError('Нет соединения с интернетом');
 });
