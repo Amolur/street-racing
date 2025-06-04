@@ -198,3 +198,4 @@ setInterval(async () => {
 export { gameState, gameData };
 window.showEventScreen = events.showEventScreen;
 window.checkCurrentEvent = events.checkCurrentEvent;
+window.startEventChecking = events.startEventChecking;
