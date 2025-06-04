@@ -95,6 +95,7 @@ function updateProfileSkills() {
         reaction: 'Реакция',
         technique: 'Техника'
     };
+    
     const skillsHTML = Object.keys(skillNames).map(skillKey => {
         const skillLevel = gameData.skills[skillKey] || 1;
         const skillName = skillNames[skillKey];
@@ -106,7 +107,8 @@ function updateProfileSkills() {
             </div>
         `;
     }).join('');
-    skillsContainer.innerHTML = skillsHTML + chanceInfo;
+    
+    skillsContainer.innerHTML = skillsHTML;
 }
 
 // Обновление счетчика достижений
