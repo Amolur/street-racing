@@ -16,6 +16,15 @@ import * as achievements from './modules/achievements.js';
 import * as chat from './modules/chat.js';
 import { notifications } from './modules/notifications.js';
 
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('Доступные функции:', {
+        showCommunityScreen: typeof window.showCommunityScreen,
+        showCommunityTab: typeof window.showCommunityTab,
+        loadChatMessages: typeof window.loadChatMessages,
+        loadNews: typeof window.loadNews
+    });
+});
+
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
     if (!gameData) {
