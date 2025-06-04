@@ -61,17 +61,34 @@ function updateProfileStats() {
     const statsContainer = document.getElementById('profile-stats');
     if (!statsContainer) return;
     
+    // Проверяем наличие gameData и stats
+    if (!gameData || !gameData.stats) {
+        // Если статистики нет, создаем пустую
+        if (gameData) {
+            gameData.stats = {
+                totalRaces: 0,
+                wins: 0,
+                losses: 0,
+                moneyEarned: 0,
+                moneySpent: 0
+            };
+        } else {
+            statsContainer.innerHTML = '<p class="no-data">Статистика недоступна</p>';
+            return;
+        }
+    }
+    
     const winRate = gameData.stats.totalRaces > 0 
         ? Math.round((gameData.stats.wins / gameData.stats.totalRaces) * 100)
         : 0;
     
     const stats = [
-        { label: 'Побед', value: gameData.stats.wins },
-        { label: 'Гонок', value: gameData.stats.totalRaces },
+        { label: 'Побед', value: gameData.stats.wins || 0 },
+        { label: 'Гонок', value: gameData.stats.totalRaces || 0 },
         { label: 'Процент побед', value: `${winRate}%` },
-        { label: 'Машин', value: gameData.cars.length },
-        { label: 'Заработано', value: `$${gameData.stats.moneyEarned.toLocaleString()}` },
-        { label: 'Потрачено', value: `$${gameData.stats.moneySpent.toLocaleString()}` }
+        { label: 'Машин', value: gameData.cars ? gameData.cars.length : 0 },
+        { label: 'Заработано', value: `$${(gameData.stats.moneyEarned || 0).toLocaleString()}` },
+        { label: 'Потрачено', value: `$${(gameData.stats.moneySpent || 0).toLocaleString()}` }
     ];
     
     const statsHTML = stats.map(stat => `
@@ -88,6 +105,21 @@ function updateProfileStats() {
 function updateProfileSkills() {
     const skillsContainer = document.getElementById('profile-skills-display');
     if (!skillsContainer) return;
+    
+    // Проверяем наличие gameData и skills
+    if (!gameData || !gameData.skills) {
+        if (gameData) {
+            gameData.skills = {
+                driving: 1,
+                speed: 1,
+                reaction: 1,
+                technique: 1
+            };
+        } else {
+            skillsContainer.innerHTML = '<p class="no-data">Навыки недоступны</p>';
+            return;
+        }
+    }
     
     const skillNames = {
         driving: 'Вождение',
