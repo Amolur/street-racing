@@ -131,24 +131,19 @@ import { notifications } from './modules/notifications.js';
 // ЗАЩИТА ОТ ИЗМЕНЕНИЯ WINDOW ОБЪЕКТОВ
 // =====================================
 
-// Защищаем основные игровые функции
-const protectedFunctions = [
-    'updatePlayerInfo',
-    'buyCar',
-    'upgradeComponent',
-    'claimTaskReward',
-    'startRace'
-];
+// Простая защита без блокировки
+const protectedFunctions = ['updatePlayerInfo', 'buyCar', 'upgradeComponent', 'claimTaskReward', 'startRace'];
 
+// Просто логируем попытки изменения
 protectedFunctions.forEach(funcName => {
-    const originalFunc = window[funcName];
-    if (originalFunc) {
-        Object.defineProperty(window, funcName, {
-            value: originalFunc,
-            writable: false,
-            configurable: false
-        });
-    }
+    let original = window[funcName];
+    Object.defineProperty(window, funcName, {
+        get() { return original; },
+        set(value) {
+            console.warn(`Попытка изменить защищенную функцию: ${funcName}`);
+            return false;
+        }
+    });
 });
 
 // =====================================
