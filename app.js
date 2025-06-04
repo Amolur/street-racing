@@ -16,15 +16,6 @@ import * as achievements from './modules/achievements.js';
 import * as chat from './modules/chat.js';
 import { notifications } from './modules/notifications.js';
 
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('Доступные функции:', {
-        showCommunityScreen: typeof window.showCommunityScreen,
-        showCommunityTab: typeof window.showCommunityTab,
-        loadChatMessages: typeof window.loadChatMessages,
-        loadNews: typeof window.loadNews
-    });
-});
-
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
     if (!gameData) {
@@ -57,7 +48,10 @@ window.showRaceMenu = navigation.showRaceMenu;
 window.showShopScreen = navigation.showShopScreen;
 window.showProfileScreen = navigation.showProfileScreen;
 window.showLeaderboardScreen = navigation.showLeaderboardScreen;
-window.showDailyTasksScreen = navigation.showDailyTasksScreen; 
+window.showDailyTasksScreen = navigation.showDailyTasksScreen;
+window.showAchievementsScreen = navigation.showAchievementsScreen;
+window.showCommunityScreen = navigation.showCommunityScreen;
+window.showCommunityTab = navigation.showCommunityTab;
 window.goBack = navigation.goBack;
 
 // Авторизация
@@ -95,13 +89,9 @@ window.updateProfileDisplay = profile.updateProfileDisplay;
 window.updateLeaderboard = profile.updateLeaderboard;
 
 // Достижения
-window.showAchievementsScreen = navigation.showAchievementsScreen;
 window.updateAchievementsDisplay = achievements.updateAchievementsDisplay;
 window.checkAllAchievements = achievements.checkAllAchievements;
 
-// Чат и новости
-window.showCommunityScreen = navigation.showCommunityScreen;
-window.showCommunityTab = navigation.showCommunityTab;
 // Чат и новости - функции
 window.loadChatMessages = chat.loadChatMessages;
 window.sendChatMessage = chat.sendChatMessage;
@@ -111,11 +101,30 @@ window.stopChatUpdates = chat.stopChatUpdates;
 window.checkChatScroll = chat.checkChatScroll;
 window.loadNews = chat.loadNews;
 window.switchNewsCategory = chat.switchNewsCategory;
+
 // Инициализация системы уведомлений
 window.notify('Добро пожаловать в игру!', 'info');
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {
+    // Проверка доступных функций
+    console.log('Доступные функции:', {
+        showCommunityScreen: typeof window.showCommunityScreen,
+        showCommunityTab: typeof window.showCommunityTab,
+        loadChatMessages: typeof window.loadChatMessages,
+        loadNews: typeof window.loadNews
+    });
+    
+    // Добавляем обработчик клика на логотип
+    const logoSection = document.querySelector('.header-logo-section');
+    if (logoSection) {
+        logoSection.addEventListener('click', function() {
+            if (window.showMainMenu) {
+                window.showMainMenu();
+            }
+        });
+    }
+    
     // Скрываем экран загрузки через секунду
     setTimeout(() => {
         const loadingScreen = document.getElementById('loading-screen');
@@ -166,6 +175,7 @@ setInterval(async () => {
         }
     }
 }, 60000); // Каждую минуту
+
 // Отключаем автосохранение при неактивности
 let lastActivity = Date.now();
 
@@ -176,18 +186,7 @@ document.addEventListener('click', () => {
 document.addEventListener('keypress', () => {
     lastActivity = Date.now();
 });
-// Обработчик клика на логотип
-document.addEventListener('DOMContentLoaded', function() {
-    // Добавляем обработчик клика на секцию с логотипом
-    const logoSection = document.querySelector('.header-logo-section');
-    if (logoSection) {
-        logoSection.addEventListener('click', function() {
-            if (window.showMainMenu) {
-                window.showMainMenu();
-            }
-        });
-    }
-});
+
 // Модифицируем периодическое сохранение
 setInterval(async () => {
     // Сохраняем только если была активность в последние 30 секунд

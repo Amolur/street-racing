@@ -75,6 +75,17 @@ export function navigateTo(screenId) {
                 setTimeout(() => window.updateLeaderboard(), 50);
             }
             break;
+        case 'community-screen':
+            if (window.loadChatMessages) {
+                setTimeout(() => window.loadChatMessages(), 50);
+            }
+            if (window.loadNews) {
+                setTimeout(() => window.loadNews(), 50);
+            }
+            if (window.startChatUpdates) {
+                setTimeout(() => window.startChatUpdates(), 50);
+            }
+            break;
     }
 }
 
@@ -205,7 +216,7 @@ export function showProfileScreen(addToHistory = true) {
     }
 }
 
-// Добавь новую функцию для экрана достижений
+// Функция для экрана достижений
 export function showAchievementsScreen(addToHistory = true) {
     hideAllScreens();
     document.getElementById('achievements-screen').classList.add('active');
@@ -216,34 +227,52 @@ export function showAchievementsScreen(addToHistory = true) {
     }
 }
 
-// Добавь новую функцию для экрана сообщества
+// Функция для экрана сообщества
 export function showCommunityScreen(addToHistory = true) {
+    console.log('showCommunityScreen вызвана');
     hideAllScreens();
-    document.getElementById('community-screen').classList.add('active');
+    const communityScreen = document.getElementById('community-screen');
+    if (communityScreen) {
+        communityScreen.classList.add('active');
+        console.log('Экран сообщества активирован');
+    } else {
+        console.error('Элемент community-screen не найден');
+    }
+    
     if (addToHistory) navigateToScreen('community-screen');
     
     // Загружаем чат и новости при открытии
-    if (window.loadChatMessages) {
-        window.loadChatMessages();
-    }
-    if (window.loadNews) {
-        window.loadNews();
-    }
-    if (window.startChatUpdates) {
-        window.startChatUpdates();
-    }
+    setTimeout(() => {
+        if (window.loadChatMessages) {
+            console.log('Загружаем сообщения чата');
+            window.loadChatMessages();
+        }
+        if (window.loadNews) {
+            console.log('Загружаем новости');
+            window.loadNews();
+        }
+        if (window.startChatUpdates) {
+            console.log('Запускаем обновления чата');
+            window.startChatUpdates();
+        }
+    }, 100);
 }
 
-// Добавь функцию для переключения вкладок сообщества  
+// Функция для переключения вкладок сообщества  
 export function showCommunityTab(tab) {
+    console.log('showCommunityTab вызвана с параметром:', tab);
+    
     // Удаляем активные классы
     document.querySelectorAll('#community-screen .tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('#community-screen .tab-content').forEach(content => content.classList.remove('active'));
     
     // Активируем нужную вкладку
     if (tab === 'chat') {
-        document.querySelector('#community-screen .tab-button:first-child').classList.add('active');
-        document.getElementById('community-chat').classList.add('active');
+        const chatBtn = document.querySelector('#community-screen .tab-button:first-child');
+        const chatContent = document.getElementById('community-chat');
+        
+        if (chatBtn) chatBtn.classList.add('active');
+        if (chatContent) chatContent.classList.add('active');
         
         // Загружаем сообщения чата
         if (window.loadChatMessages) {
@@ -254,8 +283,11 @@ export function showCommunityTab(tab) {
             window.startChatUpdates();
         }
     } else if (tab === 'news') {
-        document.querySelector('#community-screen .tab-button:last-child').classList.add('active');
-        document.getElementById('community-news').classList.add('active');
+        const newsBtn = document.querySelector('#community-screen .tab-button:last-child');
+        const newsContent = document.getElementById('community-news');
+        
+        if (newsBtn) newsBtn.classList.add('active');
+        if (newsContent) newsContent.classList.add('active');
         
         // Загружаем новости
         if (window.loadNews) {
@@ -267,15 +299,3 @@ export function showCommunityTab(tab) {
         }
     }
 }
-// Делаем функции доступными глобально
-window.showMainMenu = showMainMenu;
-window.showGarageScreen = showGarageScreen;
-window.showRaceMenu = showRaceMenu;
-window.showShopScreen = showShopScreen;
-window.showProfileScreen = showProfileScreen;
-window.showLeaderboardScreen = showLeaderboardScreen;
-window.showDailyTasksScreen = showDailyTasksScreen;
-window.showAchievementsScreen = showAchievementsScreen;
-window.showCommunityScreen = showCommunityScreen;  // ← ДОБАВЬТЕ ЭТУ СТРОКУ
-window.showCommunityTab = showCommunityTab;        // ← ДОБАВЬТЕ ЭТУ СТРОКУ
-window.goBack = goBack;
