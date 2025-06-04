@@ -43,7 +43,7 @@ function initializeCarUpgrades(car) {
 export async function register(username, password) {
     try {
         console.log('📝 Регистрация пользователя...');
-        const data = await registerAPI(username, password);
+        const data = await window.registerAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
@@ -75,7 +75,7 @@ export async function register(username, password) {
 export async function login(username, password) {
     try {
         console.log('🔐 Вход в систему...');
-        const data = await loginAPI(username, password);
+        const data = await window.loginAPI(username, password);
         gameState.currentUser = { username: data.user.username };
         gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
@@ -114,7 +114,7 @@ export function logout() {
     if (confirm('Вы уверены, что хотите выйти?')) {
         stopAutoSave();
         stopFuelUpdates();
-        logoutAPI();
+        window.logoutAPI();
         gameState.currentUser = null;
         showAuthScreen();
     }
@@ -130,7 +130,7 @@ export async function checkAuth() {
     
     try {
         console.log('🔍 Проверка авторизации...');
-        const data = await loadGameData();
+        const data = await window.loadGameData();
         gameState.currentUser = { username: data.username };
         gameState.currentUserId = data.userId;
         updateGameData(data.gameData);
@@ -216,18 +216,23 @@ export async function handleRegister() {
 
 // Показать форму входа
 export function showLoginForm() {
-    document.getElementById('login-form').classList.add('active');
-    document.getElementById('register-form').classList.remove('active');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
+    if (loginForm) loginForm.classList.add('active');
+    if (registerForm) registerForm.classList.remove('active');
 }
 
 // Показать форму регистрации
 export function showRegisterForm() {
-    document.getElementById('register-form').classList.add('active');
-    document.getElementById('login-form').classList.remove('active');
+    const registerForm = document.getElementById('register-form');
+    const loginForm = document.getElementById('login-form');
+    
+    if (registerForm) registerForm.classList.add('active');
+    if (loginForm) loginForm.classList.remove('active');
 }
 
-
-window.showGameFunc = showGameFunc;
+// ИСПРАВЛЕНО: убрал дублирование функции showGameFunc
 export function showGameFunc() {
     showGame();
     
@@ -259,5 +264,6 @@ export function showGameFunc() {
     gameState.currentScreen = 'main-menu';
     showMainMenu(false);
 }
+
 // Экспортируем showGameFunc
 window.showGameFunc = showGameFunc;

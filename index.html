@@ -162,20 +162,22 @@
                             <span class="badge" id="daily-tasks-counter" style="display: none;">0</span>
                         </button>
                         
-                        <button class="menu-button community" onclick="console.log('Клик по кнопке сообщества'); console.log('Тип функции:', typeof window.showCommunityScreen); if(window.showCommunityScreen) { window.showCommunityScreen(); } else { console.error('Функция showCommunityScreen не найдена'); alert('Функция showCommunityScreen не найдена!'); }">
-                    <div>
-                         <span class="menu-button-title">💬 Сообщество</span>
-                         <span class="menu-button-subtitle">Чат и новости</span>
-                </div>
-                        <span class="badge" id="unread-news-counter" style="display: none;">0</span>
-                </button>
+                        <!-- ИСПРАВЛЕНО: упростил onclick для кнопки сообщества -->
+                        <button class="menu-button community" onclick="showCommunityScreen()">
+                            <div>
+                                <span class="menu-button-title">💬 Сообщество</span>
+                                <span class="menu-button-subtitle">Чат и новости</span>
+                            </div>
+                            <span class="badge" id="unread-news-counter" style="display: none;">0</span>
+                        </button>
+                        
                         <button class="menu-button full-width secondary" onclick="showProfileScreen()">
-                <span class="menu-button-title">👤 Мой профиль</span>
-            </button>
+                            <span class="menu-button-title">👤 Мой профиль</span>
+                        </button>
 
-<button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
-    <span class="menu-button-title">🏆 Таблица лидеров</span>
-</button>
+                        <button class="menu-button full-width secondary" onclick="showLeaderboardScreen()">
+                            <span class="menu-button-title">🏆 Таблица лидеров</span>
+                        </button>
                         
                         <button class="menu-button full-width critical-button" onclick="logout()">
                             <span class="menu-button-title">🚪 Выход</span>
@@ -415,6 +417,7 @@
         </div>
     </div>
 </div>
+
 <div id="community-screen" class="mobile-screen">
     <div class="screen-header">
         <button class="back-button" onclick="goBack()">←</button>
@@ -478,11 +481,14 @@
         </div>
     </div>
 </div>
+    </main>
+    </div>
+    
     <!-- Уведомления -->
     <div id="error-notification" class="notification"></div>
     
     <!-- Подключение скриптов -->
     <script src="api.js"></script>
-<script type="module" src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

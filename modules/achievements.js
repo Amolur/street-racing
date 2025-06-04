@@ -142,19 +142,21 @@ export const allAchievements = [
         icon: '🔧',
         category: 'upgrades',
         condition: () => {
-    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return false;
-    const car = gameData.cars[gameData.currentCar];
-    if (!car.upgrades) return false;
-    return Object.values(car.upgrades).some(level => level > 0);
-},
+            if (!gameData.cars || !gameData.cars[gameData.currentCar]) return false;
+            const car = gameData.cars[gameData.currentCar];
+            if (!car.upgrades) return false;
+            return Object.values(car.upgrades).some(level => level > 0);
+        },
         progress: () => {
-    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return 0;
-    const car = gameData.cars[gameData.currentCar];
-    if (!car.upgrades) return 0;
-    return Object.values(car.upgrades).some(level => level > 0) ? 1 : 0;
-},
-
-    
+            if (!gameData.cars || !gameData.cars[gameData.currentCar]) return 0;
+            const car = gameData.cars[gameData.currentCar];
+            if (!car.upgrades) return 0;
+            return Object.values(car.upgrades).some(level => level > 0) ? 1 : 0;
+        },
+        maxProgress: 1
+    },
+    // ИСПРАВЛЕНО: добавил недостающие поля для достижения tuning_expert
+    {
         id: 'tuning_expert',
         name: 'Эксперт тюнинга',
         description: 'Максимально улучшите одну деталь',

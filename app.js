@@ -102,6 +102,8 @@ window.checkChatScroll = chat.checkChatScroll;
 window.loadNews = chat.loadNews;
 window.switchNewsCategory = chat.switchNewsCategory;
 
+// ИСПРАВЛЕНО: убрал дублирующиеся глобальные объявления, которые уже есть в других модулях
+
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {
     // Проверка доступных функций

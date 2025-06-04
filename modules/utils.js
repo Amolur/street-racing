@@ -2,7 +2,6 @@
 // Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
-import { showNotification } from './ui-components.js';
 
 // Безопасная работа с localStorage
 export const storage = {
@@ -64,7 +63,12 @@ async function processSaveQueue() {
     saveQueue = []; // Очищаем очередь
     
     try {
-        await saveGameData(latestSave.data);
+        // ИСПРАВЛЕНО: используем глобальную функцию saveGameData
+        if (window.saveGameData) {
+            await window.saveGameData(latestSave.data);
+        } else {
+            throw new Error('saveGameData не найдена');
+        }
         unsavedChanges = false;
         updateSaveIndicator(true);
     } catch (error) {
@@ -88,7 +92,9 @@ window.addEventListener('beforeunload', async (e) => {
         // Пытаемся сохранить синхронно
         try {
             const latestSave = saveQueue[saveQueue.length - 1] || { data: gameData };
-            await saveGameData(latestSave.data);
+            if (window.saveGameData) {
+                await window.saveGameData(latestSave.data);
+            }
         } catch (error) {
             console.error('Не удалось сохранить при закрытии');
         }
@@ -105,7 +111,8 @@ export function updateSaveIndicator(success = null) {
     // Можете оставить только критические ошибки (по желанию)
     if (success === false) {
         indicator.classList.add('show', 'error');
-        indicator.querySelector('.save-text').textContent = 'Ошибка!';
+        const saveText = indicator.querySelector('.save-text');
+        if (saveText) saveText.textContent = 'Ошибка!';
         setTimeout(() => {
             indicator.classList.remove('show');
         }, 3000);
@@ -117,8 +124,27 @@ export function showError(message) {
     if (window.notify) {
         window.notify(message, 'error');
     } else {
-        showNotification(message, 'error');
+        // Fallback для случаев когда notify недоступна
+        showNotificationFallback(message, 'error');
     }
+}
+
+// ИСПРАВЛЕНО: добавил fallback функцию для уведомлений
+function showNotificationFallback(message, type = 'error') {
+    let notification = document.getElementById('error-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'error-notification';
+        notification.className = 'notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 5000);
 }
 
 // Показать/скрыть индикатор загрузки (отключено)

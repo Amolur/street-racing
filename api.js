@@ -30,6 +30,9 @@ const storage = {
 
 let authToken = storage.getItem('authToken');
 
+// Делаем authToken доступным глобально
+window.getAuthToken = () => authToken;
+
 // Проверка соединения
 function checkConnection() {
     return navigator.onLine;
@@ -153,20 +156,7 @@ async function loadGameData() {
     return await apiRequest('/game/data', { method: 'GET' });
 }
 
-async function saveGameData(gameData) {
-    console.log('Отправка данных на сервер:', {
-        money: gameData.money,
-        level: gameData.level,
-        carsCount: gameData.cars ? gameData.cars.length : 0,
-        hasStats: !!gameData.stats
-    });
-    
-    return await apiRequest('/game/save', {
-        method: 'POST',
-        body: JSON.stringify({ gameData })
-    });
-}
-// Около строки 98 в api.js
+// ИСПРАВЛЕНО: убрал дублирование функции saveGameData
 async function saveGameData(gameData) {
     try {
         // Проверяем данные перед отправкой

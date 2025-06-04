@@ -3,7 +3,7 @@
 
 import { gameData } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
-import { queueSave } from './utils.js';
+// ИСПРАВЛЕНО: убрал импорт queueSave, так как он доступен через window.queueSave
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {
@@ -159,13 +159,19 @@ export async function upgradeComponent(type) {
     
     // Обновляем интерфейс сразу
     updatePlayerInfo();
-    window.updateGarageDisplay();
+    if (window.updateGarageDisplay) {
+        window.updateGarageDisplay();
+    }
     
     console.log('💰 Покупка улучшения...');
     
     try {
         // Сохраняем на сервер
-        await saveGameData(gameData);
+        if (window.saveGameData) {
+            await window.saveGameData(gameData);
+        } else {
+            throw new Error('saveGameData недоступна');
+        }
         
         console.log('✅ Улучшение успешно сохранено на сервер');
         showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
@@ -177,8 +183,8 @@ export async function upgradeComponent(type) {
         
         checkUpgradeAchievements();
         if (window.checkAllAchievements) {
-    window.checkAllAchievements();
-}
+            window.checkAllAchievements();
+        }
     } catch (error) {
         console.error('❌ Ошибка сохранения улучшения:', error);
         
@@ -189,7 +195,9 @@ export async function upgradeComponent(type) {
         
         // Обновляем интерфейс
         updatePlayerInfo();
-        window.updateGarageDisplay();
+        if (window.updateGarageDisplay) {
+            window.updateGarageDisplay();
+        }
         
         showError('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.');
     }
@@ -221,13 +229,19 @@ export async function buySpecialPart(type, cost) {
     
     // Обновляем интерфейс сразу
     updatePlayerInfo();
-    window.updateGarageDisplay();
+    if (window.updateGarageDisplay) {
+        window.updateGarageDisplay();
+    }
     
     console.log('🔧 Покупка специальной детали...');
     
     try {
         // Сохраняем на сервер
-        await saveGameData(gameData);
+        if (window.saveGameData) {
+            await window.saveGameData(gameData);
+        } else {
+            throw new Error('saveGameData недоступна');
+        }
         
         const partNames = {
             nitro: "Нитро",
@@ -253,7 +267,9 @@ export async function buySpecialPart(type, cost) {
         
         // Обновляем интерфейс
         updatePlayerInfo();
-        window.updateGarageDisplay();
+        if (window.updateGarageDisplay) {
+            window.updateGarageDisplay();
+        }
         
         showError('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.');
     }
@@ -283,5 +299,7 @@ export function checkUpgradeAchievements() {
         showError("🏆 Достижение: Максимальная прокачка!");
     }
 }
+
+// Делаем функции доступными глобально
 window.upgradeComponent = upgradeComponent;
 window.buySpecialPart = buySpecialPart;

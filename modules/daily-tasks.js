@@ -3,7 +3,35 @@
 
 import { gameData, gameState } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
-import { createTaskCard } from './ui-components.js';
+
+// ИСПРАВЛЕНО: убрал импорт несуществующей функции createTaskCard
+// Создаем функцию createTaskCard локально
+function createTaskCard(task) {
+    const progressPercent = Math.min((task.progress / task.required) * 100, 100);
+    const statusClass = task.claimed ? 'claimed' : task.completed ? 'completed' : 'active';
+    
+    return `
+        <div class="card task-card ${statusClass}">
+            <div class="card-header">
+                <h3 class="card-title">${task.name}</h3>
+                <span class="task-reward">$${task.reward}</span>
+            </div>
+            <div class="card-body">
+                <p class="task-description">${task.description}</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                </div>
+                <p class="progress-text">${task.progress} / ${task.required}</p>
+                ${task.completed && !task.claimed ? 
+                    `<button class="action-button success" onclick="claimTaskReward('${task.id}')">
+                        Получить награду
+                    </button>` : 
+                    task.claimed ? '<p class="task-status">✓ Получено</p>' : ''
+                }
+            </div>
+        </div>
+    `;
+}
 
 // Обновление таймера заданий
 export function updateDailyTasksTimer() {
@@ -123,11 +151,10 @@ export async function claimTaskReward(taskId) {
         showError(`🌟 Бонус за все задания дня: $${bonus}!`);
     }
     
-    // Сохраняем
     // Сохраняем через очередь
-if (window.queueSave) {
-    await window.queueSave(gameData, 'normal');
-}
+    if (window.queueSave) {
+        await window.queueSave(gameData, 'normal');
+    }
 }
 
 // Обновление отображения заданий
