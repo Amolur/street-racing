@@ -1,6 +1,5 @@
 // modules/game-data.js
 // Централизованное хранилище игровых данных
-
 export const gameState = {
     currentUser: null,
     authToken: null,
@@ -27,7 +26,10 @@ export let gameData = {
         wins: 0,
         losses: 0,
         moneyEarned: 0,
-        moneySpent: 0
+        moneySpent: 0,
+        driftWins: 0,
+        sprintWins: 0,
+        enduranceWins: 0
     },
     cars: [{
         id: 0,

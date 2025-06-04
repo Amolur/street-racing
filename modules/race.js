@@ -289,11 +289,21 @@ export async function startRace(opponentIndex) {
         
         const result = await response.json();
         
-        // Обновляем локальные данные из ответа сервера
+        // ВАЖНО: Обновляем ВСЕ локальные данные из ответа сервера
         gameData.money = result.gameData.money;
         gameData.experience = result.gameData.experience;
         gameData.level = result.gameData.level;
         currentCar.fuel = result.gameData.fuel;
+        
+        // НОВОЕ: Обновляем статистику локально
+        gameData.stats.totalRaces++;
+        if (result.result.won) {
+            gameData.stats.wins++;
+            gameData.stats.moneyEarned += result.result.reward;
+        } else {
+            gameData.stats.losses++;
+            gameData.stats.moneySpent += betAmount;
+        }
         
         // Обновляем статистику в зависимости от типа гонки
         if (currentRaceType === 'drift' && result.result.won) {
