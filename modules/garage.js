@@ -4,7 +4,30 @@
 import { gameData, fuelSystem } from './game-data.js';
 import { updatePlayerInfo } from './utils.js';
 import { upgradeConfig, getUpgradeCost, calculateTotalStats, initializeCarUpgrades } from './upgrades.js';
-import { createUpgradeItem } from './ui-components.js';
+
+// ИСПРАВЛЕНО: создаем локальную функцию createUpgradeItem вместо импорта
+function createUpgradeItem(upgradeType, config, currentLevel, maxLevel, cost, canUpgrade) {
+    const isMaxed = currentLevel >= maxLevel;
+    
+    return `
+        <div class="list-item upgrade-item ${isMaxed ? 'maxed' : ''}">
+            <div class="list-item-content">
+                <div class="list-item-title">${config.name}</div>
+                <div class="list-item-subtitle">
+                    Уровень ${currentLevel}/${maxLevel}
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${(currentLevel / maxLevel) * 100}%"></div>
+                </div>
+            </div>
+            <button class="action-button small" 
+                    onclick="upgradeComponent('${upgradeType}')"
+                    ${!canUpgrade ? 'disabled' : ''}>
+                ${isMaxed ? 'MAX' : `$${cost}`}
+            </button>
+        </div>
+    `;
+}
 
 // Переключение между машинами
 export function previousCar() {
@@ -64,12 +87,18 @@ function updateCarInfo(car) {
     else if (totalPower >= 70) rating = 'B';
     else if (totalPower >= 60) rating = 'C';
     
-    // Обновляем элементы
-    document.getElementById('current-car-name').textContent = car.name;
-    document.getElementById('car-power').textContent = totalPower;
-    document.getElementById('car-fuel-display').textContent = `${currentFuel}/${car.maxFuel || 30}`;
-    document.getElementById('car-rating').textContent = rating;
-    document.getElementById('car-counter').textContent = `${gameData.currentCar + 1}/${gameData.cars.length}`;
+    // Обновляем элементы с проверками
+    const carNameEl = document.getElementById('current-car-name');
+    const carPowerEl = document.getElementById('car-power');
+    const carFuelEl = document.getElementById('car-fuel-display');
+    const carRatingEl = document.getElementById('car-rating');
+    const carCounterEl = document.getElementById('car-counter');
+    
+    if (carNameEl) carNameEl.textContent = car.name;
+    if (carPowerEl) carPowerEl.textContent = totalPower;
+    if (carFuelEl) carFuelEl.textContent = `${currentFuel}/${car.maxFuel || 30}`;
+    if (carRatingEl) carRatingEl.textContent = rating;
+    if (carCounterEl) carCounterEl.textContent = `${gameData.currentCar + 1}/${gameData.cars.length}`;
     
     // Обновляем состояние кнопок навигации
     const prevBtn = document.querySelector('.car-navigation .nav-button:first-child');
@@ -219,9 +248,9 @@ export function showGarageTab(tab) {
             break;
     }
 }
+
+// Делаем функции доступными глобально
 window.previousCar = previousCar;
 window.nextCar = nextCar;
 window.showGarageTab = showGarageTab;
-window.updateGarageDisplay = updateGarageDisplay;
-// Делаем функции доступными глобально
 window.updateGarageDisplay = updateGarageDisplay;

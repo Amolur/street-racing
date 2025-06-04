@@ -3,6 +3,7 @@
 
 export const gameState = {
     currentUser: null,
+    currentUserId: null, // ИСПРАВЛЕНО: добавил недостающее поле
     authToken: null,
     navigationHistory: [],
     currentScreen: 'main-menu',
@@ -29,6 +30,20 @@ export let gameData = {
         moneyEarned: 0,
         moneySpent: 0
     },
+    // ИСПРАВЛЕНО: добавил недостающие поля
+    dailyStats: {
+        totalRaces: 0,
+        wins: 0,
+        fuelSpent: 0,
+        upgradesBought: 0,
+        moneyEarned: 0
+    },
+    dailyTasks: {
+        tasks: [],
+        expiresAt: null,
+        completedToday: 0
+    },
+    achievements: [],
     cars: [{
         id: 0,
         name: "Handa Civic",
@@ -37,13 +52,39 @@ export let gameData = {
         handling: 70,
         acceleration: 55,
         price: 0,
-        owned: true
+        owned: true,
+        fuel: 30,
+        maxFuel: 30,
+        lastFuelUpdate: new Date().toISOString(),
+        upgrades: {
+            engine: 0,
+            turbo: 0,
+            tires: 0,
+            suspension: 0,
+            transmission: 0
+        },
+        specialParts: {
+            nitro: false,
+            bodyKit: false,
+            ecuTune: false,
+            fuelTank: false
+        }
     }]
 };
 
 // Функция для обновления gameData после загрузки с сервера
 export function updateGameData(newData) {
-    gameData = { ...gameData, ...newData };
+    // ИСПРАВЛЕНО: безопасное слияние данных с сохранением структуры
+    gameData = { 
+        ...gameData, 
+        ...newData,
+        // Обеспечиваем наличие всех необходимых полей
+        dailyStats: { ...gameData.dailyStats, ...(newData.dailyStats || {}) },
+        dailyTasks: { ...gameData.dailyTasks, ...(newData.dailyTasks || {}) },
+        achievements: newData.achievements || gameData.achievements,
+        skills: { ...gameData.skills, ...(newData.skills || {}) },
+        stats: { ...gameData.stats, ...(newData.stats || {}) }
+    };
 }
 
 // Система уровней
