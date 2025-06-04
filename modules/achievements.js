@@ -2,7 +2,6 @@
 // Система достижений
 
 import { gameData } from './game-data.js';
-import { showError } from './utils.js';
 
 // Список всех достижений
 export const allAchievements = [
@@ -235,7 +234,7 @@ export async function checkAllAchievements() {
                 if (result.success) {
                     // Показываем уведомления о новых достижениях
                     newAchievements.forEach(achievement => {
-                        showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                        window.notify(`🏆 Достижение разблокировано: ${achievement.name}!`, 'reward');
                     });
                     
                     console.log(`✅ ${newAchievements.length} достижений сохранено на сервер`);
@@ -244,14 +243,14 @@ export async function checkAllAchievements() {
                 console.warn('⚠️ Функция unlockAchievementsBatch недоступна');
                 // Показываем уведомления локально
                 newAchievements.forEach(achievement => {
-                    showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                    window.notify(`🏆 Достижение разблокировано: ${achievement.name}!`, 'reward');
                 });
             }
         } catch (error) {
             console.error('❌ Ошибка сохранения достижений на сервер:', error);
             // Показываем уведомления локально
             newAchievements.forEach(achievement => {
-                showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
+                window.notify(`🏆 Достижение разблокировано: ${achievement.name}!`, 'reward');
             });
         }
     }

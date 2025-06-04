@@ -2,7 +2,7 @@
 // Функционал чата и новостей
 
 import { gameState } from './game-data.js';
-import { showError, storage } from './utils.js';
+import { storage } from './utils.js';
 
 // Получаем API URL и токен
 const API_URL = window.API_URL || 'https://street-racing-backend-wnse.onrender.com/api';
@@ -55,7 +55,7 @@ export async function loadChatMessages(before = null) {
     } catch (error) {
         console.error('Ошибка загрузки чата:', error);
         if (!before) {
-            showError('Не удалось загрузить чат');
+            window.notify('Не удалось загрузить чат', 'error');
         }
     } finally {
         isLoadingMessages = false;
@@ -65,12 +65,12 @@ export async function loadChatMessages(before = null) {
 // Отправка сообщения
 export async function sendChatMessage(message) {
     if (!message || message.trim().length === 0) {
-        showError('Введите сообщение');
+        window.notify('Введите сообщение', 'warning');
         return;
     }
     
     if (message.length > 500) {
-        showError('Сообщение слишком длинное (максимум 500 символов)');
+        window.notify('Сообщение слишком длинное (максимум 500 символов)', 'warning');
         return;
     }
     
@@ -104,7 +104,7 @@ export async function sendChatMessage(message) {
         scrollChatToBottom();
         
     } catch (error) {
-        showError(error.message);
+        window.notify(error.message, 'error');
     }
 }
 
@@ -165,7 +165,7 @@ export async function loadNews(category = 'all') {
         
     } catch (error) {
         console.error('Ошибка загрузки новостей:', error);
-        showError('Не удалось загрузить новости');
+        window.notify('Не удалось загрузить новости', 'error');
     }
 }
 
