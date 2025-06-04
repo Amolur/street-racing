@@ -86,21 +86,21 @@ body {
 /* Секция с логотипом */
 .header-logo-section {
     width: 100%;
-    height: 60px;
+    height: 80px;  /* Увеличено с 60px */
     background: var(--race-surface-dark);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--race-spacing-small) 0;
+    padding: var(--race-spacing) 0;  /* Увеличен padding */
     border-bottom: 1px solid var(--race-border);
     cursor: pointer;
 }
 
 /* Логотип на всю ширину */
 .full-width-logo {
-    width: 90%;
-    max-width: 400px;
-    height: 100%;
+    width: 95%;  /* Увеличено с 90% */
+    max-width: 500px;  /* Увеличено с 400px */
+    height: 90%;  /* Увеличено для большего заполнения */
     object-fit: contain;
     filter: drop-shadow(0 2px 8px rgba(255, 68, 68, 0.5));
     transition: filter 0.2s ease, transform 0.2s ease;
@@ -204,9 +204,10 @@ body {
     padding: 0;
 }
 
+/* Также обновите высоту основного контента */
 .mobile-screen {
     display: none;
-    min-height: calc(100vh - 120px);
+    min-height: calc(100vh - 140px);  /* Увеличено с 120px */
     flex-direction: column;
 }
 
@@ -807,7 +808,7 @@ body {
 
 .notification {
     position: fixed;
-    top: 130px;
+    top: 150px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--race-surface);
@@ -1140,11 +1141,11 @@ body {
 /* ================================ */
 @media (max-width: 380px) {
     .header-logo-section {
-        height: 50px;
+        height: 70px;  /* Увеличено с 50px */
     }
     
     .full-width-logo {
-        width: 85%;
+        width: 90%;  /* Немного уменьшено для маленьких экранов */
     }
     
     .text-logo-fallback {
@@ -1164,7 +1165,7 @@ body {
     }
     
     .mobile-screen {
-        min-height: calc(100vh - 100px);
+        min-height: calc(100vh - 120px);
     }
     
     .race-stakes {
@@ -1184,11 +1185,11 @@ body {
     }
     
     .header-logo-section {
-        height: 70px;
+        height: 90px;
     }
     
     .mobile-screen {
-        min-height: calc(100vh - 130px);
+        min-height: calc(100vh - 150px);
     }
 }
 
