@@ -245,6 +245,12 @@ export function closeRacePreview() {
     }
 }
 
+// Подтверждение гонки
+export function confirmRace(opponentIndex) {
+    closeRacePreview();
+    startRace(opponentIndex);
+}
+
 export async function startRace(opponentIndex) {
     const opponent = serverOpponents[opponentIndex];
     if (!opponent) return;

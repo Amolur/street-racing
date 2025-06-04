@@ -226,8 +226,6 @@ export function showRegisterForm() {
     document.getElementById('login-form').classList.remove('active');
 }
 
-
-window.showGameFunc = showGameFunc;
 export function showGameFunc() {
     showGame();
     
@@ -264,3 +262,8 @@ export function showGameFunc() {
 }
 // Экспортируем showGameFunc
 window.showGameFunc = showGameFunc;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.showLoginForm = showLoginForm;
+window.showRegisterForm = showRegisterForm;
+window.logout = logout;
