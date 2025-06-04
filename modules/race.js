@@ -126,21 +126,21 @@ export async function displayOpponents() {
     }
     
     // Дополняем данные для отображения с учетом типа гонки
-    const opponents = serverOpponents.map((opp, index) => {
-        const baseFuelCost = opp.fuelCost;
-        const adjustedFuelCost = Math.ceil(baseFuelCost * raceType.fuelMultiplier);
-        const adjustedReward = Math.floor(opp.reward * raceType.rewardMultiplier);
-        
-        return {
-            ...opp,
-            name: getOpponentName(opp.difficultyClass, currentRaceType),
-            car: getOpponentCar(opp.difficultyClass),
-            betAmount: Math.floor(adjustedReward / 2),
-            fuelCost: adjustedFuelCost,
-            reward: adjustedReward,
-            originalIndex: index
-        };
-    });
+const opponents = serverOpponents.map((opp, index) => {
+    const baseFuelCost = opp.fuelCost;
+    const adjustedFuelCost = Math.ceil(baseFuelCost * raceType.fuelMultiplier);
+    const adjustedReward = Math.floor(opp.reward * raceType.rewardMultiplier);
+    
+    return {
+        ...opp,
+        name: getOpponentName(opp.difficultyClass, currentRaceType),
+        car: getOpponentCar(opp.difficultyClass),
+        betAmount: Math.floor(adjustedReward / 2),
+        fuelCost: adjustedFuelCost,
+        reward: adjustedReward,
+        originalIndex: index
+    };
+});
     
     // Создаем список
     const opponentsHTML = opponents.map((opponent, index) => {

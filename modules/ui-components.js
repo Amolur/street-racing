@@ -152,7 +152,8 @@ export function createTaskCard(task) {
 // Создание модального окна превью гонки
 export function createRacePreviewModal(opponent, currentCar, betAmount, fuelCost, currentFuel) {
     const raceType = opponent.raceType || { name: "Классика", icon: "🏁" };
-    
+    // Убедимся, что отображаем правильное количество топлива
+    const displayFuelCost = fuelCost;
     return `
         <div class="modal-overlay" onclick="if(event.target === this) closeRacePreview()">
             <div class="modal-content">
