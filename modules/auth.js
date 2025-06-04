@@ -2,7 +2,7 @@
 // Функции авторизации
 
 import { gameState, gameData, updateGameData } from './game-data.js';
-import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
+import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
 
 // Инициализация улучшений для машины
@@ -165,7 +165,7 @@ export async function handleLogin() {
     const password = document.getElementById('login-password').value;
     
     if (!username || !password) {
-        window.notifyError('📝 Введите логин и пароль');
+        window.notify('📝 Введите логин и пароль', 'error');
         return;
     }
     
@@ -185,22 +185,22 @@ export async function handleRegister() {
     const passwordConfirm = document.getElementById('register-password-confirm').value;
     
     if (!username || !password) {
-        window.notifyError('📝 Введите логин и пароль');
+        window.notify('📝 Введите логин и пароль', 'error');
         return;
     }
     
     if (username.length < 3) {
-        window.notifyError('📝 Логин должен быть не менее 3 символов');
+        window.notify('📝 Логин должен быть не менее 3 символов', 'error');
         return;
     }
     
     if (password.length < 6) {
-        window.notifyError('📝 Пароль должен быть не менее 6 символов');
+        window.notify('📝 Пароль должен быть не менее 6 символов', 'error');
         return;
     }
     
     if (password !== passwordConfirm) {
-        window.notifyError('📝 Пароли не совпадают!');
+        window.notify('📝 Пароли не совпадают!', 'error');
         return;
     }
     

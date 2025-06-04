@@ -38,19 +38,10 @@ function checkConnection() {
     return navigator.onLine;
 }
 
-// Показать уведомление об ошибке
-function showError(message) {
-    if (window.notify) {
-        window.notify(message, 'error');
-    } else {
-        console.error(message);
-    }
-}
-
 // Базовая функция для API запросов
 async function apiRequest(endpoint, options = {}) {
     if (!checkConnection()) {
-        showError('Нет соединения с интернетом');
+        window.notify('Нет соединения с интернетом', 'error');
         throw new Error('No internet connection');
     }
     
@@ -99,15 +90,15 @@ async function apiRequest(endpoint, options = {}) {
         
         // Не показываем техническую ошибку пользователю
         if (error.message.includes('Failed to fetch')) {
-            showError('Сервер недоступен. Попробуйте позже.');
+            window.notify('Сервер недоступен. Попробуйте позже.', 'error');
         } else if (error.message.includes('Слишком много')) {
             // Уже есть понятное сообщение
-            showError(error.message);
+            window.notify(error.message, 'error');
         } else if (endpoint.includes('/auth/login') || endpoint.includes('/auth/register')) {
             // Для ошибок авторизации всегда показываем это сообщение
-            showError('Неверный логин или пароль');
+            window.notify('Неверный логин или пароль', 'error');
         } else {
-            showError(error.message);
+            window.notify(error.message, 'error');
         }
         
         throw error;

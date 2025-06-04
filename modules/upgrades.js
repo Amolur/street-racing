@@ -2,8 +2,7 @@
 // Система улучшений без индикаторов загрузки
 
 import { gameData } from './game-data.js';
-import { showError, updatePlayerInfo } from './utils.js';
-// ИСПРАВЛЕНО: убрал импорт queueSave, так как он доступен через window.queueSave
+import { updatePlayerInfo } from './utils.js';
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {
@@ -138,12 +137,12 @@ export async function upgradeComponent(type) {
     
     // Валидация
     if (currentLevel >= 10) {
-        window.notifyError('🔧 Достигнут максимальный уровень улучшения!');
+        window.notify('🔧 Достигнут максимальный уровень улучшения!', 'error');
         return;
     }
     
     if (gameData.money < cost) {
-        window.notifyError('💰 Недостаточно денег для улучшения!');
+        window.notify('💰 Недостаточно денег для улучшения!', 'error');
         return;
     }
     
@@ -199,7 +198,7 @@ export async function upgradeComponent(type) {
             window.updateGarageDisplay();
         }
         
-        window.notifyError('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.');
+        window.notify('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.', 'error');
     }
 }
 
@@ -208,12 +207,12 @@ export async function buySpecialPart(type, cost) {
     const currentCar = gameData.cars[gameData.currentCar];
     
     if (gameData.money < cost) {
-        window.notifyError('💰 Недостаточно денег для покупки детали!');
+        window.notify('💰 Недостаточно денег для покупки детали!', 'error');
         return;
     }
     
     if (currentCar.specialParts[type]) {
-        window.notifyError('🔧 Эта деталь уже установлена!');
+        window.notify('🔧 Эта деталь уже установлена!', 'error');
         return;
     }
     
@@ -271,7 +270,7 @@ export async function buySpecialPart(type, cost) {
             window.updateGarageDisplay();
         }
         
-        window.notifyError('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.');
+        window.notify('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.', 'error');
     }
 }
 
@@ -292,11 +291,11 @@ export function checkUpgradeAchievements() {
     const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
     
     if (totalUpgradeLevel === 10) {
-        window.notifyAchievement("🏆 Достижение: Первые улучшения!");
+        window.notify("🏆 Достижение: Первые улучшения!", 'achievement');
     } else if (totalUpgradeLevel === 25) {
-        window.notifyAchievement("🏆 Достижение: Серьезный тюнинг!");
+        window.notify("🏆 Достижение: Серьезный тюнинг!", 'achievement');
     } else if (totalUpgradeLevel === 50) {
-        window.notifyAchievement("🏆 Достижение: Максимальная прокачка!");
+        window.notify("🏆 Достижение: Максимальная прокачка!", 'achievement');
     }
 }
 
