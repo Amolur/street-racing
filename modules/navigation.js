@@ -216,6 +216,57 @@ export function showAchievementsScreen(addToHistory = true) {
     }
 }
 
+// Добавь новую функцию для экрана сообщества
+export function showCommunityScreen(addToHistory = true) {
+    hideAllScreens();
+    document.getElementById('community-screen').classList.add('active');
+    if (addToHistory) navigateToScreen('community-screen');
+    
+    // Загружаем чат и новости при открытии
+    if (window.loadChatMessages) {
+        window.loadChatMessages();
+    }
+    if (window.loadNews) {
+        window.loadNews();
+    }
+    if (window.startChatUpdates) {
+        window.startChatUpdates();
+    }
+}
+
+// Добавь функцию для переключения вкладок сообщества  
+export function showCommunityTab(tab) {
+    // Удаляем активные классы
+    document.querySelectorAll('#community-screen .tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#community-screen .tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Активируем нужную вкладку
+    if (tab === 'chat') {
+        document.querySelector('#community-screen .tab-button:first-child').classList.add('active');
+        document.getElementById('community-chat').classList.add('active');
+        
+        // Загружаем сообщения чата
+        if (window.loadChatMessages) {
+            window.loadChatMessages();
+        }
+        // Запускаем обновления чата
+        if (window.startChatUpdates) {
+            window.startChatUpdates();
+        }
+    } else if (tab === 'news') {
+        document.querySelector('#community-screen .tab-button:last-child').classList.add('active');
+        document.getElementById('community-news').classList.add('active');
+        
+        // Загружаем новости
+        if (window.loadNews) {
+            window.loadNews();
+        }
+        // Останавливаем обновления чата
+        if (window.stopChatUpdates) {
+            window.stopChatUpdates();
+        }
+    }
+}
 // Делаем функции доступными глобально
 window.showMainMenu = showMainMenu;
 window.showGarageScreen = showGarageScreen;
@@ -225,4 +276,6 @@ window.showProfileScreen = showProfileScreen;
 window.showLeaderboardScreen = showLeaderboardScreen;
 window.showDailyTasksScreen = showDailyTasksScreen;
 window.showAchievementsScreen = showAchievementsScreen;
+window.showCommunityScreen = showCommunityScreen;  // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+window.showCommunityTab = showCommunityTab;        // ← ДОБАВЬТЕ ЭТУ СТРОКУ
 window.goBack = goBack;
