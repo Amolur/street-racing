@@ -151,6 +151,8 @@ export function createTaskCard(task) {
 
 // Создание модального окна превью гонки
 export function createRacePreviewModal(opponent, currentCar, betAmount, fuelCost, currentFuel) {
+    const raceType = opponent.raceType || { name: "Классика", icon: "🏁" };
+    
     return `
         <div class="modal-overlay" onclick="if(event.target === this) closeRacePreview()">
             <div class="modal-content">
@@ -160,6 +162,8 @@ export function createRacePreviewModal(opponent, currentCar, betAmount, fuelCost
                 </div>
                 <div class="modal-body">
                     <div class="race-preview-info">
+                        <h3>${raceType.icon} Режим: ${raceType.name}</h3>
+                        
                         <h3>Ваша машина</h3>
                         <p>${currentCar.name}</p>
                         <p>Топливо: ${currentFuel}/${currentCar.maxFuel || 30}</p>
@@ -192,6 +196,8 @@ export function createRacePreviewModal(opponent, currentCar, betAmount, fuelCost
 
 // Создание результата гонки
 export function createRaceResult(won, opponent, playerTime, opponentTime, rewards) {
+    const raceType = rewards.raceType || { name: "Классика", icon: "🏁" };
+    
     return `
         <div class="race-result-container">
             <div class="card">
@@ -199,6 +205,8 @@ export function createRaceResult(won, opponent, playerTime, opponentTime, reward
                     <h2 class="${won ? 'result-win' : 'result-lose'}">
                         ${won ? '🏆 ПОБЕДА!' : '😔 ПОРАЖЕНИЕ'}
                     </h2>
+                    
+                    <p class="race-type-result">${raceType.icon} ${raceType.name}</p>
                     
                     <div class="race-times">
                         <div>

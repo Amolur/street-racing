@@ -1,20 +1,80 @@
 // modules/race.js
-// Гоночная логика с серверной валидацией
+// Гоночная логика с новыми режимами гонок
 
-import { gameData, gameState } from './game-data.js';
+import { gameData, gameState, fuelSystem } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
 import { showRaceResultScreen, showRaceMenu, showMainMenu } from './navigation.js';
 import { createOpponentListItem, createRacePreviewModal, createRaceResult } from './ui-components.js';
 
+// Типы гонок
+export const raceTypes = {
+    classic: {
+        name: "Классика",
+        icon: "🏁",
+        description: "Обычная гонка на скорость",
+        fuelMultiplier: 1,
+        rewardMultiplier: 1,
+        xpMultiplier: 1,
+        mainStat: "speed"
+    },
+    drift: {
+        name: "Дрифт",
+        icon: "🌀",
+        description: "Оценивается техника вождения",
+        fuelMultiplier: 0.8,
+        rewardMultiplier: 1.2,
+        xpMultiplier: 1.5,
+        mainStat: "technique"
+    },
+    sprint: {
+        name: "Спринт",
+        icon: "⚡",
+        description: "Короткая гонка на максимальной скорости",
+        fuelMultiplier: 0.5,
+        rewardMultiplier: 0.7,
+        xpMultiplier: 0.8,
+        mainStat: "acceleration"
+    },
+    endurance: {
+        name: "Выносливость",
+        icon: "🏃",
+        description: "Длинная гонка на выносливость",
+        fuelMultiplier: 2,
+        rewardMultiplier: 2,
+        xpMultiplier: 2.5,
+        mainStat: "handling"
+    }
+};
+
+// Текущий выбранный тип гонки
+let currentRaceType = 'classic';
+
 // Загрузка соперников с сервера
 let serverOpponents = [];
+
+// Функция переключения типа гонки
+export function switchRaceType(type) {
+    if (raceTypes[type]) {
+        currentRaceType = type;
+        displayOpponents();
+        
+        // Обновляем активную кнопку
+        document.querySelectorAll('.race-type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const activeBtn = document.querySelector(`[data-race-type="${type}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+}
 
 // Загрузить соперников с сервера
 async function loadOpponents() {
     try {
-        const response = await fetch(`${API_URL}/game/opponents`, {
+        const response = await fetch(`${window.API_URL}/game/opponents`, {
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
         
@@ -36,11 +96,25 @@ export async function displayOpponents() {
     if (!opponentsList) return;
     
     const currentCar = gameData.cars[gameData.currentCar];
+    const raceType = raceTypes[currentRaceType];
     
     // Обновляем информацию
     document.getElementById('race-current-car').textContent = currentCar.name;
-    document.getElementById('race-car-fuel').textContent = `${currentCar.fuel}/${currentCar.maxFuel || 30}`;
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    document.getElementById('race-car-fuel').textContent = `${currentFuel}/${currentCar.maxFuel || 30}`;
     document.getElementById('race-balance').textContent = gameData.money;
+    
+    // Показываем описание режима
+    const raceTypeInfo = document.getElementById('race-type-info');
+    if (raceTypeInfo) {
+        raceTypeInfo.innerHTML = `
+            <div class="race-type-description">
+                <span class="race-type-icon">${raceType.icon}</span>
+                <span class="race-type-name">${raceType.name}:</span>
+                <span class="race-type-desc">${raceType.description}</span>
+            </div>
+        `;
+    }
     
     // Загружаем соперников с сервера
     opponentsList.innerHTML = '<div class="loading">Загрузка соперников...</div>';
@@ -51,17 +125,26 @@ export async function displayOpponents() {
         return;
     }
     
-    // Дополняем данные для отображения
-    const opponents = serverOpponents.map((opp, index) => ({
-        ...opp,
-        name: getOpponentName(opp.difficultyClass),
-        car: getOpponentCar(opp.difficultyClass),
-        betAmount: Math.floor(opp.reward / 2)
-    }));
+    // Дополняем данные для отображения с учетом типа гонки
+    const opponents = serverOpponents.map((opp, index) => {
+        const baseFuelCost = opp.fuelCost;
+        const adjustedFuelCost = Math.ceil(baseFuelCost * raceType.fuelMultiplier);
+        const adjustedReward = Math.floor(opp.reward * raceType.rewardMultiplier);
+        
+        return {
+            ...opp,
+            name: getOpponentName(opp.difficultyClass, currentRaceType),
+            car: getOpponentCar(opp.difficultyClass),
+            betAmount: Math.floor(adjustedReward / 2),
+            fuelCost: adjustedFuelCost,
+            reward: adjustedReward,
+            originalIndex: index
+        };
+    });
     
     // Создаем список
     const opponentsHTML = opponents.map((opponent, index) => {
-        const canAfford = gameData.money >= opponent.betAmount && currentCar.fuel >= opponent.fuelCost;
+        const canAfford = gameData.money >= opponent.betAmount && currentFuel >= opponent.fuelCost;
         return createOpponentListItem(opponent, index, canAfford);
     }).join('');
     
@@ -69,14 +152,36 @@ export async function displayOpponents() {
 }
 
 // Вспомогательные функции для генерации имен
-function getOpponentName(difficultyClass) {
+function getOpponentName(difficultyClass, raceType) {
     const names = {
-        easy: ["Новичок", "Студент", "Таксист", "Курьер"],
-        medium: ["Гонщик", "Дрифтер", "Стритрейсер", "Спидстер"],
-        hard: ["Профи", "Мастер", "Чемпион", "Ветеран"],
-        extreme: ["Легенда", "Призрак", "Босс", "Король"]
+        classic: {
+            easy: ["Новичок", "Студент", "Таксист", "Курьер"],
+            medium: ["Гонщик", "Стритрейсер", "Спидстер", "Ветеран"],
+            hard: ["Профи", "Мастер", "Чемпион", "Эксперт"],
+            extreme: ["Легенда", "Призрак", "Босс", "Король"]
+        },
+        drift: {
+            easy: ["Слайдер", "Дрифтер", "Юнец", "Ученик"],
+            medium: ["Токийский дрифтер", "Боковой гонщик", "Мастер заноса", "Скользящий"],
+            hard: ["Король дрифта", "Мастер угла", "Дымовой демон", "Профи дрифта"],
+            extreme: ["Легенда Токио", "Дрифт-босс", "Повелитель заносов", "Дым-машина"]
+        },
+        sprint: {
+            easy: ["Спринтер", "Быстрый", "Резвый", "Торопыга"],
+            medium: ["Молния", "Ракета", "Стрела", "Вспышка"],
+            hard: ["Сверхзвук", "Турбо-гонщик", "Нитро-мастер", "Скорость"],
+            extreme: ["Световая скорость", "Соник", "Флэш", "Молниеносный"]
+        },
+        endurance: {
+            easy: ["Стойкий", "Упорный", "Выносливый", "Марафонец"],
+            medium: ["Железный", "Неутомимый", "Дальнобой", "Стальной"],
+            hard: ["Несокрушимый", "Титан", "Машина", "Терминатор"],
+            extreme: ["Вечный двигатель", "Неостановимый", "Легенда трассы", "Король дистанции"]
+        }
     };
-    const nameList = names[difficultyClass] || names.easy;
+    
+    const typeNames = names[raceType] || names.classic;
+    const nameList = typeNames[difficultyClass] || typeNames.easy;
     return nameList[Math.floor(Math.random() * nameList.length)];
 }
 
@@ -96,16 +201,25 @@ export function showRacePreview(opponentIndex) {
     const opponent = serverOpponents[opponentIndex];
     if (!opponent) return;
     
+    const raceType = raceTypes[currentRaceType];
     opponent.index = opponentIndex;
-    opponent.name = getOpponentName(opponent.difficultyClass);
+    opponent.name = getOpponentName(opponent.difficultyClass, currentRaceType);
     opponent.car = getOpponentCar(opponent.difficultyClass);
     
     const currentCar = gameData.cars[gameData.currentCar];
-    const betAmount = Math.floor(opponent.reward / 2);
-    const fuelCost = opponent.fuelCost;
-    const currentFuel = currentCar.fuel;
+    const betAmount = Math.floor(opponent.reward * raceType.rewardMultiplier / 2);
+    const fuelCost = Math.ceil(opponent.fuelCost * raceType.fuelMultiplier);
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
     
-    const modal = createRacePreviewModal(opponent, currentCar, betAmount, fuelCost, currentFuel);
+    // Модифицируем данные для превью
+    const modifiedOpponent = {
+        ...opponent,
+        reward: Math.floor(opponent.reward * raceType.rewardMultiplier),
+        fuelCost: fuelCost,
+        raceType: raceType
+    };
+    
+    const modal = createRacePreviewModal(modifiedOpponent, currentCar, betAmount, fuelCost, currentFuel);
     
     // Создаем временный div для модального окна
     const modalDiv = document.createElement('div');
@@ -129,36 +243,41 @@ export function confirmRace(opponentIndex) {
     }, 100);
 }
 
-// Старт гонки - ТЕПЕРЬ ЧЕРЕЗ СЕРВЕР
+// Старт гонки - ТЕПЕРЬ С УЧЕТОМ ТИПА ГОНКИ
 export async function startRace(opponentIndex) {
     const opponent = serverOpponents[opponentIndex];
     if (!opponent) return;
     
     const currentCar = gameData.cars[gameData.currentCar];
-    const betAmount = Math.floor(opponent.reward / 2);
+    const raceType = raceTypes[currentRaceType];
+    const betAmount = Math.floor(opponent.reward * raceType.rewardMultiplier / 2);
+    const fuelCost = Math.ceil(opponent.fuelCost * raceType.fuelMultiplier);
     
     if (gameData.money < betAmount) {
         window.notify(`Недостаточно денег! Нужно минимум $${betAmount}`, 'error');
         return;
     }
     
-    if (currentCar.fuel < opponent.fuelCost) {
-        window.notify(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`, 'error');
+    const currentFuel = fuelSystem.getCurrentFuel(currentCar);
+    if (currentFuel < fuelCost) {
+        window.notify(`Недостаточно топлива! Нужно ${fuelCost}, а у вас ${currentFuel}`, 'error');
         return;
     }
     
     try {
         // Отправляем запрос на сервер для проведения гонки
-        const response = await fetch(`${API_URL}/game/race`, {
+        const response = await fetch(`${window.API_URL}/game/race`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             },
             body: JSON.stringify({
                 carIndex: gameData.currentCar,
                 opponentIndex: opponentIndex,
-                betAmount: betAmount
+                betAmount: betAmount,
+                raceType: currentRaceType,
+                fuelCost: fuelCost
             })
         });
         
@@ -176,6 +295,15 @@ export async function startRace(opponentIndex) {
         gameData.level = result.gameData.level;
         currentCar.fuel = result.gameData.fuel;
         
+        // Обновляем статистику в зависимости от типа гонки
+        if (currentRaceType === 'drift' && result.result.won) {
+            gameData.stats.driftWins = (gameData.stats.driftWins || 0) + 1;
+        } else if (currentRaceType === 'sprint' && result.result.won) {
+            gameData.stats.sprintWins = (gameData.stats.sprintWins || 0) + 1;
+        } else if (currentRaceType === 'endurance' && result.result.won) {
+            gameData.stats.enduranceWins = (gameData.stats.enduranceWins || 0) + 1;
+        }
+        
         // КРИТИЧЕСКОЕ СОХРАНЕНИЕ после гонки
         if (window.queueSave) {
             await window.queueSave(gameData, 'critical');
@@ -188,6 +316,13 @@ export async function startRace(opponentIndex) {
         
         if (result.result.leveledUp) {
             window.notify(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`, 'level');
+        }
+        
+        // Специальные уведомления для разных типов гонок
+        if (currentRaceType === 'drift' && result.result.won) {
+            window.notify("🌀 Отличный дрифт! Бонус к технике", 'skill');
+        } else if (currentRaceType === 'endurance' && result.result.won) {
+            window.notify("🏃 Невероятная выносливость! Двойной опыт", 'reward');
         }
         
         // Проверяем достижения
@@ -211,13 +346,14 @@ export async function startRace(opponentIndex) {
         showRaceResult(
             result.result.won,
             {
-                name: getOpponentName(opponent.difficultyClass),
+                name: getOpponentName(opponent.difficultyClass, currentRaceType),
                 car: getOpponentCar(opponent.difficultyClass),
-                reward: opponent.reward
+                reward: Math.floor(opponent.reward * raceType.rewardMultiplier)
             },
             result.result.playerTime,
             result.result.opponentTime,
-            result.result.xpGained
+            Math.floor(result.result.xpGained * raceType.xpMultiplier),
+            currentRaceType
         );
         
         updatePlayerInfo();
@@ -229,7 +365,7 @@ export async function startRace(opponentIndex) {
 }
 
 // Показать результат гонки
-export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained) {
+export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained, raceType) {
     showRaceResultScreen();
     
     const resultDiv = document.getElementById('race-result');
@@ -238,7 +374,8 @@ export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained
     const rewards = {
         money: won ? opponent.reward : 0,
         bet: Math.floor(opponent.reward / 2),
-        xp: xpGained
+        xp: xpGained,
+        raceType: raceTypes[raceType] || raceTypes.classic
     };
     
     resultDiv.innerHTML = createRaceResult(won, opponent, playerTime, opponentTime, rewards);
@@ -249,3 +386,4 @@ window.showRacePreview = showRacePreview;
 window.closeRacePreview = closeRacePreview;
 window.confirmRace = confirmRace;
 window.startRace = startRace;
+window.switchRaceType = switchRaceType;

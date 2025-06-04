@@ -1355,3 +1355,102 @@ body {
         font-size: 24px;
     }
 }
+/* ================================ */
+/* СТИЛИ ДЛЯ ТИПОВ ГОНОК */
+/* ================================ */
+
+/* Контейнер кнопок типов гонок */
+.race-types-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--race-spacing-small);
+    margin: var(--race-spacing) 0;
+}
+
+/* Кнопка типа гонки */
+.race-type-btn {
+    background: var(--race-surface);
+    border: 2px solid var(--race-border);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    min-height: 60px;
+}
+
+.race-type-btn:active {
+    transform: scale(0.98);
+    background: var(--race-surface-dark);
+}
+
+.race-type-btn.active {
+    border-color: var(--race-primary);
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.race-type-icon {
+    font-size: 24px;
+}
+
+.race-type-name {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--race-text-primary);
+}
+
+/* Информация о типе гонки */
+.race-type-info {
+    background: var(--race-surface-dark);
+    border-radius: var(--race-radius);
+    padding: var(--race-spacing);
+    margin-bottom: var(--race-spacing);
+    border: 1px solid var(--race-border);
+}
+
+.race-type-description {
+    display: flex;
+    align-items: center;
+    gap: var(--race-spacing-small);
+    font-size: 12px;
+    color: var(--race-text-secondary);
+}
+
+.race-type-description .race-type-icon {
+    font-size: 16px;
+}
+
+.race-type-description .race-type-name {
+    font-weight: 600;
+    color: var(--race-primary);
+}
+
+.race-type-description .race-type-desc {
+    flex: 1;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 380px) {
+    .race-types-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+    }
+    
+    .race-type-btn {
+        padding: 8px;
+        min-height: 50px;
+    }
+    
+    .race-type-icon {
+        font-size: 20px;
+    }
+    
+    .race-type-name {
+        font-size: 10px;
+    }
+}

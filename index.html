@@ -257,22 +257,44 @@
             </div>
 
             <!-- Экран выбора гонки -->
-            <div id="race-menu-screen" class="mobile-screen">
-                <div class="screen-header">
-                    <button class="back-button" onclick="goBack()">←</button>
-                    <h2 class="screen-title">Выбор соперника</h2>
-                </div>
-                
-                <div class="screen-content">
-                    <div class="info-panel">
-                        <p class="small-text">Машина: <strong id="race-current-car">-</strong></p>
-                        <p class="small-text">Топливо: <strong id="race-car-fuel">-</strong></p>
-                        <p class="small-text">Баланс: $<strong id="race-balance">-</strong></p>
-                    </div>
-                    
-                    <div id="opponents-list" class="list-container"></div>
-                </div>
-            </div>
+<div id="race-menu-screen" class="mobile-screen">
+    <div class="screen-header">
+        <button class="back-button" onclick="goBack()">←</button>
+        <h2 class="screen-title">Выбор гонки</h2>
+    </div>
+    
+    <div class="screen-content">
+        <div class="info-panel">
+            <p class="small-text">Машина: <strong id="race-current-car">-</strong></p>
+            <p class="small-text">Топливо: <strong id="race-car-fuel">-</strong></p>
+            <p class="small-text">Баланс: $<strong id="race-balance">-</strong></p>
+        </div>
+        
+        <!-- Новые кнопки выбора типа гонки -->
+        <div class="race-types-container">
+            <button class="race-type-btn active" data-race-type="classic" onclick="switchRaceType('classic')">
+                <span class="race-type-icon">🏁</span>
+                <span class="race-type-name">Классика</span>
+            </button>
+            <button class="race-type-btn" data-race-type="drift" onclick="switchRaceType('drift')">
+                <span class="race-type-icon">🌀</span>
+                <span class="race-type-name">Дрифт</span>
+            </button>
+            <button class="race-type-btn" data-race-type="sprint" onclick="switchRaceType('sprint')">
+                <span class="race-type-icon">⚡</span>
+                <span class="race-type-name">Спринт</span>
+            </button>
+            <button class="race-type-btn" data-race-type="endurance" onclick="switchRaceType('endurance')">
+                <span class="race-type-icon">🏃</span>
+                <span class="race-type-name">Выносливость</span>
+            </button>
+        </div>
+        
+        <div id="race-type-info" class="race-type-info"></div>
+        
+        <div id="opponents-list" class="list-container"></div>
+    </div>
+</div>
 
             <!-- Экран результата гонки -->
             <div id="race-result-screen" class="mobile-screen">

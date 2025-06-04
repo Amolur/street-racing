@@ -232,3 +232,11 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+/* Результат с типом гонки */
+.race-type-result {
+    font-size: 14px;
+    color: var(--race-text-secondary);
+    margin: var(--race-spacing-small) 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
