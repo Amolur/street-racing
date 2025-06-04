@@ -93,12 +93,22 @@ body {
 }
 
 .game-logo {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--race-primary);
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+}
+.header-logo-image {
+    height: 36px;  /* Высота логотипа */
+    width: auto;   /* Ширина автоматическая для сохранения пропорций */
+    vertical-align: middle;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    transition: filter 0.2s ease;
+}
+
+/* Эффект при наведении/нажатии */
+.game-logo:active .header-logo-image {
+    filter: drop-shadow(0 2px 8px rgba(255, 68, 68, 0.8));
 }
 
 .header-resources {
@@ -1143,7 +1153,18 @@ body {
     transition: none !important;
     animation: none !important;
 }
+@media (max-width: 380px) {
+    .header-logo-image {
+        height: 30px;
+    }
+}
 
+/* Для больших экранов */
+@media (min-width: 768px) {
+    .header-logo-image {
+        height: 40px;
+    }
+}
 /* Добавляем только необходимые быстрые переходы */
 .action-button,
 .menu-button,
