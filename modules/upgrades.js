@@ -2,7 +2,8 @@
 // Система улучшений без индикаторов загрузки
 
 import { gameData } from './game-data.js';
-import { updatePlayerInfo } from './utils.js';
+import { showError, updatePlayerInfo } from './utils.js';
+import { queueSave } from './utils.js';
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {
@@ -137,12 +138,12 @@ export async function upgradeComponent(type) {
     
     // Валидация
     if (currentLevel >= 10) {
-        window.notify('🔧 Достигнут максимальный уровень улучшения!', 'error');
+        showError('Достигнут максимальный уровень улучшения!');
         return;
     }
     
     if (gameData.money < cost) {
-        window.notify('💰 Недостаточно денег для улучшения!', 'error');
+        showError('Недостаточно денег!');
         return;
     }
     
@@ -158,22 +159,16 @@ export async function upgradeComponent(type) {
     
     // Обновляем интерфейс сразу
     updatePlayerInfo();
-    if (window.updateGarageDisplay) {
-        window.updateGarageDisplay();
-    }
+    window.updateGarageDisplay();
     
     console.log('💰 Покупка улучшения...');
     
     try {
         // Сохраняем на сервер
-        if (window.saveGameData) {
-            await window.saveGameData(gameData);
-        } else {
-            throw new Error('saveGameData недоступна');
-        }
+        await saveGameData(gameData);
         
         console.log('✅ Улучшение успешно сохранено на сервер');
-        window.notify(`🔧 ${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`, 'upgrade');
+        showError(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`);
         
         // Обновляем прогресс заданий
         if (window.updateTaskProgress) {
@@ -182,8 +177,8 @@ export async function upgradeComponent(type) {
         
         checkUpgradeAchievements();
         if (window.checkAllAchievements) {
-            window.checkAllAchievements();
-        }
+    window.checkAllAchievements();
+}
     } catch (error) {
         console.error('❌ Ошибка сохранения улучшения:', error);
         
@@ -194,11 +189,9 @@ export async function upgradeComponent(type) {
         
         // Обновляем интерфейс
         updatePlayerInfo();
-        if (window.updateGarageDisplay) {
-            window.updateGarageDisplay();
-        }
+        window.updateGarageDisplay();
         
-        window.notify('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.', 'error');
+        showError('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.');
     }
 }
 
@@ -207,12 +200,12 @@ export async function buySpecialPart(type, cost) {
     const currentCar = gameData.cars[gameData.currentCar];
     
     if (gameData.money < cost) {
-        window.notify('💰 Недостаточно денег для покупки детали!', 'error');
+        showError('Недостаточно денег!');
         return;
     }
     
     if (currentCar.specialParts[type]) {
-        window.notify('🔧 Эта деталь уже установлена!', 'error');
+        showError('Эта деталь уже установлена!');
         return;
     }
     
@@ -228,19 +221,13 @@ export async function buySpecialPart(type, cost) {
     
     // Обновляем интерфейс сразу
     updatePlayerInfo();
-    if (window.updateGarageDisplay) {
-        window.updateGarageDisplay();
-    }
+    window.updateGarageDisplay();
     
     console.log('🔧 Покупка специальной детали...');
     
     try {
         // Сохраняем на сервер
-        if (window.saveGameData) {
-            await window.saveGameData(gameData);
-        } else {
-            throw new Error('saveGameData недоступна');
-        }
+        await saveGameData(gameData);
         
         const partNames = {
             nitro: "Нитро",
@@ -249,7 +236,7 @@ export async function buySpecialPart(type, cost) {
         };
         
         console.log('✅ Специальная деталь успешно сохранена на сервер');
-        window.notify(`🔧 ${partNames[type]} установлен!`, 'upgrade');
+        showError(`${partNames[type]} установлен!`);
         
          // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
         if (window.updateTaskProgress) {
@@ -266,11 +253,9 @@ export async function buySpecialPart(type, cost) {
         
         // Обновляем интерфейс
         updatePlayerInfo();
-        if (window.updateGarageDisplay) {
-            window.updateGarageDisplay();
-        }
+        window.updateGarageDisplay();
         
-        window.notify('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.', 'error');
+        showError('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.');
     }
 }
 
@@ -291,14 +276,12 @@ export function checkUpgradeAchievements() {
     const totalUpgradeLevel = Object.values(currentCar.upgrades).reduce((sum, level) => sum + level, 0);
     
     if (totalUpgradeLevel === 10) {
-        window.notify("🏆 Достижение: Первые улучшения!", 'achievement');
+        showError("🏆 Достижение: Первые улучшения!");
     } else if (totalUpgradeLevel === 25) {
-        window.notify("🏆 Достижение: Серьезный тюнинг!", 'achievement');
+        showError("🏆 Достижение: Серьезный тюнинг!");
     } else if (totalUpgradeLevel === 50) {
-        window.notify("🏆 Достижение: Максимальная прокачка!", 'achievement');
+        showError("🏆 Достижение: Максимальная прокачка!");
     }
 }
-
-// Делаем функции доступными глобально
 window.upgradeComponent = upgradeComponent;
 window.buySpecialPart = buySpecialPart;

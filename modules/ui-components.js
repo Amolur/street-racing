@@ -232,3 +232,26 @@ export function createRaceResult(won, opponent, playerTime, opponentTime, reward
         </div>
     `;
 }
+
+// Показ уведомления
+export function showNotification(message, type = 'info') {
+    const notification = dom.get('#error-notification') || dom.createElement('div', {
+        id: 'error-notification',
+        className: 'notification'
+    });
+    
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    
+    if (!notification.parentNode) {
+        document.body.appendChild(notification);
+    }
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}

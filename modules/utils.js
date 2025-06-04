@@ -2,6 +2,7 @@
 // Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
+import { showNotification } from './ui-components.js';
 
 // Безопасная работа с localStorage
 export const storage = {
@@ -63,12 +64,7 @@ async function processSaveQueue() {
     saveQueue = []; // Очищаем очередь
     
     try {
-        // ИСПРАВЛЕНО: используем глобальную функцию saveGameData
-        if (window.saveGameData) {
-            await window.saveGameData(latestSave.data);
-        } else {
-            throw new Error('saveGameData не найдена');
-        }
+        await saveGameData(latestSave.data);
         unsavedChanges = false;
         updateSaveIndicator(true);
     } catch (error) {
@@ -92,9 +88,7 @@ window.addEventListener('beforeunload', async (e) => {
         // Пытаемся сохранить синхронно
         try {
             const latestSave = saveQueue[saveQueue.length - 1] || { data: gameData };
-            if (window.saveGameData) {
-                await window.saveGameData(latestSave.data);
-            }
+            await saveGameData(latestSave.data);
         } catch (error) {
             console.error('Не удалось сохранить при закрытии');
         }
@@ -106,16 +100,32 @@ export function updateSaveIndicator(success = null) {
     const indicator = document.getElementById('save-indicator');
     if (!indicator) return;
     
-    indicator.classList.remove('saving', 'saved', 'error', 'show');
+    indicator.classList.remove('saving', 'saved', 'error');
     
-    // Можете оставить только критические ошибки (по желанию)
-    if (success === false) {
-        indicator.classList.add('show', 'error');
-        const saveText = indicator.querySelector('.save-text');
-        if (saveText) saveText.textContent = 'Ошибка!';
+    if (success === null) {
+        // Сохранение в процессе
+        indicator.classList.add('show', 'saving');
+        indicator.querySelector('.save-text').textContent = 'Сохранение...';
+    } else if (success) {
+        // Успешно сохранено
+        indicator.classList.add('show', 'saved');
+        indicator.querySelector('.save-text').textContent = 'Сохранено';
         setTimeout(() => {
             indicator.classList.remove('show');
-        }, 3000);
+        }, 2000);
+    } else {
+        // Ошибка
+        indicator.classList.add('show', 'error');
+        indicator.querySelector('.save-text').textContent = 'Ошибка!';
+    }
+}
+
+// Показать уведомление об ошибке
+export function showError(message) {
+    if (window.notify) {
+        window.notify(message, 'error');
+    } else {
+        showNotification(message, 'error');
     }
 }
 
@@ -135,12 +145,12 @@ export function startAutoSave() {
         if (gameState.currentUser && gameData) {
             try {
                 await queueSave(gameData, 'normal');
-                // console.log('✅ Автосохранение добавлено в очередь'); // ЗАКОММЕНТИРУЙТЕ
+                console.log('✅ Автосохранение добавлено в очередь');
             } catch (error) {
                 console.error('❌ Ошибка автосохранения:', error);
             }
         }
-    }, 60000);
+    }, 60000); // Каждую минуту добавляем в очередь
 }
 
 export function stopAutoSave() {
@@ -227,7 +237,9 @@ function checkFuelRegeneration() {
         
         // Если топливо полное - уведомляем
         if (currentFuel === car.maxFuel) {
-            window.notify('⛽ Топливо полностью восстановлено!', 'fuel');
+            if (window.notify) {
+                window.notify('⛽ Топливо полностью восстановлено!', 'success');
+            }
         }
         
         updateFuelDisplay();

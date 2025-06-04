@@ -6,19 +6,15 @@ import { showError, updatePlayerInfo } from './utils.js';
 import { showRaceResultScreen, showRaceMenu, showMainMenu } from './navigation.js';
 import { createOpponentListItem, createRacePreviewModal, createRaceResult } from './ui-components.js';
 
-// ИСПРАВЛЕНО: получаем API_URL и authToken из глобальных переменных
-const getAPI_URL = () => window.API_URL || 'https://street-racing-backend-wnse.onrender.com/api';
-const getAuthToken = () => window.getAuthToken ? window.getAuthToken() : null;
-
 // Загрузка соперников с сервера
 let serverOpponents = [];
 
 // Загрузить соперников с сервера
 async function loadOpponents() {
     try {
-        const response = await fetch(`${getAPI_URL()}/game/opponents`, {
+        const response = await fetch(`${API_URL}/game/opponents`, {
             headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
+                'Authorization': `Bearer ${authToken}`
             }
         });
         
@@ -42,13 +38,9 @@ export async function displayOpponents() {
     const currentCar = gameData.cars[gameData.currentCar];
     
     // Обновляем информацию
-    const raceCurrentCarEl = document.getElementById('race-current-car');
-    const raceCarFuelEl = document.getElementById('race-car-fuel');
-    const raceBalanceEl = document.getElementById('race-balance');
-    
-    if (raceCurrentCarEl) raceCurrentCarEl.textContent = currentCar.name;
-    if (raceCarFuelEl) raceCarFuelEl.textContent = `${currentCar.fuel}/${currentCar.maxFuel || 30}`;
-    if (raceBalanceEl) raceBalanceEl.textContent = gameData.money;
+    document.getElementById('race-current-car').textContent = currentCar.name;
+    document.getElementById('race-car-fuel').textContent = `${currentCar.fuel}/${currentCar.maxFuel || 30}`;
+    document.getElementById('race-balance').textContent = gameData.money;
     
     // Загружаем соперников с сервера
     opponentsList.innerHTML = '<div class="loading">Загрузка соперников...</div>';
@@ -146,22 +138,22 @@ export async function startRace(opponentIndex) {
     const betAmount = Math.floor(opponent.reward / 2);
     
     if (gameData.money < betAmount) {
-        window.notifyError(`💰 Недостаточно денег! Нужно минимум $${betAmount}`);
+        window.notify(`Недостаточно денег! Нужно минимум $${betAmount}`, 'error');
         return;
     }
     
     if (currentCar.fuel < opponent.fuelCost) {
-        window.notifyError(`⛽ Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`);
+        window.notify(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`, 'error');
         return;
     }
     
     try {
         // Отправляем запрос на сервер для проведения гонки
-        const response = await fetch(`${getAPI_URL()}/game/race`, {
+        const response = await fetch(`${API_URL}/game/race`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
+                'Authorization': `Bearer ${authToken}`
             },
             body: JSON.stringify({
                 carIndex: gameData.currentCar,
@@ -172,7 +164,7 @@ export async function startRace(opponentIndex) {
         
         if (!response.ok) {
             const error = await response.json();
-            window.notifyError(`🏁 ${error.error || 'Ошибка проведения гонки'}`);
+            window.notify(error.error || 'Ошибка проведения гонки', 'error');
             return;
         }
         
@@ -191,11 +183,11 @@ export async function startRace(opponentIndex) {
         
         // Показываем уведомления
         if (result.result.nitroActivated) {
-            window.notify("🚀 Нитро активировано!", 'race');
+            window.notify("🚀 Нитро активировано!", 'info');
         }
         
         if (result.result.leveledUp) {
-            window.notifyLevel(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`);
+            window.notify(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`, 'level');
         }
         
         // Проверяем достижения
@@ -204,17 +196,15 @@ export async function startRace(opponentIndex) {
         }
         
         // Проверяем получение навыка
-        if (window.skillSystem) {
-            const skillResult = window.skillSystem.tryGetSkill(result.result.won);
-            if (skillResult.success) {
-                const skillNames = {
-                    driving: 'Вождение',
-                    speed: 'Скорость',
-                    reaction: 'Реакция',
-                    technique: 'Техника'
-                };
-                window.notifySkill(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`);
-            }
+        const skillResult = window.skillSystem.tryGetSkill(result.result.won);
+        if (skillResult.success) {
+            const skillNames = {
+                driving: 'Вождение',
+                speed: 'Скорость',
+                reaction: 'Реакция',
+                technique: 'Техника'
+            };
+            window.notify(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`, 'skill');
         }
         
         // Показываем результат
@@ -234,7 +224,7 @@ export async function startRace(opponentIndex) {
         
     } catch (error) {
         console.error('Ошибка гонки:', error);
-        window.notifyError('🔌 Ошибка соединения с сервером');
+        window.notify('Ошибка соединения с сервером', 'error');
     }
 }
 
@@ -254,7 +244,6 @@ export function showRaceResult(won, opponent, playerTime, opponentTime, xpGained
     resultDiv.innerHTML = createRaceResult(won, opponent, playerTime, opponentTime, rewards);
 }
 
-// Делаем функции доступными глобально
 window.displayOpponents = displayOpponents;
 window.showRacePreview = showRacePreview;
 window.closeRacePreview = closeRacePreview;

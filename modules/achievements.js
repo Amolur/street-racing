@@ -142,21 +142,19 @@ export const allAchievements = [
         icon: '🔧',
         category: 'upgrades',
         condition: () => {
-            if (!gameData.cars || !gameData.cars[gameData.currentCar]) return false;
-            const car = gameData.cars[gameData.currentCar];
-            if (!car.upgrades) return false;
-            return Object.values(car.upgrades).some(level => level > 0);
-        },
+    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return false;
+    const car = gameData.cars[gameData.currentCar];
+    if (!car.upgrades) return false;
+    return Object.values(car.upgrades).some(level => level > 0);
+},
         progress: () => {
-            if (!gameData.cars || !gameData.cars[gameData.currentCar]) return 0;
-            const car = gameData.cars[gameData.currentCar];
-            if (!car.upgrades) return 0;
-            return Object.values(car.upgrades).some(level => level > 0) ? 1 : 0;
-        },
-        maxProgress: 1
-    },
-    // ИСПРАВЛЕНО: добавил недостающие поля для достижения tuning_expert
-    {
+    if (!gameData.cars || !gameData.cars[gameData.currentCar]) return 0;
+    const car = gameData.cars[gameData.currentCar];
+    if (!car.upgrades) return 0;
+    return Object.values(car.upgrades).some(level => level > 0) ? 1 : 0;
+},
+
+    
         id: 'tuning_expert',
         name: 'Эксперт тюнинга',
         description: 'Максимально улучшите одну деталь',
@@ -237,7 +235,7 @@ export async function checkAllAchievements() {
                 if (result.success) {
                     // Показываем уведомления о новых достижениях
                     newAchievements.forEach(achievement => {
-                        window.notifyAchievement(`🏆 ${achievement.name}`);
+                        showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
                     });
                     
                     console.log(`✅ ${newAchievements.length} достижений сохранено на сервер`);
@@ -246,14 +244,14 @@ export async function checkAllAchievements() {
                 console.warn('⚠️ Функция unlockAchievementsBatch недоступна');
                 // Показываем уведомления локально
                 newAchievements.forEach(achievement => {
-                    window.notifyAchievement(`🏆 ${achievement.name}`);
+                    showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
                 });
             }
         } catch (error) {
             console.error('❌ Ошибка сохранения достижений на сервер:', error);
             // Показываем уведомления локально
             newAchievements.forEach(achievement => {
-                window.notifyAchievement(`🏆 ${achievement.name}`);
+                showError(`🏆 Достижение разблокировано: ${achievement.name}!`);
             });
         }
     }
