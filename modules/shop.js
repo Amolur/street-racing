@@ -1,5 +1,5 @@
 // modules/shop.js
-// Функционал магазина с новым UI
+// Функционал магазина с ЗАЩИЩЕННЫМИ покупками
 
 import { gameData, allCars, levelSystem } from './game-data.js';
 import { showError, showLoading, updatePlayerInfo } from './utils.js';
@@ -72,11 +72,12 @@ function updateSellTab() {
     container.innerHTML = carsHTML || '<p class="no-data">У вас нет машин для продажи</p>';
 }
 
-// Функция покупки машины
+// ИСПРАВЛЕННАЯ функция покупки машины - ВСЁ ЧЕРЕЗ СЕРВЕР
 export async function buyCar(carId) {
     const car = allCars.find(c => c.id === carId);
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
+    // Простые проверки на клиенте (дублируются на сервере)
     if (!car || gameData.money < car.price || gameData.level < requiredLevel) {
         window.notify('Невозможно купить эту машину!', 'error');
         return;
@@ -86,51 +87,56 @@ export async function buyCar(carId) {
         return;
     }
     
-    // Отправляем запрос на сервер
-const response = await fetch(`${window.API_URL}/game/buy-car`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-    },
-    body: JSON.stringify({ carId })
-});
-
-if (!response.ok) {
-    const error = await response.json();
-    window.notify(error.error, 'error');
-    return;
+    try {
+        // ЗАЩИТА: ВСЯ ЛОГИКА ПОКУПКИ НА СЕРВЕРЕ
+        const response = await fetch(`${window.API_URL}/game/buy-car`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ carId })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            window.notify(error.error || 'Ошибка покупки', 'error');
+            return;
+        }
+        
+        const result = await response.json();
+        
+        // ВАЖНО: Обновляем данные ТОЛЬКО из ответа сервера
+        gameData.money = result.remainingMoney;
+        gameData.cars = [...gameData.cars, result.car];
+        
+        // Обновляем статистику тоже из сервера (если есть)
+        if (result.gameData && result.gameData.stats) {
+            gameData.stats = result.gameData.stats;
+        }
+        
+        updatePlayerInfo();
+        updateShopDisplay();
+        
+        window.notify(`✅ Вы купили ${car.name}!`, 'success');
+        
+        // Обновляем прогресс заданий
+        if (window.updateTaskProgress) {
+            window.updateTaskProgress('moneySpent', car.price);
+        }
+        
+        // Проверяем достижения
+        if (window.checkAllAchievements) {
+            window.checkAllAchievements();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка покупки машины:', error);
+        window.notify('Ошибка соединения с сервером', 'error');
+    }
 }
 
-const result = await response.json();
-// Обновляем локальные данные из ответа сервера
-gameData.money = result.gameData.money;
-gameData.cars = result.gameData.cars;
-    
-    const newCar = {...car, owned: true};
-    initializeCarUpgrades(newCar);
-    gameData.cars.push(newCar);
-    
-    // КРИТИЧЕСКОЕ СОХРАНЕНИЕ
-    if (window.queueSave) {
-        await window.queueSave(gameData, 'critical');
-    }
-    
-    updatePlayerInfo();
-    updateShopDisplay();
-    
-    window.notify(`✅ Вы купили ${car.name}!`, 'success');
-    
-    if (window.updateTaskProgress) {
-        window.updateTaskProgress('moneySpent', car.price);
-    }
-    
-    if (window.checkAllAchievements) {
-        window.checkAllAchievements();
-    }
-}
-
-// Функция продажи машины
+// ИСПРАВЛЕННАЯ функция продажи машины - ВСЁ ЧЕРЕЗ СЕРВЕР
 export async function sellCar(index) {
     if (gameData.cars.length <= 1) {
         window.notify('Нельзя продать последнюю машину!', 'error');
@@ -140,24 +146,47 @@ export async function sellCar(index) {
     const car = gameData.cars[index];
     const sellPrice = Math.floor(car.price * 0.7);
     
-    if (confirm(`Продать ${car.name} за $${sellPrice.toLocaleString()}?`)) {
-        gameData.money += sellPrice;
-        gameData.stats.moneyEarned += sellPrice;
-        gameData.cars.splice(index, 1);
+    if (!confirm(`Продать ${car.name} за $${sellPrice.toLocaleString()}?`)) {
+        return;
+    }
+    
+    try {
+        // ЗАЩИТА: ВСЯ ЛОГИКА ПРОДАЖИ НА СЕРВЕРЕ
+        const response = await fetch(`${window.API_URL}/game/sell-car`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ carIndex: index })
+        });
         
-        if (gameData.currentCar >= gameData.cars.length) {
-            gameData.currentCar = 0;
+        if (!response.ok) {
+            const error = await response.json();
+            window.notify(error.error || 'Ошибка продажи', 'error');
+            return;
         }
         
-        // КРИТИЧЕСКОЕ СОХРАНЕНИЕ
-        if (window.queueSave) {
-            await window.queueSave(gameData, 'critical');
+        const result = await response.json();
+        
+        // ВАЖНО: Обновляем данные ТОЛЬКО из ответа сервера
+        gameData.money = result.newMoney;
+        gameData.cars = result.remainingCars;
+        gameData.currentCar = result.newCurrentCar;
+        
+        // Обновляем статистику из сервера
+        if (result.gameData && result.gameData.stats) {
+            gameData.stats = result.gameData.stats;
         }
         
         updatePlayerInfo();
         updateShopDisplay();
         
         window.notify(`${car.name} продана за $${sellPrice.toLocaleString()}`, 'success');
+        
+    } catch (error) {
+        console.error('Ошибка продажи машины:', error);
+        window.notify('Ошибка соединения с сервером', 'error');
     }
 }
 

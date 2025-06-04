@@ -1,9 +1,8 @@
 // modules/upgrades.js
-// Система улучшений без индикаторов загрузки
+// Система улучшений с ЗАЩИЩЕННЫМИ покупками
 
 import { gameData } from './game-data.js';
 import { updatePlayerInfo } from './utils.js';
-import { queueSave } from './utils.js';
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {
@@ -83,7 +82,7 @@ export function initializeCarUpgrades(car) {
     return car;
 }
 
-// Расчет стоимости улучшения
+// Расчет стоимости улучшения (ТОЛЬКО ДЛЯ ОТОБРАЖЕНИЯ)
 export function getUpgradeCost(type, currentLevel) {
     const config = upgradeConfig[type];
     return Math.floor(config.baseCost * Math.pow(config.costMultiplier, currentLevel));
@@ -130,13 +129,13 @@ export function calculateTotalStats(car) {
     return totalStats;
 }
 
-// Функция улучшения компонента
+// ИСПРАВЛЕННАЯ функция улучшения компонента - ВСЁ ЧЕРЕЗ СЕРВЕР
 export async function upgradeComponent(type) {
     const currentCar = gameData.cars[gameData.currentCar];
     const currentLevel = currentCar.upgrades[type];
     const cost = getUpgradeCost(type, currentLevel);
     
-    // Валидация
+    // Простые проверки на клиенте (дублируются на сервере)
     if (currentLevel >= 10) {
         window.notify('Достигнут максимальный уровень улучшения!', 'warning');
         return;
@@ -147,49 +146,51 @@ export async function upgradeComponent(type) {
         return;
     }
     
-    // Сохраняем старые значения для отката
-    const oldMoney = gameData.money;
-    const oldSpent = gameData.stats.moneySpent;
-    const oldLevel = currentCar.upgrades[type];
-    
-    // Отправляем запрос на сервер
-const response = await fetch(`${window.API_URL}/game/upgrade`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-    },
-    body: JSON.stringify({ 
-        carIndex: gameData.currentCar, 
-        upgradeType: type 
-    })
-});
-
-if (!response.ok) {
-    const error = await response.json();
-    window.notify(error.error, 'error');
-    return;
-}
-
-const result = await response.json();
-// Обновляем только из ответа сервера
-gameData.money = result.gameData.money;
-gameData.cars[gameData.currentCar] = result.gameData.car;
-
-    currentCar.upgrades[type]++;
-    
-    // Обновляем интерфейс сразу
-    updatePlayerInfo();
-    window.updateGarageDisplay();
-    
-    console.log('💰 Покупка улучшения...');
-    
     try {
-        // Сохраняем на сервер
-        await saveGameData(gameData);
+        console.log('💰 Покупка улучшения через сервер...');
         
-        console.log('✅ Улучшение успешно сохранено на сервер');
-        window.notify(`${upgradeConfig[type].name} улучшен до уровня ${currentCar.upgrades[type]}!`, 'success');
+        // ЗАЩИТА: ВСЯ ЛОГИКА УЛУЧШЕНИЯ НА СЕРВЕРЕ
+        const response = await fetch(`${window.API_URL}/game/upgrade`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ 
+                carIndex: gameData.currentCar, 
+                upgradeType: type 
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            window.notify(error.error || 'Ошибка улучшения', 'error');
+            return;
+        }
+        
+        const result = await response.json();
+        
+        console.log('✅ Улучшение успешно выполнено на сервере');
+        
+        // ВАЖНО: Обновляем данные ТОЛЬКО из ответа сервера
+        gameData.money = result.remainingMoney;
+        currentCar.upgrades[type] = result.newLevel;
+        
+        // Обновляем статистику из сервера (если есть)
+        if (result.gameData && result.gameData.stats) {
+            gameData.stats = result.gameData.stats;
+        }
+        
+        // Обновляем интерфейс
+        updatePlayerInfo();
+        window.updateGarageDisplay();
+        
+        // Сообщение об успехе
+        let upgradeMessage = `${upgradeConfig[type].name} улучшен до уровня ${result.newLevel}!`;
+        if (result.eventDiscount) {
+            upgradeMessage += ` (Скидка: $${result.originalCost - result.cost})`;
+        }
+        window.notify(upgradeMessage, 'success');
         
         // Обновляем прогресс заданий
         if (window.updateTaskProgress) {
@@ -200,26 +201,18 @@ gameData.cars[gameData.currentCar] = result.gameData.car;
         if (window.checkAllAchievements) {
             window.checkAllAchievements();
         }
+        
     } catch (error) {
-        console.error('❌ Ошибка сохранения улучшения:', error);
-        
-        // ОТКАТЫВАЕМ изменения при ошибке
-        gameData.money = oldMoney;
-        gameData.stats.moneySpent = oldSpent;
-        currentCar.upgrades[type] = oldLevel;
-        
-        // Обновляем интерфейс
-        updatePlayerInfo();
-        window.updateGarageDisplay();
-        
-        window.notify('❌ Ошибка сохранения! Улучшение отменено. Проверьте соединение.', 'error');
+        console.error('❌ Ошибка улучшения:', error);
+        window.notify('❌ Ошибка соединения с сервером! Попробуйте позже.', 'error');
     }
 }
 
-// Покупка специальных деталей
+// ИСПРАВЛЕННАЯ покупка специальных деталей - ВСЁ ЧЕРЕЗ СЕРВЕР
 export async function buySpecialPart(type, cost) {
     const currentCar = gameData.cars[gameData.currentCar];
     
+    // Простые проверки на клиенте (дублируются на сервере)
     if (gameData.money < cost) {
         window.notify('Недостаточно денег!', 'error');
         return;
@@ -230,53 +223,63 @@ export async function buySpecialPart(type, cost) {
         return;
     }
     
-    // Сохраняем старые значения для отката
-    const oldMoney = gameData.money;
-    const oldSpent = gameData.stats.moneySpent;
-    const oldPart = currentCar.specialParts[type];
-    
-    // Применяем изменения локально (для UI)
-    gameData.money -= cost;
-    gameData.stats.moneySpent += cost;
-    currentCar.specialParts[type] = true;
-    
-    // Обновляем интерфейс сразу
-    updatePlayerInfo();
-    window.updateGarageDisplay();
-    
-    console.log('🔧 Покупка специальной детали...');
-    
     try {
-        // Сохраняем на сервер
-        await saveGameData(gameData);
+        console.log('🔧 Покупка специальной детали через сервер...');
         
-        const partNames = {
-            nitro: "Нитро",
-            bodyKit: "Спортивный обвес",
-            ecuTune: "Чип-тюнинг"
-        };
+        // ЗАЩИТА: ВСЯ ЛОГИКА ПОКУПКИ НА СЕРВЕРЕ
+        const response = await fetch(`${window.API_URL}/game/buy-special-part`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({ 
+                carIndex: gameData.currentCar, 
+                partType: type,
+                cost: cost
+            })
+        });
         
-        console.log('✅ Специальная деталь успешно сохранена на сервер');
-        window.notify(`${partNames[type]} установлен!`, 'success');
-        
-         // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
-        if (window.updateTaskProgress) {
-            window.updateTaskProgress('upgradesBought');
+        if (!response.ok) {
+            const error = await response.json();
+            window.notify(error.error || 'Ошибка покупки', 'error');
+            return;
         }
         
-    } catch (error) {
-        console.error('❌ Ошибка сохранения детали:', error);
+        const result = await response.json();
         
-        // ОТКАТЫВАЕМ изменения при ошибке
-        gameData.money = oldMoney;
-        gameData.stats.moneySpent = oldSpent;
-        currentCar.specialParts[type] = oldPart;
+        console.log('✅ Специальная деталь успешно куплена на сервере');
+        
+        // ВАЖНО: Обновляем данные ТОЛЬКО из ответа сервера
+        gameData.money = result.remainingMoney;
+        currentCar.specialParts[type] = true;
+        
+        // Обновляем статистику из сервера (если есть)
+        if (result.gameData && result.gameData.stats) {
+            gameData.stats = result.gameData.stats;
+        }
         
         // Обновляем интерфейс
         updatePlayerInfo();
         window.updateGarageDisplay();
         
-        window.notify('❌ Ошибка сохранения! Покупка отменена. Проверьте соединение.', 'error');
+        const partNames = {
+            nitro: "Нитро",
+            bodyKit: "Спортивный обвес",
+            ecuTune: "Чип-тюнинг",
+            fuelTank: "Увеличенный бак"
+        };
+        
+        window.notify(`${partNames[type]} установлен!`, 'success');
+        
+        // Обновляем прогресс заданий (специальные детали тоже считаются как улучшения)
+        if (window.updateTaskProgress) {
+            window.updateTaskProgress('upgradesBought');
+        }
+        
+    } catch (error) {
+        console.error('❌ Ошибка покупки детали:', error);
+        window.notify('❌ Ошибка соединения с сервером! Попробуйте позже.', 'error');
     }
 }
 
@@ -304,5 +307,6 @@ export function checkUpgradeAchievements() {
         window.notify("🏆 Достижение: Максимальная прокачка!", 'reward');
     }
 }
+
 window.upgradeComponent = upgradeComponent;
 window.buySpecialPart = buySpecialPart;

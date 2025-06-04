@@ -1,5 +1,5 @@
 // modules/daily-tasks.js
-// Система ежедневных заданий с новым UI
+// Система ежедневных заданий с ЗАЩИЩЕННЫМИ наградами
 
 import { gameData, gameState } from './game-data.js';
 import { updatePlayerInfo } from './utils.js';
@@ -51,7 +51,7 @@ export function checkAndResetDailyTasks() {
     }
 }
 
-// Обновление прогресса заданий
+// Обновление прогресса заданий (БЕЗ ИЗМЕНЕНИЯ ДЕНЕГ)
 export function updateTaskProgress(statType, amount = 1) {
     if (!gameData.dailyTasks || !gameData.dailyTasks.tasks) return;
     
@@ -88,9 +88,30 @@ export function updateTaskProgress(statType, amount = 1) {
     updateDailyTasksDisplay();
 }
 
-// Получение награды за задание
+// ИСПРАВЛЕННАЯ функция получения награды - ВСЁ ЧЕРЕЗ СЕРВЕР
 export async function claimTaskReward(taskId) {
+    // Находим задание для проверки
+    const task = gameData.dailyTasks.tasks.find(t => t.id === taskId);
+    
+    if (!task) {
+        window.notify('Задание не найдено!', 'error');
+        return;
+    }
+    
+    if (!task.completed) {
+        window.notify('Задание еще не выполнено!', 'warning');
+        return;
+    }
+    
+    if (task.claimed) {
+        window.notify('Награда уже получена!', 'info');
+        return;
+    }
+    
     try {
+        console.log('🎁 Получение награды через сервер...');
+        
+        // ЗАЩИТА: ВСЯ ЛОГИКА НАГРАДЫ НА СЕРВЕРЕ
         const response = await fetch(`${window.API_URL}/game/claim-daily-task`, {
             method: 'POST',
             headers: {
@@ -102,24 +123,34 @@ export async function claimTaskReward(taskId) {
         
         if (!response.ok) {
             const error = await response.json();
-            window.notify(error.error, 'error');
+            window.notify(error.error || 'Ошибка получения награды', 'error');
             return;
         }
         
         const result = await response.json();
         
-        // Обновляем данные только из ответа сервера
+        console.log('✅ Награда успешно получена с сервера');
+        
+        // ВАЖНО: Обновляем данные ТОЛЬКО из ответа сервера
         gameData.money = result.gameData.money;
         gameData.dailyTasks = result.gameData.dailyTasks;
         
         updatePlayerInfo();
         updateDailyTasksDisplay();
         
+        // Показываем сообщение с сервера
         window.notify(result.message, 'reward');
         
+        // Бонус за выполнение всех заданий (если есть)
+        if (result.bonusReward && result.bonusReward > 0) {
+            setTimeout(() => {
+                window.notify(`🌟 Бонус за все задания дня: $${result.bonusReward}!`, 'reward');
+            }, 1000);
+        }
+        
     } catch (error) {
-        console.error('Ошибка получения награды:', error);
-        window.notify('Ошибка соединения с сервером', 'error');
+        console.error('❌ Ошибка получения награды:', error);
+        window.notify('❌ Ошибка соединения с сервером! Попробуйте позже.', 'error');
     }
 }
 

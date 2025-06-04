@@ -17,45 +17,188 @@ import * as chat from './modules/chat.js';
 import * as events from './modules/events.js';
 import { notifications } from './modules/notifications.js';
 
-// Защита от консольных читов
-if (typeof window !== 'undefined') {
-    // Скрываем глобальные переменные
-    Object.defineProperty(window, 'gameData', {
-        get: function() {
-            console.warn('🚫 Доступ к игровым данным запрещен!');
-            return undefined;
-        },
-        set: function() {
-            console.warn('🚫 Изменение игровых данных запрещено!');
-            return false;
-        }
-    });
+// =====================================
+// БАЗОВАЯ ЗАЩИТА ОТ КОНСОЛЬНЫХ ЧИТОВ
+// =====================================
+
+// Защита от модификации gameData через консоль
+(function() {
+    'use strict';
     
-    // Отключаем DevTools (частично)
+    // Сохраняем ссылку на настоящий gameData
+    let realGameData = null;
+    
+    // Функция для установки защищенного gameData
+    function protectGameData(data) {
+        realGameData = data;
+        
+        // Создаем прокси для перехвата обращений
+        return new Proxy(data, {
+            set: function(target, property, value) {
+                // Разрешаем изменения только изнутри игры
+                const stack = new Error().stack;
+                const isFromGame = stack.includes('modules/') || 
+                                 stack.includes('updateGameData') ||
+                                 stack.includes('fetch');
+                
+                if (!isFromGame && typeof value === 'number' && 
+                    ['money', 'level', 'experience'].includes(property)) {
+                    console.warn('🚫 Попытка изменения игровых данных заблокирована!');
+                    window.notify('🚫 Читерство обнаружено!', 'error');
+                    return false;
+                }
+                
+                target[property] = value;
+                return true;
+            },
+            
+            get: function(target, property) {
+                // Если пытаются получить деньги из консоли - логируем
+                if (property === 'money' && new Error().stack.includes('eval')) {
+                    console.warn('🚫 Подозрительное обращение к деньгам игрока');
+                }
+                return target[property];
+            }
+        });
+    }
+    
+    // Отключаем некоторые консольные функции
+    const originalLog = console.log;
+    console.log = function(...args) {
+        // Проверяем на попытки читерства
+        const message = args.join(' ');
+        if (message.includes('gameData') || message.includes('money')) {
+            originalLog('🚫 Консольные читы не работают в этой игре!');
+            return;
+        }
+        originalLog.apply(console, args);
+    };
+    
+    // Детекция открытых DevTools (базовый)
+    let devtools = {
+        open: false,
+        orientation: null
+    };
+    
     setInterval(() => {
         if (window.outerHeight - window.innerHeight > 200 || 
             window.outerWidth - window.innerWidth > 200) {
-            document.body.innerHTML = '<h1>🚫 Консоль разработчика запрещена!</h1>';
+            
+            if (!devtools.open) {
+                devtools.open = true;
+                console.clear();
+                console.log(`
+                
+    ⚠️  ВНИМАНИЕ! ⚠️
+    
+    Консоль разработчика обнаружена!
+    
+    Читерство в этой игре:
+    ❌ Не работает
+    ❌ Может привести к бану аккаунта
+    ❌ Портит удовольствие от игры
+    
+    Играйте честно! 🎮
+    
+                `);
+            }
+        } else {
+            devtools.open = false;
         }
     }, 1000);
-}
-// Проверка структуры gameData при загрузке
-window.validateGameDataStructure = function() {
-    if (!gameData) {
-        console.error('gameData не определена');
-        return false;
-    }
     
-    console.log('Структура gameData:', {
-        money: typeof gameData.money,
-        level: typeof gameData.level,
-        experience: typeof gameData.experience,
-        cars: Array.isArray(gameData.cars),
-        carsCount: gameData.cars ? gameData.cars.length : 0
+    // Перехватываем глобальный доступ к gameData
+    Object.defineProperty(window, 'gameData', {
+        get: function() {
+            return realGameData;
+        },
+        set: function(value) {
+            if (realGameData && typeof value === 'object') {
+                realGameData = protectGameData(value);
+            } else {
+                realGameData = value;
+            }
+        },
+        configurable: false
     });
     
-    return true;
+    // Экспортируем функцию защиты
+    window.protectGameData = protectGameData;
+    
+})();
+
+// =====================================
+// ЗАЩИТА ОТ ИЗМЕНЕНИЯ WINDOW ОБЪЕКТОВ
+// =====================================
+
+// Защищаем основные игровые функции
+const protectedFunctions = [
+    'updatePlayerInfo',
+    'buyCar',
+    'upgradeComponent',
+    'claimTaskReward',
+    'startRace'
+];
+
+protectedFunctions.forEach(funcName => {
+    const originalFunc = window[funcName];
+    if (originalFunc) {
+        Object.defineProperty(window, funcName, {
+            value: originalFunc,
+            writable: false,
+            configurable: false
+        });
+    }
+});
+
+// =====================================
+// МОНИТОРИНГ ПОДОЗРИТЕЛЬНОЙ АКТИВНОСТИ
+// =====================================
+
+// Счетчик подозрительных действий
+let suspiciousActivity = 0;
+const MAX_SUSPICIOUS = 3;
+
+// Функция для отправки отчета о читерстве
+function reportCheating(type, details) {
+    suspiciousActivity++;
+    
+    console.warn(`🚨 Обнаружена подозрительная активность: ${type}`);
+    
+    if (suspiciousActivity >= MAX_SUSPICIOUS) {
+        window.notify('🚨 Обнаружено читерство! Аккаунт может быть заблокирован.', 'error');
+        
+        // Отправляем отчет на сервер (если нужно)
+        if (window.API_URL && localStorage.getItem('authToken')) {
+            fetch(`${window.API_URL}/game/report-cheating`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify({
+                    type: type,
+                    details: details,
+                    timestamp: Date.now(),
+                    userAgent: navigator.userAgent
+                })
+            }).catch(() => {}); // Игнорируем ошибки
+        }
+    }
+}
+
+// Мониторинг консоли
+const originalEval = window.eval;
+window.eval = function(code) {
+    if (typeof code === 'string' && 
+        (code.includes('gameData') || code.includes('money') || code.includes('level'))) {
+        reportCheating('console_eval', code.substring(0, 100));
+        throw new Error('🚫 Выполнение кода заблокировано');
+    }
+    return originalEval(code);
 };
+
+console.log('🛡️ Система защиты от читерства активирована');
 
 // Вызовите после загрузки данных
 setTimeout(() => {
