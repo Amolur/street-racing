@@ -71,88 +71,126 @@ body {
 }
 
 /* ================================ */
-/* ВЕРХНЯЯ ПАНЕЛЬ */
+/* ВЕРХНЯЯ ПАНЕЛЬ С ЛОГОТИПОМ */
 /* ================================ */
 .mobile-header {
     background: var(--race-surface);
-    padding: var(--race-spacing-small) var(--race-spacing);
-    border-bottom: 2px solid var(--race-primary);
     position: sticky;
     top: 0;
     z-index: 100;
-    min-height: 60px;
+    border-bottom: 2px solid var(--race-primary);
     display: flex;
-    align-items: center;
+    flex-direction: column;
 }
 
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Секция с логотипом */
+.header-logo-section {
     width: 100%;
-}
-
-.game-logo {
+    height: 60px;
+    background: var(--race-surface-dark);
     display: flex;
     align-items: center;
+    justify-content: center;
+    padding: var(--race-spacing-small) 0;
+    border-bottom: 1px solid var(--race-border);
+    cursor: pointer;
+}
+
+/* Логотип на всю ширину */
+.full-width-logo {
+    width: 90%;
+    max-width: 400px;
     height: 100%;
-    padding: 0;
-}
-.header-logo-image {
-    height: 36px;  /* Высота логотипа */
-    width: auto;   /* Ширина автоматическая для сохранения пропорций */
-    vertical-align: middle;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-    transition: filter 0.2s ease;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(255, 68, 68, 0.5));
+    transition: filter 0.2s ease, transform 0.2s ease;
 }
 
-/* Эффект при наведении/нажатии */
-.game-logo:active .header-logo-image {
-    filter: drop-shadow(0 2px 8px rgba(255, 68, 68, 0.8));
+.header-logo-section:active .full-width-logo {
+    transform: scale(0.98);
+    filter: drop-shadow(0 4px 12px rgba(255, 68, 68, 0.8));
 }
 
-.header-resources {
+/* Запасной текстовый логотип */
+.text-logo-fallback {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--race-primary);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-style: italic;
+    text-shadow: 
+        0 0 10px rgba(255, 68, 68, 0.8),
+        2px 2px 0 #000;
+}
+
+/* Панель информации игрока */
+.player-info-bar {
+    background: var(--race-surface);
+    padding: var(--race-spacing-small) var(--race-spacing);
+    border-top: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.info-bar-content {
     display: flex;
-    gap: var(--race-spacing-small);
+    justify-content: space-around;
     align-items: center;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
-.resource-item {
+/* Переопределяем стили resource-item */
+.player-info-bar .resource-item {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 13px;
+    gap: 6px;
+    font-size: 14px;
     font-weight: 600;
     background: var(--race-surface-dark);
-    padding: 4px 8px;
+    padding: 6px 12px;
     border-radius: var(--race-radius-small);
     border: 1px solid var(--race-border);
+    min-width: 80px;
+    justify-content: center;
 }
 
-.resource-icon {
-    width: 16px;
-    height: 16px;
+.player-info-bar .resource-icon {
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
 }
 
-.resource-icon.money {
+.player-info-bar .resource-icon.money {
     background: var(--race-warning);
     color: var(--race-text-dark);
 }
 
-.resource-icon.fuel {
+.player-info-bar .resource-icon.fuel {
     background: var(--race-info);
     color: var(--race-text-primary);
 }
 
-.resource-icon.level {
+.player-info-bar .resource-icon.level {
     background: var(--race-accent);
     color: var(--race-text-dark);
+}
+
+/* Старые стили для совместимости */
+.game-logo {
+    display: none;
+}
+
+.header-content {
+    display: none;
+}
+
+.header-resources {
+    display: none;
 }
 
 /* ================================ */
@@ -168,7 +206,7 @@ body {
 
 .mobile-screen {
     display: none;
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - 120px);
     flex-direction: column;
 }
 
@@ -184,10 +222,20 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(26, 26, 26, 0.7),
+        rgba(26, 26, 26, 0.9)
+    );
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
 .player-info-card {
-    background: var(--race-surface);
+    background: rgba(45, 45, 45, 0.95);
+    backdrop-filter: blur(10px);
     border-radius: var(--race-radius-large);
     padding: var(--race-spacing-large);
     margin-bottom: var(--race-spacing-large);
@@ -251,7 +299,8 @@ body {
 }
 
 .menu-button {
-    background: var(--race-surface);
+    background: rgba(45, 45, 45, 0.9);
+    backdrop-filter: blur(5px);
     border: 2px solid var(--race-border);
     border-radius: var(--race-radius);
     padding: var(--race-spacing);
@@ -758,7 +807,7 @@ body {
 
 .notification {
     position: fixed;
-    top: 70px;
+    top: 130px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--race-surface);
@@ -1090,6 +1139,34 @@ body {
 /* АДАПТИВНОСТЬ */
 /* ================================ */
 @media (max-width: 380px) {
+    .header-logo-section {
+        height: 50px;
+    }
+    
+    .full-width-logo {
+        width: 85%;
+    }
+    
+    .text-logo-fallback {
+        font-size: 20px;
+    }
+    
+    .player-info-bar .resource-item {
+        font-size: 12px;
+        padding: 4px 8px;
+        min-width: 70px;
+    }
+    
+    .player-info-bar .resource-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    
+    .mobile-screen {
+        min-height: calc(100vh - 100px);
+    }
+    
     .race-stakes {
         flex-direction: column;
         gap: var(--race-spacing-small);
@@ -1098,21 +1175,20 @@ body {
     .car-stats-grid {
         grid-template-columns: 1fr;
     }
-    
-    .header-resources {
-        gap: 4px;
-    }
-    
-    .resource-item {
-        font-size: 11px;
-        padding: 2px 6px;
-    }
 }
 
 @media (min-width: 768px) {
     .mobile-container {
         max-width: 500px;
         margin: 0 auto;
+    }
+    
+    .header-logo-section {
+        height: 70px;
+    }
+    
+    .mobile-screen {
+        min-height: calc(100vh - 130px);
     }
 }
 
@@ -1153,23 +1229,13 @@ body {
     transition: none !important;
     animation: none !important;
 }
-@media (max-width: 380px) {
-    .header-logo-image {
-        height: 30px;
-    }
-}
 
-/* Для больших экранов */
-@media (min-width: 768px) {
-    .header-logo-image {
-        height: 40px;
-    }
-}
 /* Добавляем только необходимые быстрые переходы */
 .action-button,
 .menu-button,
 .list-item,
 .back-button,
-.nav-button {
+.nav-button,
+.full-width-logo {
     transition: background-color 0.1s ease, transform 0.1s ease !important;
 }

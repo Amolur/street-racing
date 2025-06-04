@@ -164,7 +164,18 @@ document.addEventListener('click', () => {
 document.addEventListener('keypress', () => {
     lastActivity = Date.now();
 });
-
+// Обработчик клика на логотип
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем обработчик клика на секцию с логотипом
+    const logoSection = document.querySelector('.header-logo-section');
+    if (logoSection) {
+        logoSection.addEventListener('click', function() {
+            if (window.showMainMenu) {
+                window.showMainMenu();
+            }
+        });
+    }
+});
 // Модифицируем периодическое сохранение
 setInterval(async () => {
     // Сохраняем только если была активность в последние 30 секунд
@@ -179,5 +190,6 @@ setInterval(async () => {
         }
     }
 }, 60000);
+
 // Экспортируем для использования в других модулях если нужно
 export { gameState, gameData };
