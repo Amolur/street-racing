@@ -2,7 +2,7 @@
 // Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
-
+let processingSaveQueue = false;
 // Безопасная работа с localStorage
 export const storage = {
     getItem: (key) => {
@@ -53,9 +53,9 @@ export async function queueSave(gameData, priority = 'normal') {
 
 // Обработка очереди сохранения
 async function processSaveQueue() {
-    if (isSaving || saveQueue.length === 0) return;
+    if (processingSaveQueue || saveQueue.length === 0) return;
     
-    isSaving = true;
+    processingSaveQueue = true;
     updateSaveIndicator(null); // Показываем процесс сохранения
     
     // Берем последнее состояние (самое актуальное)
@@ -63,15 +63,17 @@ async function processSaveQueue() {
     saveQueue = []; // Очищаем очередь
     
     try {
-        await saveGameData(latestSave.data);
-        unsavedChanges = false;
-        updateSaveIndicator(true);
+        if (typeof window.saveGameData === 'function') {
+            await window.saveGameData(latestSave.data);
+            unsavedChanges = false;
+            updateSaveIndicator(true);
+        }
     } catch (error) {
         console.error('Ошибка сохранения:', error);
         saveQueue.push(latestSave); // Возвращаем в очередь
         updateSaveIndicator(false);
     } finally {
-        isSaving = false;
+        processingSaveQueue = false;
     }
 }
 
@@ -80,14 +82,16 @@ setInterval(processSaveQueue, 5000);
 
 // Предупреждение при закрытии страницы
 window.addEventListener('beforeunload', async (e) => {
-    if (unsavedChanges) {
+    if (unsavedChanges && gameState.currentUser && gameData) {
         e.preventDefault();
         e.returnValue = 'У вас есть несохраненные изменения!';
         
-        // Пытаемся сохранить синхронно
+        // Пытаемся сохранить
         try {
             const latestSave = saveQueue[saveQueue.length - 1] || { data: gameData };
-            await saveGameData(latestSave.data);
+            if (typeof window.saveGameData === 'function') {
+                await window.saveGameData(latestSave.data);
+            }
         } catch (error) {
             console.error('Не удалось сохранить при закрытии');
         }

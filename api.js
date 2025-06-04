@@ -143,20 +143,6 @@ async function loadGameData() {
 }
 
 async function saveGameData(gameData) {
-    console.log('Отправка данных на сервер:', {
-        money: gameData.money,
-        level: gameData.level,
-        carsCount: gameData.cars ? gameData.cars.length : 0,
-        hasStats: !!gameData.stats
-    });
-    
-    return await apiRequest('/game/save', {
-        method: 'POST',
-        body: JSON.stringify({ gameData })
-    });
-}
-// Около строки 98 в api.js
-async function saveGameData(gameData) {
     try {
         // Проверяем данные перед отправкой
         if (!gameData || typeof gameData !== 'object') {
@@ -168,6 +154,13 @@ async function saveGameData(gameData) {
         if (gameData.money !== undefined) gameData.money = Number(gameData.money) || 0;
         if (gameData.level !== undefined) gameData.level = Number(gameData.level) || 1;
         if (gameData.experience !== undefined) gameData.experience = Number(gameData.experience) || 0;
+        
+        console.log('Отправка данных на сервер:', {
+            money: gameData.money,
+            level: gameData.level,
+            carsCount: gameData.cars ? gameData.cars.length : 0,
+            hasStats: !!gameData.stats
+        });
         
         return await apiRequest('/game/save', {
             method: 'POST',
