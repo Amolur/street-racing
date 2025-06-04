@@ -355,17 +355,19 @@ if (currentFuel < fuelCost) {
             window.checkAllAchievements();
         }
         
-        // Проверяем получение навыка
-        const skillResult = window.skillSystem.tryGetSkill(result.result.won);
-        if (skillResult.success) {
-            const skillNames = {
-                driving: 'Вождение',
-                speed: 'Скорость',
-                reaction: 'Реакция',
-                technique: 'Техника'
-            };
-            window.notify(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`, 'skill');
-        }
+        // Проверяем получение навыка с сервера
+            if (result.skillGained) {
+        const skillNames = {
+        driving: 'Вождение',
+        speed: 'Скорость',
+        reaction: 'Реакция',
+        technique: 'Техника'
+    };
+            window.notify(`⚡ "${skillNames[result.skillGained.skill]}" повышен до ${result.skillGained.newLevel}!`, 'skill');
+    
+    // Обновляем локальные данные
+    gameData.skills[result.skillGained.skill] = result.skillGained.newLevel;
+}
         
         // Показываем результат
         showRaceResult(
