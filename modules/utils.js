@@ -94,9 +94,30 @@ window.addEventListener('beforeunload', async (e) => {
     }
 });
 
-// Обновление индикатора сохранения
-export function updateSaveIndicator(success = null) {
-    // Функция оставлена для совместимости, но ничего не делает
+// Обновление отображения топлива
+export function updateFuelDisplay() {
+    const car = gameData.cars[gameData.currentCar];
+    if (!car) return;
+    
+    const currentFuel = fuelSystem.getCurrentFuel(car);
+    
+    // Обновляем в header
+    const headerFuelEl = document.getElementById('header-fuel');
+    if (headerFuelEl) {
+        headerFuelEl.textContent = currentFuel;
+    }
+    
+    // Обновляем в гараже
+    const carFuelDisplay = document.getElementById('car-fuel-display');
+    if (carFuelDisplay) {
+        carFuelDisplay.textContent = `${currentFuel}/${car.maxFuel || 30}`;
+    }
+    
+    // Обновляем в меню гонок
+    const raceCarFuel = document.getElementById('race-car-fuel');
+    if (raceCarFuel) {
+        raceCarFuel.textContent = `${currentFuel}/${car.maxFuel || 30}`;
+    }
 }
 
 // Показать уведомление об ошибке
