@@ -167,3 +167,52 @@ export const fuelSystem = {
         return Math.min((car.fuel || 0) + fuelRegenerated, car.maxFuel || 30);
     }
 };
+
+// Система получения навыков
+export const skillSystem = {
+    // Получить общее количество навыков
+    getTotalSkillPoints: function() {
+        const skills = gameData.skills;
+        return (skills.driving - 1) + (skills.speed - 1) + 
+               (skills.reaction - 1) + (skills.technique - 1);
+    },
+    
+    // Рассчитать шанс получения навыка
+    getSkillChance: function(won) {
+        const baseChance = won ? 50 : 20; // 50% при победе, 20% при поражении
+        const totalSkills = this.getTotalSkillPoints();
+        const chance = baseChance / (1 + totalSkills * 0.1);
+        return Math.max(chance, 1); // Минимум 1% шанс
+    },
+    
+    // Попытка получить навык
+    tryGetSkill: function(won) {
+        // 1. Выбираем случайный навык
+        const skills = ['driving', 'speed', 'reaction', 'technique'];
+        const randomSkill = skills[Math.floor(Math.random() * skills.length)];
+        
+        // 2. Проверяем, получит ли игрок этот навык
+        const chance = this.getSkillChance(won);
+        const roll = Math.random() * 100;
+        
+        if (roll < chance) {
+            // Успех! Добавляем навык
+            gameData.skills[randomSkill]++;
+            return {
+                success: true,
+                skill: randomSkill,
+                newLevel: gameData.skills[randomSkill],
+                chance: chance.toFixed(1)
+            };
+        }
+        
+        return {
+            success: false,
+            skill: randomSkill,
+            chance: chance.toFixed(1)
+        };
+    }
+};
+
+// Делаем доступным глобально
+window.skillSystem = skillSystem;

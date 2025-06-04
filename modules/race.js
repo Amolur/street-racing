@@ -190,6 +190,17 @@ export async function startRace(opponentIndex) {
             window.checkAllAchievements();
         }
         
+        // Проверяем получение навыка
+const skillResult = window.skillSystem.tryGetSkill(result.result.won);
+if (skillResult.success) {
+    const skillNames = {
+        driving: 'Вождение',
+        speed: 'Скорость',
+        reaction: 'Реакция',
+        technique: 'Техника'
+    };
+    showError(`⚡ Навык "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}! (Шанс был ${skillResult.chance}%)`);
+}
         // Показываем результат
         showRaceResult(
             result.result.won,

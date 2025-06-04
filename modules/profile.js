@@ -96,6 +96,9 @@ function updateProfileSkills() {
         technique: 'Техника'
     };
     
+    // Получаем шанс для отображения
+    const currentChance = window.skillSystem ? window.skillSystem.getSkillChance(true) : 0;
+    
     const skillsHTML = Object.keys(skillNames).map(skillKey => {
         const skillLevel = gameData.skills[skillKey] || 1;
         const skillName = skillNames[skillKey];
@@ -103,12 +106,25 @@ function updateProfileSkills() {
         return `
             <div class="skill-item">
                 <span class="skill-name">${skillName}</span>
-                <span class="skill-level">${skillLevel}/10</span>
+                <span class="skill-level">${skillLevel}</span>
             </div>
         `;
     }).join('');
     
-    skillsContainer.innerHTML = skillsHTML;
+    // Добавляем информацию о шансе
+    const totalSkills = window.skillSystem ? window.skillSystem.getTotalSkillPoints() : 0;
+    const chanceInfo = `
+        <div class="skill-item" style="margin-top: 10px; border-top: 1px solid var(--race-border); padding-top: 10px;">
+            <span class="skill-name" style="font-size: 11px; color: var(--race-text-secondary);">Шанс навыка (победа)</span>
+            <span class="skill-level" style="font-size: 11px; color: var(--race-warning);">${currentChance.toFixed(1)}%</span>
+        </div>
+        <div class="skill-item">
+            <span class="skill-name" style="font-size: 11px; color: var(--race-text-secondary);">Всего очков</span>
+            <span class="skill-level" style="font-size: 11px; color: var(--race-text-secondary);">${totalSkills}</span>
+        </div>
+    `;
+    
+    skillsContainer.innerHTML = skillsHTML + chanceInfo;
 }
 
 // Обновление счетчика достижений
