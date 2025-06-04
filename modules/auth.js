@@ -79,6 +79,15 @@ export async function login(username, password) {
         gameState.currentUser = { username: data.user.username };
         gameState.currentUserId = data.user.id;
         updateGameData(data.user.gameData);
+        if (!gameData.stats) {
+    gameData.stats = {
+        totalRaces: 0,
+        wins: 0,
+        losses: 0,
+        moneyEarned: 0,
+        moneySpent: 0
+    };
+}
         
         if (!gameData.experience) gameData.experience = 0;
         

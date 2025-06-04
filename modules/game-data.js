@@ -66,18 +66,58 @@ export let gameData = {
 export function updateGameData(newData) {
     // Сохраняем структуру по умолчанию и обновляем только то, что пришло
     gameData = {
-        ...gameData,
-        ...newData,
-        // Убеждаемся, что критические поля всегда есть
-        skills: newData.skills || gameData.skills,
-        stats: newData.stats || gameData.stats,
-        cars: newData.cars || gameData.cars,
+        money: newData.money || 1000,
+        level: newData.level || 1,
+        experience: newData.experience || 0,
+        currentCar: newData.currentCar || 0,
+        skills: newData.skills || {
+            driving: 1,
+            speed: 1,
+            reaction: 1,
+            technique: 1
+        },
+        stats: newData.stats || {
+            totalRaces: 0,
+            wins: 0,
+            losses: 0,
+            moneyEarned: 0,
+            moneySpent: 0,
+            driftWins: 0,
+            sprintWins: 0,
+            enduranceWins: 0
+        },
+        cars: newData.cars || [{
+            id: 0,
+            name: "Handa Civic",
+            power: 50,
+            speed: 60,
+            handling: 70,
+            acceleration: 55,
+            price: 0,
+            owned: true,
+            upgrades: {
+                engine: 0,
+                turbo: 0,
+                tires: 0,
+                suspension: 0,
+                transmission: 0
+            },
+            specialParts: {
+                nitro: false,
+                bodyKit: false,
+                ecuTune: false,
+                fuelTank: false
+            },
+            fuel: 30,
+            maxFuel: 30,
+            lastFuelUpdate: new Date().toISOString()
+        }],
         achievements: newData.achievements || [],
         dailyTasks: newData.dailyTasks || null,
         dailyStats: newData.dailyStats || {}
     };
     
-    // Инициализируем первую машину если нужно
+    // Инициализируем машины если нужно
     if (gameData.cars && gameData.cars.length > 0) {
         gameData.cars.forEach(car => {
             if (!car.upgrades) {

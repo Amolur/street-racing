@@ -62,20 +62,20 @@ function updateProfileStats() {
     if (!statsContainer) return;
     
     // Проверяем наличие gameData и stats
-    if (!gameData || !gameData.stats) {
-        // Если статистики нет, создаем пустую
-        if (gameData) {
-            gameData.stats = {
-                totalRaces: 0,
-                wins: 0,
-                losses: 0,
-                moneyEarned: 0,
-                moneySpent: 0
-            };
-        } else {
-            statsContainer.innerHTML = '<p class="no-data">Статистика недоступна</p>';
-            return;
-        }
+    if (!gameData) {
+        statsContainer.innerHTML = '<p class="no-data">Данные недоступны</p>';
+        return;
+    }
+    
+    // Убеждаемся, что stats существует
+    if (!gameData.stats) {
+        gameData.stats = {
+            totalRaces: 0,
+            wins: 0,
+            losses: 0,
+            moneyEarned: 0,
+            moneySpent: 0
+        };
     }
     
     const winRate = gameData.stats.totalRaces > 0 
@@ -86,7 +86,7 @@ function updateProfileStats() {
         { label: 'Побед', value: gameData.stats.wins || 0 },
         { label: 'Гонок', value: gameData.stats.totalRaces || 0 },
         { label: 'Процент побед', value: `${winRate}%` },
-        { label: 'Машин', value: gameData.cars ? gameData.cars.length : 0 },
+        { label: 'Машин', value: gameData.cars ? gameData.cars.length : 1 },
         { label: 'Заработано', value: `$${(gameData.stats.moneyEarned || 0).toLocaleString()}` },
         { label: 'Потрачено', value: `$${(gameData.stats.moneySpent || 0).toLocaleString()}` }
     ];
