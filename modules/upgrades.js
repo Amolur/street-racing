@@ -3,6 +3,7 @@
 
 import { gameData } from './game-data.js';
 import { showError, updatePlayerInfo } from './utils.js';
+import { queueSave } from './utils.js';
 
 // Конфигурация системы улучшений
 export const upgradeConfig = {

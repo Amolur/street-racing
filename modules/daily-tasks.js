@@ -124,11 +124,10 @@ export async function claimTaskReward(taskId) {
     }
     
     // Сохраняем
-    try {
-        await saveGameData(gameData);
-    } catch (error) {
-        console.error('Ошибка сохранения:', error);
-    }
+    // Сохраняем через очередь
+if (window.queueSave) {
+    await window.queueSave(gameData, 'normal');
+}
 }
 
 // Обновление отображения заданий
