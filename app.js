@@ -126,26 +126,6 @@ import { notifications } from './modules/notifications.js';
     window.protectGameData = protectGameData;
     
 })();
-
-// =====================================
-// ЗАЩИТА ОТ ИЗМЕНЕНИЯ WINDOW ОБЪЕКТОВ
-// =====================================
-
-// Простая защита без блокировки
-const protectedFunctions = ['updatePlayerInfo', 'buyCar', 'upgradeComponent', 'claimTaskReward', 'startRace'];
-
-// Просто логируем попытки изменения
-protectedFunctions.forEach(funcName => {
-    let original = window[funcName];
-    Object.defineProperty(window, funcName, {
-        get() { return original; },
-        set(value) {
-            console.warn(`Попытка изменить защищенную функцию: ${funcName}`);
-            return false;
-        }
-    });
-});
-
 // =====================================
 // МОНИТОРИНГ ПОДОЗРИТЕЛЬНОЙ АКТИВНОСТИ
 // =====================================
