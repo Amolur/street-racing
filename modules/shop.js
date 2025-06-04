@@ -2,7 +2,7 @@
 // Функционал магазина с новым UI
 
 import { gameData, allCars, levelSystem } from './game-data.js';
-import { showError, updatePlayerInfo } from './utils.js';
+import { updatePlayerInfo } from './utils.js';
 import { initializeCarUpgrades } from './upgrades.js';
 
 // ИСПРАВЛЕНО: создаем локальную функцию createShopCarCard вместо импорта

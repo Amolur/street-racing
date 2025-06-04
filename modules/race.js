@@ -2,7 +2,7 @@
 // Гоночная логика с серверной валидацией
 
 import { gameData, gameState } from './game-data.js';
-import { showError, updatePlayerInfo } from './utils.js';
+import { updatePlayerInfo } from './utils.js';
 import { showRaceResultScreen, showRaceMenu, showMainMenu } from './navigation.js';
 import { createOpponentListItem, createRacePreviewModal, createRaceResult } from './ui-components.js';
 

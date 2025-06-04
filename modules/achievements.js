@@ -2,7 +2,6 @@
 // Система достижений
 
 import { gameData } from './game-data.js';
-import { showError } from './utils.js';
 
 // Список всех достижений
 export const allAchievements = [

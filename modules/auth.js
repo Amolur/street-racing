@@ -2,7 +2,7 @@
 // Функции авторизации
 
 import { gameState, gameData, updateGameData } from './game-data.js';
-import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates, showError } from './utils.js';
+import { storage, updatePlayerInfo, startAutoSave, stopAutoSave, startFuelUpdates, stopFuelUpdates, startInfoBarUpdates } from './utils.js';
 import { showAuthScreen, showGame, showMainMenu } from './navigation.js';
 
 // Инициализация улучшений для машины

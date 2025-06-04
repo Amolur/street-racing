@@ -2,7 +2,7 @@
 // Система ежедневных заданий с новым UI
 
 import { gameData, gameState } from './game-data.js';
-import { showError, updatePlayerInfo } from './utils.js';
+import { updatePlayerInfo } from './utils.js';
 
 // ИСПРАВЛЕНО: убрал импорт несуществующей функции createTaskCard
 // Создаем функцию createTaskCard локально

@@ -2,7 +2,7 @@
 // Система улучшений без индикаторов загрузки
 
 import { gameData } from './game-data.js';
-import { showError, updatePlayerInfo } from './utils.js';
+import { updatePlayerInfo } from './utils.js';
 // ИСПРАВЛЕНО: убрал импорт queueSave, так как он доступен через window.queueSave
 
 // Конфигурация системы улучшений
