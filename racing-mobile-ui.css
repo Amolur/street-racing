@@ -83,27 +83,33 @@ body {
     flex-direction: column;
 }
 
-/* Секция с логотипом */
+/* Секция с логотипом - увеличиваем высоту */
 .header-logo-section {
     width: 100%;
-    height: 80px;  /* Увеличено с 60px */
-    background: var(--race-surface-dark);
+    height: auto;        /* Изменено с фиксированной высоты */
+    min-height: 80px;    /* Минимальная высота */
+    max-height: 120px;   /* Максимальная высота */
+    background: #0a0a0a;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--race-spacing) 0;  /* Увеличен padding */
-    border-bottom: 1px solid var(--race-border);
+    padding: var(--race-spacing-large) var(--race-spacing);
+    border-bottom: 3px solid var(--race-primary);
     cursor: pointer;
 }
 
-/* Логотип на всю ширину */
+/* Логотип - убираем ограничение по высоте */
 .full-width-logo {
-    width: 95%;  /* Увеличено с 90% */
-    max-width: 500px;  /* Увеличено с 400px */
-    height: 90%;  /* Увеличено для большего заполнения */
+    width: 90%;
+    max-width: 600px;    /* Увеличено для широких логотипов */
+    height: auto;        /* Изменено - автоматическая высота */
+    max-height: 100px;   /* Ограничение максимальной высоты */
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(255, 68, 68, 0.5));
-    transition: filter 0.2s ease, transform 0.2s ease;
+    display: block;
+    filter: 
+        brightness(1.1)
+        drop-shadow(0 0 20px rgba(255, 68, 68, 0.6))
+        drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 
 .header-logo-section:active .full-width-logo {
@@ -204,10 +210,10 @@ body {
     padding: 0;
 }
 
-/* Также обновите высоту основного контента */
+/* Обновляем расчет высоты для основного контента */
 .mobile-screen {
     display: none;
-    min-height: calc(100vh - 140px);  /* Увеличено с 120px */
+    min-height: calc(100vh - 160px); /* Учитываем новую высоту header */
     flex-direction: column;
 }
 
@@ -1141,11 +1147,13 @@ body {
 /* ================================ */
 @media (max-width: 380px) {
     .header-logo-section {
-        height: 70px;  /* Увеличено с 50px */
+        min-height: 100px;
+        max-height: 140px;
     }
     
     .full-width-logo {
-        width: 90%;  /* Немного уменьшено для маленьких экранов */
+        max-height: 120px;
+        max-width: 700px;
     }
     
     .text-logo-fallback {
@@ -1185,7 +1193,8 @@ body {
     }
     
     .header-logo-section {
-        height: 90px;
+        min-height: 100px;
+        max-height: 140px;
     }
     
     .mobile-screen {
