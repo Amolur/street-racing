@@ -121,29 +121,10 @@
             <!-- Главное меню -->
             <div id="main-menu" class="mobile-screen active">
                 <div class="main-menu-container">
-                    <!-- Информация об игроке -->
-                    <div class="player-info-card">
-                        <div class="player-avatar-wrapper">
-                            <img src="https://ui-avatars.com/api/?name=Player&background=ff4444&color=ffffff&size=80" 
-                                 alt="Avatar" class="player-avatar">
-                        </div>
-                        <h2 class="player-name" id="player-name">Игрок</h2>
-                        <div class="player-stats">
-                            <div class="stat-item">
-                                <span class="stat-value" id="player-level">1</span>
-                                <span class="stat-label">Уровень</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="player-wins">0</span>
-                                <span class="stat-label">Побед</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="player-cars">1</span>
-                                <span class="stat-label">Машин</span>
-                            </div>
-                        </div>
-                    </div>
-
+                    <!-- Простое приветствие -->
+                <div class="welcome-message">
+                <h2>Добро пожаловать, <span id="welcome-username">Гонщик</span>!</h2>
+                </div>
                     <!-- Меню кнопки - вертикальное расположение -->
                     <div class="menu-grid">
                         <button class="menu-button race" onclick="showRaceMenu()">

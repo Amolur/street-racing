@@ -34,11 +34,6 @@ export function hideAllScreens() {
     document.querySelectorAll('.mobile-screen').forEach(screen => {
         screen.classList.remove('active');
     });
-    
-    // Останавливаем обновление чата при переходе на другой экран
-    if (window.stopChatUpdates) {
-        window.stopChatUpdates();
-    }
 }
 
 // Базовая функция навигации
@@ -99,29 +94,15 @@ export function showMainMenu(addToHistory = true) {
 
 function updateMainMenuInfo() {
     if (gameState.currentUser) {
-        const playerNameEl = document.getElementById('player-name');
-        if (playerNameEl) {
-            playerNameEl.textContent = gameState.currentUser.username;
+        // Обновляем только имя в приветствии (если есть)
+        const welcomeUsername = document.getElementById('welcome-username');
+        if (welcomeUsername) {
+            welcomeUsername.textContent = gameState.currentUser.username;
         }
-        
-        // Обновляем аватар с новой цветовой схемой
-        const avatars = document.querySelectorAll('.player-avatar');
-        avatars.forEach(avatar => {
-            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=ff4444&color=ffffff&size=100`;
-        });
     }
     
     const gameData = window.gameData;
     if (gameData) {
-        // Обновляем статистику игрока в главном меню
-        const playerLevelEl = document.getElementById('player-level');
-        const playerWinsEl = document.getElementById('player-wins');
-        const playerCarsEl = document.getElementById('player-cars');
-        
-        if (playerLevelEl) playerLevelEl.textContent = gameData.level;
-        if (playerWinsEl) playerWinsEl.textContent = gameData.stats.wins;
-        if (playerCarsEl) playerCarsEl.textContent = gameData.cars.length;
-        
         // Обновляем ресурсы в header
         const headerLevelEl = document.getElementById('header-level');
         const headerMoneyEl = document.getElementById('header-money');
@@ -233,52 +214,8 @@ export function showAchievementsScreen(addToHistory = true) {
     if (window.updateAchievementsDisplay) {
         window.updateAchievementsDisplay();
     }
-    
-}
-// Показать экран сообщества
-export function showCommunityScreen(addToHistory = true) {
-    console.log('showCommunityScreen вызвана'); // Добавь эту строку
-    
-    hideAllScreens();
-    document.getElementById('community-screen').classList.add('active');
-    if (addToHistory) navigateToScreen('community-screen');
-    
-    console.log('Загружаем чат и новости'); // И эту
-    
-    // Загружаем чат и новости
-    if (window.loadChatMessages) {
-        window.loadChatMessages();
-    } else {
-        console.error('loadChatMessages не найдена'); // И эту
-    }
-    
-    if (window.loadNews) {
-        window.loadNews('all');
-    } else {
-        console.error('loadNews не найдена'); // И эту
-    }
-    
-    // Запускаем автообновление чата
-    if (window.startChatUpdates) {
-        window.startChatUpdates();
-    }
 }
 
-// Функция переключения вкладок сообщества
-export function showCommunityTab(tab) {
-    // Удаляем активные классы
-    document.querySelectorAll('#community-screen .tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('#community-screen .tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Активируем нужную вкладку
-    if (tab === 'chat') {
-        document.querySelector('#community-screen .tab-button:first-child').classList.add('active');
-        document.getElementById('community-chat').classList.add('active');
-    } else {
-        document.querySelector('#community-screen .tab-button:last-child').classList.add('active');
-        document.getElementById('community-news').classList.add('active');
-    }
-}
 // Делаем функции доступными глобально
 window.showMainMenu = showMainMenu;
 window.showGarageScreen = showGarageScreen;
@@ -289,5 +226,3 @@ window.showLeaderboardScreen = showLeaderboardScreen;
 window.showDailyTasksScreen = showDailyTasksScreen;
 window.showAchievementsScreen = showAchievementsScreen;
 window.goBack = goBack;
-window.showCommunityScreen = showCommunityScreen;
-window.showCommunityTab = showCommunityTab;

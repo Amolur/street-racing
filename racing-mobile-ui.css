@@ -240,60 +240,6 @@ body {
     background-attachment: fixed;
 }
 
-.player-info-card {
-    background: rgba(45, 45, 45, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: var(--race-radius-large);
-    padding: var(--race-spacing-large);
-    margin-bottom: var(--race-spacing-large);
-    border: 2px solid var(--race-primary);
-    text-align: center;
-}
-
-.player-avatar-wrapper {
-    margin-bottom: var(--race-spacing);
-}
-
-.player-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 2px solid var(--race-primary);
-}
-
-.player-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--race-primary);
-    margin-bottom: var(--race-spacing-small);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.player-stats {
-    display: flex;
-    justify-content: center;
-    gap: var(--race-spacing-large);
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--race-warning);
-    display: block;
-}
-
-.stat-label {
-    font-size: 11px;
-    color: var(--race-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
 /* ================================ */
 /* МЕНЮ КНОПКИ - ВЕРТИКАЛЬНАЯ СЕТКА */
 /* ================================ */
@@ -1202,6 +1148,24 @@ body {
     }
 }
 
+.welcome-message {
+    text-align: center;
+    margin-bottom: var(--race-spacing-large);
+    padding: var(--race-spacing);
+}
+
+.welcome-message h2 {
+    font-size: 20px;
+    color: var(--race-text-secondary);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.welcome-message span {
+    color: var(--race-primary);
+    font-weight: 700;
+}
 /* ================================ */
 /* УТИЛИТАРНЫЕ КЛАССЫ */
 /* ================================ */
