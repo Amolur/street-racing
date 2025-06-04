@@ -2,7 +2,6 @@
 // Вспомогательные функции с новым UI (без загрузки)
 
 import { gameState, gameData, fuelSystem } from './game-data.js';
-import { showNotification } from './ui-components.js';
 
 // Безопасная работа с localStorage
 export const storage = {
@@ -64,7 +63,12 @@ async function processSaveQueue() {
     saveQueue = []; // Очищаем очередь
     
     try {
-        await saveGameData(latestSave.data);
+        // ИСПРАВЛЕНО: используем глобальную функцию saveGameData
+        if (window.saveGameData) {
+            await window.saveGameData(latestSave.data);
+        } else {
+            throw new Error('saveGameData не найдена');
+        }
         unsavedChanges = false;
         updateSaveIndicator(true);
     } catch (error) {
@@ -88,7 +92,9 @@ window.addEventListener('beforeunload', async (e) => {
         // Пытаемся сохранить синхронно
         try {
             const latestSave = saveQueue[saveQueue.length - 1] || { data: gameData };
-            await saveGameData(latestSave.data);
+            if (window.saveGameData) {
+                await window.saveGameData(latestSave.data);
+            }
         } catch (error) {
             console.error('Не удалось сохранить при закрытии');
         }
@@ -100,33 +106,106 @@ export function updateSaveIndicator(success = null) {
     const indicator = document.getElementById('save-indicator');
     if (!indicator) return;
     
-    indicator.classList.remove('saving', 'saved', 'error');
+    indicator.classList.remove('saving', 'saved', 'error', 'show');
     
-    if (success === null) {
-        // Сохранение в процессе
-        indicator.classList.add('show', 'saving');
-        indicator.querySelector('.save-text').textContent = 'Сохранение...';
-    } else if (success) {
-        // Успешно сохранено
-        indicator.classList.add('show', 'saved');
-        indicator.querySelector('.save-text').textContent = 'Сохранено';
+    // Можете оставить только критические ошибки (по желанию)
+    if (success === false) {
+        indicator.classList.add('show', 'error');
+        const saveText = indicator.querySelector('.save-text');
+        if (saveText) saveText.textContent = 'Ошибка!';
         setTimeout(() => {
             indicator.classList.remove('show');
-        }, 2000);
-    } else {
-        // Ошибка
-        indicator.classList.add('show', 'error');
-        indicator.querySelector('.save-text').textContent = 'Ошибка!';
+        }, 3000);
     }
 }
 
-// Показать уведомление об ошибке
+// Показать уведомление (новая унифицированная система)
 export function showError(message) {
-    if (window.notify) {
-        window.notify(message, 'error');
-    } else {
-        showNotification(message, 'error');
+    // Автоматически определяем тип уведомления по содержанию
+    let type = 'info';
+    
+    if (message.includes('❌') || message.includes('Ошибка') || message.includes('ошибка') || 
+        message.includes('Недостаточно') || message.includes('недостаточно') ||
+        message.includes('Нельзя') || message.includes('нельзя') ||
+        message.includes('Не удалось') || message.includes('не удалось')) {
+        type = 'error';
+    } else if (message.includes('✅') || message.includes('Успешно') || message.includes('успешно') ||
+               message.includes('Куплено') || message.includes('куплено') ||
+               message.includes('Продана') || message.includes('продана')) {
+        type = 'success';
+    } else if (message.includes('💰') || message.includes('$') || message.includes('Получено') ||
+               message.includes('Награда') || message.includes('награда') ||
+               message.includes('Бонус') || message.includes('бонус')) {
+        type = 'reward';
+    } else if (message.includes('⭐') || message.includes('🎉') || message.includes('уровень') ||
+               message.includes('Уровень') || message.includes('Новый')) {
+        type = 'level';
+    } else if (message.includes('⚡') || message.includes('навык') || message.includes('Навык') ||
+               message.includes('повышен') || message.includes('Повышен')) {
+        type = 'skill';
+    } else if (message.includes('🏆') || message.includes('Достижение') || message.includes('достижение')) {
+        type = 'achievement';
+    } else if (message.includes('⛽') || message.includes('топлив') || message.includes('Топлив')) {
+        type = 'fuel';
+    } else if (message.includes('🏁') || message.includes('гонк') || message.includes('Гонк') ||
+               message.includes('Победа') || message.includes('победа') ||
+               message.includes('Поражение') || message.includes('поражение')) {
+        type = 'race';
+    } else if (message.includes('🚗') || message.includes('машин') || message.includes('Машин') ||
+               message.includes('авто') || message.includes('Авто')) {
+        type = 'car';
+    } else if (message.includes('🔧') || message.includes('улучш') || message.includes('Улучш') ||
+               message.includes('установ') || message.includes('Установ')) {
+        type = 'upgrade';
+    } else if (message.includes('⚠️') || message.includes('Внимание') || message.includes('внимание') ||
+               message.includes('Осторожно') || message.includes('осторожно')) {
+        type = 'warning';
     }
+    
+    // Используем новую систему уведомлений
+    if (window.notify) {
+        window.notify(message, type);
+    } else {
+        // Fallback на случай если новая система не загрузилась
+        showNotificationFallback(message, type);
+    }
+}
+
+// ИСПРАВЛЕНО: добавил fallback функцию для уведомлений (оставляем как резерв)
+function showNotificationFallback(message, type = 'error') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // Создаем временное уведомление если новая система недоступна
+    let notification = document.getElementById('temp-notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'temp-notification';
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d2d2d;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #ff4444;
+            z-index: 3000;
+            max-width: calc(100vw - 40px);
+            font-size: 14px;
+            text-align: center;
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        if (notification && notification.parentNode) {
+            notification.style.display = 'none';
+        }
+    }, 3000);
 }
 
 // Показать/скрыть индикатор загрузки (отключено)
@@ -145,12 +224,12 @@ export function startAutoSave() {
         if (gameState.currentUser && gameData) {
             try {
                 await queueSave(gameData, 'normal');
-                console.log('✅ Автосохранение добавлено в очередь');
+                // console.log('✅ Автосохранение добавлено в очередь'); // ЗАКОММЕНТИРУЙТЕ
             } catch (error) {
                 console.error('❌ Ошибка автосохранения:', error);
             }
         }
-    }, 60000); // Каждую минуту добавляем в очередь
+    }, 60000);
 }
 
 export function stopAutoSave() {
@@ -237,9 +316,7 @@ function checkFuelRegeneration() {
         
         // Если топливо полное - уведомляем
         if (currentFuel === car.maxFuel) {
-            if (window.notify) {
-                window.notify('⛽ Топливо полностью восстановлено!', 'success');
-            }
+            window.notify('⛽ Топливо полностью восстановлено!', 'fuel');
         }
         
         updateFuelDisplay();

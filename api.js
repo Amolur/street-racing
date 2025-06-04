@@ -30,6 +30,9 @@ const storage = {
 
 let authToken = storage.getItem('authToken');
 
+// Делаем authToken доступным глобально
+window.getAuthToken = () => authToken;
+
 // Проверка соединения
 function checkConnection() {
     return navigator.onLine;
@@ -37,20 +40,11 @@ function checkConnection() {
 
 // Показать уведомление об ошибке
 function showError(message) {
-    let notification = document.getElementById('error-notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'error-notification';
-        notification.className = 'error-notification';
-        document.body.appendChild(notification);
+    if (window.notify) {
+        window.notify(message, 'error');
+    } else {
+        console.error(message);
     }
-    
-    notification.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 5000);
 }
 
 // Базовая функция для API запросов
@@ -153,20 +147,7 @@ async function loadGameData() {
     return await apiRequest('/game/data', { method: 'GET' });
 }
 
-async function saveGameData(gameData) {
-    console.log('Отправка данных на сервер:', {
-        money: gameData.money,
-        level: gameData.level,
-        carsCount: gameData.cars ? gameData.cars.length : 0,
-        hasStats: !!gameData.stats
-    });
-    
-    return await apiRequest('/game/save', {
-        method: 'POST',
-        body: JSON.stringify({ gameData })
-    });
-}
-// Около строки 98 в api.js
+// ИСПРАВЛЕНО: убрал дублирование функции saveGameData
 async function saveGameData(gameData) {
     try {
         // Проверяем данные перед отправкой
@@ -349,9 +330,9 @@ window.getLeaderboard = getLeaderboard;
 
 // Обработчики offline/online
 window.addEventListener('online', () => {
-    showError('Соединение восстановлено');
+    window.notify('🔌 Соединение восстановлено', 'success');
 });
 
 window.addEventListener('offline', () => {
-    showError('Нет соединения с интернетом');
+    window.notify('🔌 Нет соединения с интернетом', 'warning');
 });

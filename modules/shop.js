@@ -2,9 +2,51 @@
 // Функционал магазина с новым UI
 
 import { gameData, allCars, levelSystem } from './game-data.js';
-import { showError, showLoading, updatePlayerInfo } from './utils.js';
+import { showError, updatePlayerInfo } from './utils.js';
 import { initializeCarUpgrades } from './upgrades.js';
-import { createShopCarCard } from './ui-components.js';
+
+// ИСПРАВЛЕНО: создаем локальную функцию createShopCarCard вместо импорта
+function createShopCarCard(car, owned, canBuy, requiredLevel, playerLevel) {
+    const locked = playerLevel < requiredLevel;
+    
+    return `
+        <div class="card ${owned ? 'owned' : ''} ${locked ? 'locked' : ''}">
+            <div class="card-header">
+                <h3 class="card-title">${car.name}</h3>
+                ${owned ? '<span class="badge">Куплено</span>' : ''}
+            </div>
+            <div class="card-body">
+                <div class="car-image-placeholder">🚗</div>
+                <div class="car-stats-grid">
+                    <div class="stat">
+                        <span>Мощность</span>
+                        <span>${car.power}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Скорость</span>
+                        <span>${car.speed}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Управление</span>
+                        <span>${car.handling}</span>
+                    </div>
+                    <div class="stat">
+                        <span>Разгон</span>
+                        <span>${car.acceleration}</span>
+                    </div>
+                </div>
+                ${locked ? `<p class="level-requirement">Требуется ${requiredLevel} уровень</p>` : ''}
+                <p class="car-price">$${car.price.toLocaleString()}</p>
+                ${!owned ? `
+                    <button class="action-button" onclick="buyCar(${car.id})" ${!canBuy ? 'disabled' : ''}>
+                        ${locked ? `Нужен ${requiredLevel} уровень` : 
+                          !canBuy ? 'Недостаточно денег' : 'Купить'}
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
 
 // Обновление отображения магазина
 export function updateShopDisplay() {
@@ -78,7 +120,7 @@ export async function buyCar(carId) {
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
     if (!car || gameData.money < car.price || gameData.level < requiredLevel) {
-        window.notify('Невозможно купить эту машину!', 'error');
+        window.notifyError('🚗 Невозможно купить эту машину!');
         return;
     }
     
@@ -102,7 +144,7 @@ export async function buyCar(carId) {
     updatePlayerInfo();
     updateShopDisplay();
     
-    window.notify(`✅ Вы купили ${car.name}!`, 'success');
+    window.notify(`🚗 Вы купили ${car.name}!`, 'car');
     
     if (window.updateTaskProgress) {
         window.updateTaskProgress('moneySpent', car.price);
@@ -116,7 +158,7 @@ export async function buyCar(carId) {
 // Функция продажи машины
 export async function sellCar(index) {
     if (gameData.cars.length <= 1) {
-        window.notify('Нельзя продать последнюю машину!', 'error');
+        window.notifyError('🚗 Нельзя продать последнюю машину!');
         return;
     }
     
@@ -140,7 +182,7 @@ export async function sellCar(index) {
         updatePlayerInfo();
         updateShopDisplay();
         
-        window.notify(`${car.name} продана за $${sellPrice.toLocaleString()}`, 'success');
+        window.notify(`🚗 ${car.name} продана за $${sellPrice.toLocaleString()}`, 'car');
     }
 }
 
@@ -152,16 +194,23 @@ export function showShopTab(tab) {
     
     // Активируем нужную вкладку
     if (tab === 'buy') {
-        document.querySelector('.tabs-header .tab-button:first-child').classList.add('active');
-        document.getElementById('shop-buy').classList.add('active');
+        const buyButton = document.querySelector('.tabs-header .tab-button:first-child');
+        const buyContent = document.getElementById('shop-buy');
+        
+        if (buyButton) buyButton.classList.add('active');
+        if (buyContent) buyContent.classList.add('active');
         updateBuyTab();
     } else {
-        document.querySelector('.tabs-header .tab-button:last-child').classList.add('active');
-        document.getElementById('shop-sell').classList.add('active');
+        const sellButton = document.querySelector('.tabs-header .tab-button:last-child');
+        const sellContent = document.getElementById('shop-sell');
+        
+        if (sellButton) sellButton.classList.add('active');
+        if (sellContent) sellContent.classList.add('active');
         updateSellTab();
     }
 }
 
+// Делаем функции доступными глобально
 window.updateShopDisplay = updateShopDisplay;
 window.buyCar = buyCar;
 window.sellCar = sellCar;
