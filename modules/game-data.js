@@ -39,13 +39,69 @@ export let gameData = {
         handling: 70,
         acceleration: 55,
         price: 0,
-        owned: true
-    }]
+        owned: true,
+        upgrades: {
+            engine: 0,
+            turbo: 0,
+            tires: 0,
+            suspension: 0,
+            transmission: 0
+        },
+        specialParts: {
+            nitro: false,
+            bodyKit: false,
+            ecuTune: false,
+            fuelTank: false
+        },
+        fuel: 30,
+        maxFuel: 30,
+        lastFuelUpdate: new Date().toISOString()
+    }],
+    achievements: [],
+    dailyTasks: null,
+    dailyStats: {}
 };
 
 // Функция для обновления gameData после загрузки с сервера
 export function updateGameData(newData) {
-    gameData = { ...gameData, ...newData };
+    // Сохраняем структуру по умолчанию и обновляем только то, что пришло
+    gameData = {
+        ...gameData,
+        ...newData,
+        // Убеждаемся, что критические поля всегда есть
+        skills: newData.skills || gameData.skills,
+        stats: newData.stats || gameData.stats,
+        cars: newData.cars || gameData.cars,
+        achievements: newData.achievements || [],
+        dailyTasks: newData.dailyTasks || null,
+        dailyStats: newData.dailyStats || {}
+    };
+    
+    // Инициализируем первую машину если нужно
+    if (gameData.cars && gameData.cars.length > 0) {
+        gameData.cars.forEach(car => {
+            if (!car.upgrades) {
+                car.upgrades = {
+                    engine: 0,
+                    turbo: 0,
+                    tires: 0,
+                    suspension: 0,
+                    transmission: 0
+                };
+            }
+            if (!car.specialParts) {
+                car.specialParts = {
+                    nitro: false,
+                    bodyKit: false,
+                    ecuTune: false,
+                    fuelTank: false
+                };
+            }
+            if (car.fuel === undefined) car.fuel = 30;
+            if (car.maxFuel === undefined) car.maxFuel = 30;
+            if (!car.lastFuelUpdate) car.lastFuelUpdate = new Date().toISOString();
+        });
+    }
 }
 
 // Система уровней

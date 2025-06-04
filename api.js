@@ -150,24 +150,64 @@ async function saveGameData(gameData) {
             return;
         }
         
-        // Убедимся, что все числовые поля - числа
-        if (gameData.money !== undefined) gameData.money = Number(gameData.money) || 0;
-        if (gameData.level !== undefined) gameData.level = Number(gameData.level) || 1;
-        if (gameData.experience !== undefined) gameData.experience = Number(gameData.experience) || 0;
+        // Создаем копию данных для отправки
+        const dataToSend = {
+            money: Number(gameData.money) || 0,
+            level: Number(gameData.level) || 1,
+            experience: Number(gameData.experience) || 0,
+            currentCar: Number(gameData.currentCar) || 0,
+            cars: gameData.cars || [],
+            skills: gameData.skills || {
+                driving: 1,
+                speed: 1,
+                reaction: 1,
+                technique: 1
+            },
+            stats: gameData.stats || {
+                totalRaces: 0,
+                wins: 0,
+                losses: 0,
+                moneyEarned: 0,
+                moneySpent: 0,
+                driftWins: 0,
+                sprintWins: 0,
+                enduranceWins: 0
+            },
+            achievements: gameData.achievements || [],
+            dailyTasks: gameData.dailyTasks || null,
+            dailyStats: gameData.dailyStats || {}
+        };
         
         console.log('Отправка данных на сервер:', {
-            money: gameData.money,
-            level: gameData.level,
-            carsCount: gameData.cars ? gameData.cars.length : 0,
-            hasStats: !!gameData.stats
+            money: dataToSend.money,
+            level: dataToSend.level,
+            carsCount: dataToSend.cars.length
         });
         
-        return await apiRequest('/game/save', {
+        const response = await fetch(`${API_URL}/game/save`, {
             method: 'POST',
-            body: JSON.stringify({ gameData })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ gameData: dataToSend })
         });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Ошибка сохранения');
+        }
+        
+        const result = await response.json();
+        console.log('✅ Данные успешно сохранены');
+        return result;
+        
     } catch (error) {
-        console.error('Ошибка сохранения данных:', error);
+        console.error('❌ Ошибка сохранения данных:', error);
+        // Не показываем ошибку пользователю при автосохранении
+        if (error.message && !error.message.includes('Failed to fetch')) {
+            showError('Ошибка сохранения данных');
+        }
         throw error;
     }
 }
