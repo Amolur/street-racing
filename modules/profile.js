@@ -1,166 +1,177 @@
 // modules/profile.js
-// Функционал профиля игрока и таблицы лидеров
+// Функционал профиля игрока
 
-import { gameData, gameState, levelSystem } from './game-data.js';
-import { showError } from './utils.js';
-import { checkAllAchievements, getAchievementsStats } from './achievements.js';
+import { gameData } from './game-data.js';
+import { updatePlayerInfo } from './utils.js';
+
+// Получение расширенной статистики с сервера
+async function getExtendedStats() {
+    try {
+        if (typeof window.getProfileStats === 'function') {
+            return await window.getProfileStats();
+        }
+        
+        // Если функция недоступна, возвращаем базовую статистику
+        return {
+            totalPlayTime: 0,
+            averageRaceTime: 0,
+            winRate: gameData.stats.totalRaces > 0 ? 
+                Math.round((gameData.stats.wins / gameData.stats.totalRaces) * 100) : 0,
+            longestWinStreak: 0,
+            favoriteOpponent: 'Новичок',
+            totalDistance: 0,
+            perfectRaces: 0
+        };
+    } catch (error) {
+        console.error('Ошибка получения расширенной статистики:', error);
+        return {
+            totalPlayTime: 0,
+            averageRaceTime: 0,
+            winRate: 0,
+            longestWinStreak: 0,
+            favoriteOpponent: 'Новичок',
+            totalDistance: 0,
+            perfectRaces: 0
+        };
+    }
+}
 
 // Обновление отображения профиля
-export function updateProfileDisplay() {
-    if (!gameData || !gameState.currentUser) return;
-    
-    // Обновляем базовую информацию
+export async function updateProfileDisplay() {
+    // Базовая информация
     const usernameEl = document.getElementById('profile-username');
     const levelEl = document.getElementById('profile-level');
-    const avatarEl = document.getElementById('profile-avatar');
+    const experienceEl = document.getElementById('profile-experience');
+    const moneyEl = document.getElementById('profile-money');
     
-    if (usernameEl) usernameEl.textContent = gameState.currentUser.username;
-    if (levelEl) levelEl.textContent = gameData.level;
-    if (avatarEl) {
-        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameState.currentUser.username)}&background=ff4444&color=ffffff&size=160`;
+    if (usernameEl && gameData) {
+        usernameEl.textContent = gameData.username || 'Игрок';
     }
     
-    // Обновляем XP
-    updateXPBar();
+    if (levelEl && gameData) {
+        levelEl.textContent = gameData.level || 1;
+    }
     
-    // Обновляем статистику
-    updateProfileStats();
+    if (experienceEl && gameData) {
+        experienceEl.textContent = gameData.experience || 0;
+    }
     
-    // Обновляем навыки
-    updateProfileSkills();
+    if (moneyEl && gameData) {
+        moneyEl.textContent = `$${gameData.money?.toLocaleString() || '0'}`;
+    }
     
-    // Проверяем достижения
-    checkAllAchievements();
+    // Основная статистика
+    const winsEl = document.getElementById('profile-wins');
+    const totalRacesEl = document.getElementById('profile-total-races');
+    const moneyEarnedEl = document.getElementById('profile-money-earned');
+    const moneySpentEl = document.getElementById('profile-money-spent');
     
-    // Обновляем счетчик достижений
-    updateAchievementsCount();
+    if (winsEl && gameData.stats) {
+        winsEl.textContent = gameData.stats.wins || 0;
+    }
+    
+    if (totalRacesEl && gameData.stats) {
+        totalRacesEl.textContent = gameData.stats.totalRaces || 0;
+    }
+    
+    if (moneyEarnedEl && gameData.stats) {
+        moneyEarnedEl.textContent = `$${gameData.stats.moneyEarned?.toLocaleString() || '0'}`;
+    }
+    
+    if (moneySpentEl && gameData.stats) {
+        moneySpentEl.textContent = `$${gameData.stats.moneySpent?.toLocaleString() || '0'}`;
+    }
+    
+    // Загружаем расширенную статистику
+    try {
+        const extendedStats = await getExtendedStats();
+        updateExtendedStats(extendedStats);
+    } catch (error) {
+        console.error('Не удалось загрузить расширенную статистику:', error);
+        window.notifyError('📊 Ошибка загрузки данных');
+    }
 }
 
-// Обновление XP бара
-export function updateXPBar() {
-    const currentXP = gameData.experience || 0;
-    const currentLevel = gameData.level;
-    const nextLevelXP = levelSystem.getRequiredXP(currentLevel + 1);
-    const prevLevelXP = currentLevel > 1 ? levelSystem.getRequiredXP(currentLevel) : 0;
-    
-    const xpInCurrentLevel = currentXP - prevLevelXP;
-    const xpNeededForLevel = nextLevelXP - prevLevelXP;
-    const progressPercent = Math.min((xpInCurrentLevel / xpNeededForLevel) * 100, 100);
-    
-    const xpCurrentEl = document.getElementById('profile-xp');
-    const xpNextEl = document.getElementById('profile-xp-next');
-    const xpFillEl = document.getElementById('profile-xp-fill');
-    
-    if (xpCurrentEl) xpCurrentEl.textContent = xpInCurrentLevel;
-    if (xpNextEl) xpNextEl.textContent = xpNeededForLevel;
-    if (xpFillEl) xpFillEl.style.width = `${progressPercent}%`;
-}
-
-// Обновление статистики профиля
-function updateProfileStats() {
-    const statsContainer = document.getElementById('profile-stats');
-    if (!statsContainer) return;
-    
-    const winRate = gameData.stats.totalRaces > 0 
-        ? Math.round((gameData.stats.wins / gameData.stats.totalRaces) * 100)
-        : 0;
-    
-    const stats = [
-        { label: 'Побед', value: gameData.stats.wins },
-        { label: 'Гонок', value: gameData.stats.totalRaces },
-        { label: 'Процент побед', value: `${winRate}%` },
-        { label: 'Машин', value: gameData.cars.length },
-        { label: 'Заработано', value: `$${gameData.stats.moneyEarned.toLocaleString()}` },
-        { label: 'Потрачено', value: `$${gameData.stats.moneySpent.toLocaleString()}` }
-    ];
-    
-    const statsHTML = stats.map(stat => `
-        <div class="profile-stat-item">
-            <span class="profile-stat-value">${stat.value}</span>
-            <span class="profile-stat-label">${stat.label}</span>
-        </div>
-    `).join('');
-    
-    statsContainer.innerHTML = statsHTML;
-}
-
-// Обновление навыков
-function updateProfileSkills() {
-    const skillsContainer = document.getElementById('profile-skills-display');
-    if (!skillsContainer) return;
-    
-    const skillNames = {
-        driving: 'Вождение',
-        speed: 'Скорость',
-        reaction: 'Реакция',
-        technique: 'Техника'
+// Обновление расширенной статистики
+function updateExtendedStats(stats) {
+    const elements = {
+        'profile-playtime': formatPlayTime(stats.totalPlayTime),
+        'profile-avg-race-time': `${stats.averageRaceTime}с`,
+        'profile-win-rate': `${stats.winRate}%`,
+        'profile-win-streak': stats.longestWinStreak,
+        'profile-favorite-opponent': stats.favoriteOpponent,
+        'profile-total-distance': `${stats.totalDistance}км`,
+        'profile-perfect-races': stats.perfectRaces
     };
     
-    const skillsHTML = Object.keys(skillNames).map(skillKey => {
-        const skillLevel = gameData.skills[skillKey] || 1;
-        const skillName = skillNames[skillKey];
-        
-        return `
-            <div class="skill-item">
-                <span class="skill-name">${skillName}</span>
-                <span class="skill-level">${skillLevel}</span>
-            </div>
-        `;
-    }).join('');
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    });
+}
+
+// Форматирование времени игры
+function formatPlayTime(minutes) {
+    if (minutes < 60) {
+        return `${minutes}м`;
+    }
     
-    skillsContainer.innerHTML = skillsHTML;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours < 24) {
+        return `${hours}ч ${remainingMinutes}м`;
+    }
+    
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return `${days}д ${remainingHours}ч`;
 }
 
-// Обновление счетчика достижений
-function updateAchievementsCount() {
-    const stats = getAchievementsStats();
-    const countEl = document.getElementById('achievements-count');
-    if (countEl) {
-        countEl.textContent = stats.unlocked;
+// Обновление информации о машинах в профиле
+export function updateProfileCars() {
+    const carsCountEl = document.getElementById('profile-cars-count');
+    const currentCarEl = document.getElementById('profile-current-car');
+    
+    if (carsCountEl && gameData.cars) {
+        carsCountEl.textContent = gameData.cars.length;
+    }
+    
+    if (currentCarEl && gameData.cars && gameData.currentCar !== undefined) {
+        const currentCar = gameData.cars[gameData.currentCar];
+        currentCarEl.textContent = currentCar ? currentCar.name : 'Нет машины';
     }
 }
 
-// Обновление таблицы лидеров (оставляем как было)
-export async function updateLeaderboard() {
-    try {
-        const leaderboardList = document.getElementById('leaderboard-list');
-        leaderboardList.innerHTML = '<div class="loading">Загрузка...</div>';
-        
-        const leaders = await getLeaderboard();
-        
-        leaderboardList.innerHTML = '';
-        
-        const leaderboardHTML = leaders.map((player, index) => {
-            const isCurrentUser = player.username === gameState.currentUser.username;
-            
-            let positionClass = '';
-            if (player.position === 1) positionClass = 'gold';
-            else if (player.position === 2) positionClass = 'silver';
-            else if (player.position === 3) positionClass = 'bronze';
-            
-            return `
-                <div class="list-item leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
-                    <div class="position ${positionClass}">${player.position}</div>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${player.username}</div>
-                        <div class="list-item-subtitle">
-                            Уровень ${player.level} • $${player.money.toLocaleString()}
-                        </div>
-                    </div>
-                    <div class="list-item-action">${player.wins} побед</div>
-                </div>
-            `;
-        }).join('');
-        
-        leaderboardList.innerHTML = leaderboardHTML || '<p class="no-data">Пока нет данных</p>';
-        
-    } catch (error) {
-        console.error('Ошибка загрузки таблицы лидеров:', error);
-        document.getElementById('leaderboard-list').innerHTML = 
-            '<p class="error">Ошибка загрузки данных</p>';
+// Обновление аватара игрока
+export function updatePlayerAvatar() {
+    const avatars = document.querySelectorAll('.profile-avatar, .player-avatar');
+    
+    avatars.forEach(avatar => {
+        if (gameData.username) {
+            // Используем новую цветовую схему для аватаров
+            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(gameData.username)}&background=ff4444&color=ffffff&size=100&bold=true`;
+            avatar.alt = gameData.username;
+        }
+    });
+}
+
+// Инициализация экрана профиля
+export function initProfileScreen() {
+    updateProfileDisplay();
+    updateProfileCars();
+    updatePlayerAvatar();
+    
+    // Обновляем достижения если функция доступна
+    if (typeof window.updateAchievementsDisplay === 'function') {
+        window.updateAchievementsDisplay();
     }
 }
 
-// Делаем функции доступными глобально
-window.updateLeaderboard = updateLeaderboard;
+// Экспорт функций для глобального доступа
 window.updateProfileDisplay = updateProfileDisplay;
+window.updateProfileCars = updateProfileCars;
+window.updatePlayerAvatar = updatePlayerAvatar;
+window.initProfileScreen = initProfileScreen;

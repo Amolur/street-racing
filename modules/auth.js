@@ -232,7 +232,7 @@ export function showRegisterForm() {
     if (loginForm) loginForm.classList.remove('active');
 }
 
-// ИСПРАВЛЕНО: убрал дублирование функции showGameFunc
+// Показать игру
 export function showGameFunc() {
     showGame();
     
@@ -265,5 +265,10 @@ export function showGameFunc() {
     showMainMenu(false);
 }
 
-// Экспортируем showGameFunc
+// Экспорт функций для глобального доступа
 window.showGameFunc = showGameFunc;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.showLoginForm = showLoginForm;
+window.showRegisterForm = showRegisterForm;
+window.logout = logout;

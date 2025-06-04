@@ -1,110 +1,89 @@
 // modules/chat.js
-// Функционал чата и новостей
+// Чат и новости
 
-import { gameState } from './game-data.js';
-import { showError, storage } from './utils.js';
-
-// Получаем API URL и токен
-const API_URL = window.API_URL || 'https://street-racing-backend-wnse.onrender.com/api';
-const getAuthToken = () => storage.getItem('authToken');
-
-// Состояние чата
 let chatMessages = [];
 let newsItems = [];
-let chatUpdateInterval = null;
-let isLoadingMessages = false;
-let oldestMessageTime = null;
 
-// Загрузка сообщений чата
-export async function loadChatMessages(before = null) {
-    if (isLoadingMessages) return;
-    
-    try {
-        isLoadingMessages = true;
-        
-        let url = `${API_URL}/chat/messages?limit=50`;
-        if (before) {
-            url += `&before=${before}`;
-        }
-        
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${getAuthToken()}`
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Ошибка загрузки сообщений');
-        }
-        
-        const data = await response.json();
-        
-        if (before) {
-            // Добавляем старые сообщения в начало
-            chatMessages = [...data.messages, ...chatMessages];
-        } else {
-            chatMessages = data.messages;
-        }
-        
-        if (data.messages.length > 0) {
-            oldestMessageTime = data.messages[0].timestamp;
-        }
-        
-        updateChatDisplay();
-        
-    } catch (error) {
-        console.error('Ошибка загрузки чата:', error);
-        if (!before) {
-            showError('Не удалось загрузить чат');
-        }
-    } finally {
-        isLoadingMessages = false;
+// Заглушки для чата
+const mockChatMessages = [
+    {
+        id: 1,
+        username: "Гонщик123",
+        message: "Кто-нибудь хочет погонять?",
+        timestamp: new Date(Date.now() - 300000).toISOString(),
+        level: 15
+    },
+    {
+        id: 2,
+        username: "Скорость",
+        message: "Только что купил новую Тойоту!",
+        timestamp: new Date(Date.now() - 180000).toISOString(),
+        level: 8
+    },
+    {
+        id: 3,
+        username: "МастерДрифт",
+        message: "Где лучше всего прокачивать навыки?",
+        timestamp: new Date(Date.now() - 120000).toISOString(),
+        level: 22
     }
+];
+
+// Заглушки для новостей
+const mockNews = [
+    {
+        id: 1,
+        title: "Обновление игры v2.1",
+        content: "Добавлены новые машины и улучшения в систему гонок",
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        author: "Разработчики"
+    },
+    {
+        id: 2,
+        title: "Турнир выходного дня",
+        content: "Участвуйте в турнире и выигрывайте призы!",
+        timestamp: new Date(Date.now() - 172800000).toISOString(),
+        author: "Администрация"
+    },
+    {
+        id: 3,
+        title: "Новые достижения",
+        content: "Разблокированы новые достижения для опытных гонщиков",
+        timestamp: new Date(Date.now() - 259200000).toISOString(),
+        author: "Разработчики"
+    }
+];
+
+// Инициализация чата
+export function initChat() {
+    loadChatMessages();
+    loadNews();
+    
+    // Обновляем чат каждые 30 секунд (в реальной игре)
+    setInterval(loadChatMessages, 30000);
+    
+    // Обновляем новости каждые 5 минут
+    setInterval(loadNews, 300000);
 }
 
-// Отправка сообщения
-export async function sendChatMessage(message) {
-    if (!message || message.trim().length === 0) {
-        showError('Введите сообщение');
-        return;
-    }
-    
-    if (message.length > 500) {
-        showError('Сообщение слишком длинное (максимум 500 символов)');
-        return;
-    }
-    
+// Загрузка сообщений чата
+async function loadChatMessages() {
     try {
-        const response = await fetch(`${API_URL}/chat/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
-            },
-            body: JSON.stringify({ message: message.trim() })
-        });
+        // В реальной версии здесь будет запрос к серверу
+        // const response = await fetch('/api/chat/messages');
+        // chatMessages = await response.json();
         
-        const data = await response.json();
+        // Пока используем заглушки
+        chatMessages = [...mockChatMessages];
+        updateChatDisplay();
+    } catch (error) {
+        console.error('Ошибка загрузки чата:', error);
         
-        if (!response.ok) {
-            throw new Error(data.error || 'Ошибка отправки');
-        }
-        
-        // Добавляем сообщение в локальный массив
-        chatMessages.push(data.message);
+        // Используем заглушки при ошибке
+        chatMessages = [...mockChatMessages];
         updateChatDisplay();
         
-        // Очищаем поле ввода
-        const input = document.getElementById('chat-input');
-        if (input) {
-            input.value = '';
-        }
-        
-        // Прокручиваем вниз
-        scrollChatToBottom();
-        
-    } catch (error) {
-        showError(error.message);
+        window.notifyError('💬 Не удалось загрузить чат');
     }
 }
 
@@ -113,59 +92,88 @@ function updateChatDisplay() {
     const chatContainer = document.getElementById('chat-messages');
     if (!chatContainer) return;
     
-    const messagesHTML = chatMessages.map(msg => {
-        const date = new Date(msg.timestamp);
-        const time = date.toLocaleTimeString('ru-RU', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-        
-        const isOwnMessage = msg.userId === gameState.currentUserId;
-        
-        return `
-            <div class="chat-message ${isOwnMessage ? 'own-message' : ''}">
-                <div class="message-header">
-                    <span class="message-author">
-                        ${msg.username} 
-                        <span class="user-level">[${msg.userLevel}]</span>
-                    </span>
-                    <span class="message-time">${time}</span>
-                </div>
-                <div class="message-content">${escapeHtml(msg.message)}</div>
-            </div>
-        `;
-    }).join('');
+    const messagesHTML = chatMessages
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 50) // Последние 50 сообщений
+        .map(message => createChatMessageElement(message))
+        .join('');
     
-    chatContainer.innerHTML = messagesHTML || '<p class="no-messages">Нет сообщений</p>';
+    chatContainer.innerHTML = messagesHTML || '<p class="no-data">Сообщений пока нет</p>';
+    
+    // Прокручиваем к последнему сообщению
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Создание элемента сообщения
+function createChatMessageElement(message) {
+    const timeAgo = formatTimeAgo(new Date(message.timestamp));
+    const levelColor = getLevelColor(message.level);
+    
+    return `
+        <div class="chat-message">
+            <div class="message-header">
+                <span class="username" style="color: ${levelColor}">
+                    ${message.username}
+                    <span class="user-level">Lv.${message.level}</span>
+                </span>
+                <span class="timestamp">${timeAgo}</span>
+            </div>
+            <div class="message-content">${escapeHtml(message.message)}</div>
+        </div>
+    `;
+}
+
+// Отправка сообщения
+export async function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    if (!input || !input.value.trim()) return;
+    
+    const message = input.value.trim();
+    
+    try {
+        // В реальной версии отправляем на сервер
+        // await fetch('/api/chat/send', {
+        //     method: 'POST',
+        //     body: JSON.stringify({ message })
+        // });
+        
+        // Добавляем сообщение локально (заглушка)
+        const newMessage = {
+            id: Date.now(),
+            username: "Вы", // В реальной версии из данных пользователя
+            message: message,
+            timestamp: new Date().toISOString(),
+            level: 1 // В реальной версии из данных пользователя
+        };
+        
+        chatMessages.unshift(newMessage);
+        updateChatDisplay();
+        
+        input.value = '';
+    } catch (error) {
+        console.error('Ошибка отправки сообщения:', error);
+        window.notifyError(`💬 ${error.message}`);
+    }
 }
 
 // Загрузка новостей
-export async function loadNews(category = 'all') {
+async function loadNews() {
     try {
-        const authToken = getAuthToken();
-        let headers = {};
+        // В реальной версии здесь будет запрос к серверу
+        // const response = await fetch('/api/news');
+        // newsItems = await response.json();
         
-        // Новости могут быть доступны и без авторизации
-        if (authToken) {
-            headers['Authorization'] = `Bearer ${authToken}`;
-        }
-        
-        const response = await fetch(`${API_URL}/chat/news?category=${category}`, {
-            headers: headers
-        });
-        
-        if (!response.ok) {
-            throw new Error('Ошибка загрузки новостей');
-        }
-        
-        const data = await response.json();
-        newsItems = data.news;
-        
+        // Пока используем заглушки
+        newsItems = [...mockNews];
         updateNewsDisplay();
-        
     } catch (error) {
         console.error('Ошибка загрузки новостей:', error);
-        showError('Не удалось загрузить новости');
+        
+        // Используем заглушки при ошибке
+        newsItems = [...mockNews];
+        updateNewsDisplay();
+        
+        window.notifyError('📰 Не удалось загрузить новости');
     }
 }
 
@@ -174,125 +182,107 @@ function updateNewsDisplay() {
     const newsContainer = document.getElementById('news-list');
     if (!newsContainer) return;
     
-    if (newsItems.length === 0) {
-        newsContainer.innerHTML = '<p class="no-news">Нет новостей</p>';
-        return;
-    }
+    const newsHTML = newsItems
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .map(item => createNewsItemElement(item))
+        .join('');
     
-    const newsHTML = newsItems.map(news => {
-        const date = new Date(news.createdAt);
-        const dateStr = date.toLocaleDateString('ru-RU');
-        
-        const categoryColors = {
-            update: 'update',
-            event: 'event', 
-            maintenance: 'maintenance',
-            general: 'general'
-        };
-        
-        const categoryNames = {
-            update: 'Обновление',
-            event: 'Событие',
-            maintenance: 'Тех. работы',
-            general: 'Новость'
-        };
-        
-        return `
-            <div class="news-item">
-                <div class="news-header">
-                    <span class="news-category ${categoryColors[news.category]}">
-                        ${categoryNames[news.category]}
-                    </span>
-                    <span class="news-date">${dateStr}</span>
-                </div>
-                <h3 class="news-title">${escapeHtml(news.title)}</h3>
-                <div class="news-content">${escapeHtml(news.content)}</div>
-                <div class="news-author">— ${news.author}</div>
+    newsContainer.innerHTML = newsHTML || '<p class="no-data">Новостей пока нет</p>';
+}
+
+// Создание элемента новости
+function createNewsItemElement(item) {
+    const timeAgo = formatTimeAgo(new Date(item.timestamp));
+    
+    return `
+        <div class="news-item card">
+            <div class="card-header">
+                <h3 class="card-title">${escapeHtml(item.title)}</h3>
+                <span class="news-time">${timeAgo}</span>
             </div>
-        `;
-    }).join('');
-    
-    newsContainer.innerHTML = newsHTML;
+            <div class="card-body">
+                <p class="news-content">${escapeHtml(item.content)}</p>
+                <p class="news-author">— ${escapeHtml(item.author)}</p>
+            </div>
+        </div>
+    `;
 }
 
-// Запуск автообновления чата
-export function startChatUpdates() {
-    if (chatUpdateInterval) {
-        clearInterval(chatUpdateInterval);
-    }
-    
-    // Обновляем каждые 5 секунд
-    chatUpdateInterval = setInterval(() => {
-        loadChatMessages();
-    }, 5000);
-}
-
-// Остановка автообновления
-export function stopChatUpdates() {
-    if (chatUpdateInterval) {
-        clearInterval(chatUpdateInterval);
-        chatUpdateInterval = null;
-    }
-}
-
-// Прокрутка чата вниз
-function scrollChatToBottom() {
-    const chatContainer = document.getElementById('chat-messages');
-    if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-}
-
-// Проверка прокрутки для загрузки старых сообщений
-export function checkChatScroll() {
-    const chatContainer = document.getElementById('chat-messages');
-    if (!chatContainer) return;
-    
-    if (chatContainer.scrollTop === 0 && oldestMessageTime && !isLoadingMessages) {
-        loadChatMessages(oldestMessageTime);
-    }
-}
-
-// Экранирование HTML
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-// Обработчик отправки сообщения
-export function handleChatSubmit() {
-    const input = document.getElementById('chat-input');
-    if (input && input.value.trim()) {
-        sendChatMessage(input.value);
-    }
-}
-
-// Переключение категорий новостей
-export function switchNewsCategory(category) {
-    // Обновляем активную кнопку
-    document.querySelectorAll('.news-filter-btn').forEach(btn => {
+// Переключение вкладок чата
+export function showChatTab(tab) {
+    // Убираем активные классы
+    document.querySelectorAll('#community-screen .tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
+    document.querySelectorAll('#community-screen .tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
     
-    const activeBtn = document.querySelector(`[data-category="${category}"]`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
+    if (tab === 'chat') {
+        const chatButton = document.querySelector('#community-screen .tab-button:first-child');
+        const chatContent = document.getElementById('community-chat');
+        
+        if (chatButton) chatButton.classList.add('active');
+        if (chatContent) chatContent.classList.add('active');
+        
+        loadChatMessages();
+    } else if (tab === 'news') {
+        const newsButton = document.querySelector('#community-screen .tab-button:last-child');
+        const newsContent = document.getElementById('community-news');
+        
+        if (newsButton) newsButton.classList.add('active');
+        if (newsContent) newsContent.classList.add('active');
+        
+        loadNews();
     }
-    
-    // Загружаем новости выбранной категории
-    loadNews(category);
 }
 
-// Экспорт функций
-window.loadChatMessages = loadChatMessages;
+// Вспомогательные функции
+function formatTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    
+    if (diffMinutes < 1) return 'только что';
+    if (diffMinutes < 60) return `${diffMinutes}м назад`;
+    
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}ч назад`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}д назад`;
+    
+    return date.toLocaleDateString();
+}
+
+function getLevelColor(level) {
+    if (level < 5) return '#cccccc';
+    if (level < 10) return '#33aa33';
+    if (level < 20) return '#4488ff';
+    if (level < 30) return '#ffa500';
+    return '#ff4444';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Обработка Enter в поле ввода
+document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    }
+});
+
+// Экспорт функций для глобального доступа
 window.sendChatMessage = sendChatMessage;
-window.handleChatSubmit = handleChatSubmit;
-window.startChatUpdates = startChatUpdates;
-window.stopChatUpdates = stopChatUpdates;
-window.checkChatScroll = checkChatScroll;
-window.loadNews = loadNews;
-window.switchNewsCategory = switchNewsCategory;
+window.showChatTab = showChatTab;
+window.initChat = initChat;
