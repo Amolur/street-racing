@@ -96,27 +96,7 @@ window.addEventListener('beforeunload', async (e) => {
 
 // Обновление индикатора сохранения
 export function updateSaveIndicator(success = null) {
-    const indicator = document.getElementById('save-indicator');
-    if (!indicator) return;
-    
-    indicator.classList.remove('saving', 'saved', 'error');
-    
-    if (success === null) {
-        // Сохранение в процессе
-        indicator.classList.add('show', 'saving');
-        indicator.querySelector('.save-text').textContent = 'Сохранение...';
-    } else if (success) {
-        // Успешно сохранено
-        indicator.classList.add('show', 'saved');
-        indicator.querySelector('.save-text').textContent = 'Сохранено';
-        setTimeout(() => {
-            indicator.classList.remove('show');
-        }, 2000);
-    } else {
-        // Ошибка
-        indicator.classList.add('show', 'error');
-        indicator.querySelector('.save-text').textContent = 'Ошибка!';
-    }
+    // Функция оставлена для совместимости, но ничего не делает
 }
 
 // Показать уведомление об ошибке
