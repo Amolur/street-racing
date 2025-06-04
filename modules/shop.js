@@ -78,20 +78,13 @@ export async function buyCar(carId) {
     const requiredLevel = levelSystem.getCarRequiredLevel(car.price);
     
     if (!car || gameData.money < car.price || gameData.level < requiredLevel) {
-        showError('Невозможно купить эту машину!');
+        window.notify('Невозможно купить эту машину!', 'error');
         return;
     }
     
     if (!confirm(`Купить ${car.name} за $${car.price.toLocaleString()}?`)) {
         return;
     }
-    if (window.checkAllAchievements) {
-    window.checkAllAchievements();
-}
-    // Сохраняем старые значения для отката
-    const oldMoney = gameData.money;
-    const oldSpent = gameData.stats.moneySpent;
-    const oldCars = [...gameData.cars];
     
     // Применяем изменения
     gameData.money -= car.price;
@@ -101,38 +94,29 @@ export async function buyCar(carId) {
     initializeCarUpgrades(newCar);
     gameData.cars.push(newCar);
     
+    // КРИТИЧЕСКОЕ СОХРАНЕНИЕ
+    if (window.queueSave) {
+        await window.queueSave(gameData, 'critical');
+    }
+    
     updatePlayerInfo();
     updateShopDisplay();
     
-    showLoading(true);
+    window.notify(`✅ Вы купили ${car.name}!`, 'success');
     
-    try {
-        await saveGameData(gameData);
-        showLoading(false);
-        showError(`✅ Вы купили ${car.name}!`);
-        
-        if (window.updateTaskProgress) {
-            window.updateTaskProgress('moneySpent', car.price);
-        }
-    } catch (error) {
-        showLoading(false);
-        
-        // Откатываем изменения
-        gameData.money = oldMoney;
-        gameData.stats.moneySpent = oldSpent;
-        gameData.cars = oldCars;
-        
-        updatePlayerInfo();
-        updateShopDisplay();
-        
-        showError('❌ Ошибка сохранения! Покупка отменена.');
+    if (window.updateTaskProgress) {
+        window.updateTaskProgress('moneySpent', car.price);
+    }
+    
+    if (window.checkAllAchievements) {
+        window.checkAllAchievements();
     }
 }
 
 // Функция продажи машины
 export async function sellCar(index) {
     if (gameData.cars.length <= 1) {
-        showError('Нельзя продать последнюю машину!');
+        window.notify('Нельзя продать последнюю машину!', 'error');
         return;
     }
     
@@ -140,11 +124,6 @@ export async function sellCar(index) {
     const sellPrice = Math.floor(car.price * 0.7);
     
     if (confirm(`Продать ${car.name} за $${sellPrice.toLocaleString()}?`)) {
-        const oldMoney = gameData.money;
-        const oldEarned = gameData.stats.moneyEarned;
-        const oldCars = [...gameData.cars];
-        const oldCurrentCar = gameData.currentCar;
-        
         gameData.money += sellPrice;
         gameData.stats.moneyEarned += sellPrice;
         gameData.cars.splice(index, 1);
@@ -153,29 +132,15 @@ export async function sellCar(index) {
             gameData.currentCar = 0;
         }
         
+        // КРИТИЧЕСКОЕ СОХРАНЕНИЕ
+        if (window.queueSave) {
+            await window.queueSave(gameData, 'critical');
+        }
+        
         updatePlayerInfo();
         updateShopDisplay();
         
-        showLoading(true);
-        
-        try {
-            await saveGameData(gameData);
-            showLoading(false);
-            showError(`${car.name} продана за $${sellPrice.toLocaleString()}`);
-        } catch (error) {
-            showLoading(false);
-            
-            // Откат изменений
-            gameData.money = oldMoney;
-            gameData.stats.moneyEarned = oldEarned;
-            gameData.cars = oldCars;
-            gameData.currentCar = oldCurrentCar;
-            
-            updatePlayerInfo();
-            updateShopDisplay();
-            
-            showError('❌ Ошибка сохранения! Продажа отменена.');
-        }
+        window.notify(`${car.name} продана за $${sellPrice.toLocaleString()}`, 'success');
     }
 }
 

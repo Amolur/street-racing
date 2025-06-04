@@ -30,9 +30,103 @@ export const storage = {
     }
 };
 
+// Система очереди сохранения
+let saveQueue = [];
+let isSaving = false;
+let unsavedChanges = false;
+
+// Система очереди сохранения
+export async function queueSave(gameData, priority = 'normal') {
+    unsavedChanges = true;
+    
+    // Добавляем в очередь
+    saveQueue.push({
+        data: JSON.parse(JSON.stringify(gameData)), // Глубокая копия
+        priority: priority,
+        timestamp: Date.now()
+    });
+    
+    // Если критическое сохранение - сохраняем сразу
+    if (priority === 'critical') {
+        await processSaveQueue();
+    }
+}
+
+// Обработка очереди сохранения
+async function processSaveQueue() {
+    if (isSaving || saveQueue.length === 0) return;
+    
+    isSaving = true;
+    updateSaveIndicator(null); // Показываем процесс сохранения
+    
+    // Берем последнее состояние (самое актуальное)
+    const latestSave = saveQueue[saveQueue.length - 1];
+    saveQueue = []; // Очищаем очередь
+    
+    try {
+        await saveGameData(latestSave.data);
+        unsavedChanges = false;
+        updateSaveIndicator(true);
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        saveQueue.push(latestSave); // Возвращаем в очередь
+        updateSaveIndicator(false);
+    } finally {
+        isSaving = false;
+    }
+}
+
+// Запускаем обработку очереди каждые 5 секунд
+setInterval(processSaveQueue, 5000);
+
+// Предупреждение при закрытии страницы
+window.addEventListener('beforeunload', async (e) => {
+    if (unsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'У вас есть несохраненные изменения!';
+        
+        // Пытаемся сохранить синхронно
+        try {
+            const latestSave = saveQueue[saveQueue.length - 1] || { data: gameData };
+            await saveGameData(latestSave.data);
+        } catch (error) {
+            console.error('Не удалось сохранить при закрытии');
+        }
+    }
+});
+
+// Обновление индикатора сохранения
+export function updateSaveIndicator(success = null) {
+    const indicator = document.getElementById('save-indicator');
+    if (!indicator) return;
+    
+    indicator.classList.remove('saving', 'saved', 'error');
+    
+    if (success === null) {
+        // Сохранение в процессе
+        indicator.classList.add('show', 'saving');
+        indicator.querySelector('.save-text').textContent = 'Сохранение...';
+    } else if (success) {
+        // Успешно сохранено
+        indicator.classList.add('show', 'saved');
+        indicator.querySelector('.save-text').textContent = 'Сохранено';
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 2000);
+    } else {
+        // Ошибка
+        indicator.classList.add('show', 'error');
+        indicator.querySelector('.save-text').textContent = 'Ошибка!';
+    }
+}
+
 // Показать уведомление об ошибке
 export function showError(message) {
-    showNotification(message, 'error');
+    if (window.notify) {
+        window.notify(message, 'error');
+    } else {
+        showNotification(message, 'error');
+    }
 }
 
 // Показать/скрыть индикатор загрузки (отключено)
@@ -48,15 +142,15 @@ export function startAutoSave() {
     }
     
     gameState.autoSaveInterval = setInterval(async () => {
-        if (gameState.currentUser) {
+        if (gameState.currentUser && gameData) {
             try {
-                await saveGameData(gameData);
-                console.log('✅ Автосохранение выполнено');
+                await queueSave(gameData, 'normal');
+                console.log('✅ Автосохранение добавлено в очередь');
             } catch (error) {
                 console.error('❌ Ошибка автосохранения:', error);
             }
         }
-    }, 300000); // Увеличьте до 5 минут (300000 мс) вместо 1 минуты
+    }, 60000); // Каждую минуту добавляем в очередь
 }
 
 export function stopAutoSave() {
@@ -111,15 +205,44 @@ export function updateQuickStats() {
 export function startFuelUpdates() {
     if (gameState.fuelUpdateInterval) clearInterval(gameState.fuelUpdateInterval);
     
+    // Обновляем каждые 30 секунд
     gameState.fuelUpdateInterval = setInterval(() => {
         updateFuelDisplay();
-    }, 10000);
+        checkFuelRegeneration();
+    }, 30000);
+    
+    // Первое обновление сразу
+    updateFuelDisplay();
 }
 
 export function stopFuelUpdates() {
     if (gameState.fuelUpdateInterval) {
         clearInterval(gameState.fuelUpdateInterval);
         gameState.fuelUpdateInterval = null;
+    }
+}
+
+// Проверка восстановления топлива с уведомлением
+function checkFuelRegeneration() {
+    const car = gameData.cars[gameData.currentCar];
+    if (!car) return;
+    
+    const oldFuel = car.fuel;
+    const currentFuel = fuelSystem.getCurrentFuel(car);
+    
+    // Если топливо восстановилось
+    if (currentFuel > oldFuel) {
+        car.fuel = currentFuel;
+        car.lastFuelUpdate = new Date().toISOString();
+        
+        // Если топливо полное - уведомляем
+        if (currentFuel === car.maxFuel) {
+            if (window.notify) {
+                window.notify('⛽ Топливо полностью восстановлено!', 'success');
+            }
+        }
+        
+        updateFuelDisplay();
     }
 }
 
@@ -164,3 +287,6 @@ export function startInfoBarUpdates() {
         }, 5000);
     }
 }
+
+// Экспорт функции очереди для других модулей
+window.queueSave = queueSave;

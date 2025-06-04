@@ -14,6 +14,7 @@ import * as dailyTasks from './modules/daily-tasks.js';
 import { dom } from './modules/dom-manager.js';
 import * as achievements from './modules/achievements.js';
 import * as chat from './modules/chat.js';
+import { notifications } from './modules/notifications.js';
 
 // Проверка структуры gameData при загрузке
 window.validateGameDataStructure = function() {
@@ -101,6 +102,8 @@ window.stopChatUpdates = chat.stopChatUpdates;
 window.checkChatScroll = chat.checkChatScroll;
 window.loadNews = chat.loadNews;
 window.switchNewsCategory = chat.switchNewsCategory;
+// Инициализация системы уведомлений
+window.notify('Добро пожаловать в игру!', 'info');
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', async function() {

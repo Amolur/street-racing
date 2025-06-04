@@ -138,12 +138,12 @@ export async function startRace(opponentIndex) {
     const betAmount = Math.floor(opponent.reward / 2);
     
     if (gameData.money < betAmount) {
-        showError(`Недостаточно денег! Нужно минимум $${betAmount}`);
+        window.notify(`Недостаточно денег! Нужно минимум $${betAmount}`, 'error');
         return;
     }
     
     if (currentCar.fuel < opponent.fuelCost) {
-        showError(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`);
+        window.notify(`Недостаточно топлива! Нужно ${opponent.fuelCost}, а у вас ${currentCar.fuel}`, 'error');
         return;
     }
     
@@ -164,7 +164,7 @@ export async function startRace(opponentIndex) {
         
         if (!response.ok) {
             const error = await response.json();
-            showError(error.error || 'Ошибка проведения гонки');
+            window.notify(error.error || 'Ошибка проведения гонки', 'error');
             return;
         }
         
@@ -176,13 +176,18 @@ export async function startRace(opponentIndex) {
         gameData.level = result.gameData.level;
         currentCar.fuel = result.gameData.fuel;
         
+        // КРИТИЧЕСКОЕ СОХРАНЕНИЕ после гонки
+        if (window.queueSave) {
+            await window.queueSave(gameData, 'critical');
+        }
+        
         // Показываем уведомления
         if (result.result.nitroActivated) {
-            showError("🚀 Нитро активировано!");
+            window.notify("🚀 Нитро активировано!", 'info');
         }
         
         if (result.result.leveledUp) {
-            showError(`🎉 Поздравляем! Вы достигли ${result.gameData.level} уровня! Награда: $${result.result.levelReward}`);
+            window.notify(`🎉 Новый ${result.gameData.level} уровень! +$${result.result.levelReward}`, 'level');
         }
         
         // Проверяем достижения
@@ -191,15 +196,17 @@ export async function startRace(opponentIndex) {
         }
         
         // Проверяем получение навыка
-const skillResult = window.skillSystem.tryGetSkill(result.result.won);
-if (skillResult.success) {
-    const skillNames = {
-        driving: 'Вождение',
-        speed: 'Скорость',
-        reaction: 'Реакция',
-        technique: 'Техника'
-    };
-showError(`⚡ Навык "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`);}
+        const skillResult = window.skillSystem.tryGetSkill(result.result.won);
+        if (skillResult.success) {
+            const skillNames = {
+                driving: 'Вождение',
+                speed: 'Скорость',
+                reaction: 'Реакция',
+                technique: 'Техника'
+            };
+            window.notify(`⚡ "${skillNames[skillResult.skill]}" повышен до ${skillResult.newLevel}!`, 'skill');
+        }
+        
         // Показываем результат
         showRaceResult(
             result.result.won,
@@ -217,7 +224,7 @@ showError(`⚡ Навык "${skillNames[skillResult.skill]}" повышен до
         
     } catch (error) {
         console.error('Ошибка гонки:', error);
-        showError('Ошибка соединения с сервером');
+        window.notify('Ошибка соединения с сервером', 'error');
     }
 }
 
