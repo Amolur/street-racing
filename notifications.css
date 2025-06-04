@@ -1,0 +1,108 @@
+/* ================================ */
+/* НОВАЯ СИСТЕМА УВЕДОМЛЕНИЙ */
+/* ================================ */
+
+/* Контейнер для уведомлений */
+.notifications-container {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    pointer-events: none;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Одно уведомление */
+.notification-item {
+    background: var(--race-surface);
+    border: 1px solid var(--race-border);
+    border-radius: var(--race-radius);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}
+
+.notification-item.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification-item.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+/* Иконка уведомления */
+.notification-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Текст уведомления */
+.notification-text {
+    flex: 1;
+    color: var(--race-text-primary);
+    line-height: 1.3;
+}
+
+/* Типы уведомлений */
+.notification-item.success {
+    border-color: var(--race-accent);
+    background: rgba(51, 170, 51, 0.2);
+}
+
+.notification-item.error {
+    border-color: var(--race-danger);
+    background: rgba(204, 51, 51, 0.2);
+}
+
+.notification-item.warning {
+    border-color: var(--race-warning);
+    background: rgba(255, 204, 0, 0.2);
+}
+
+.notification-item.info {
+    border-color: var(--race-info);
+    background: rgba(68, 136, 255, 0.2);
+}
+
+.notification-item.reward {
+    border-color: var(--race-warning);
+    background: rgba(255, 204, 0, 0.2);
+}
+
+.notification-item.level {
+    border-color: var(--race-primary);
+    background: rgba(255, 68, 68, 0.2);
+}
+
+.notification-item.skill {
+    border-color: var(--race-info);
+    background: rgba(68, 136, 255, 0.2);
+}
+
+/* Адаптивность */
+@media (max-width: 380px) {
+    .notifications-container {
+        width: 95%;
+    }
+    
+    .notification-item {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .notification-icon {
+        font-size: 14px;
+    }
+}

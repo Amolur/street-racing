@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="racing-auth-styles.css">
     <link rel="stylesheet" href="racing-components-styles.css">
     <link rel="stylesheet" href="chat-styles.css">
+    <link rel="stylesheet" href="notifications.css">
     
     <!-- Шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +21,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Контейнер для уведомлений -->
+<div class="notifications-container" id="notifications-container"></div>
     <!-- Экран загрузки -->
     <div id="loading-screen" class="loading-screen" style="display: none;">
         <div class="loading-content">
@@ -478,8 +481,6 @@
         </div>
     </div>
 </div>
-    <!-- Уведомления -->
-    <div id="error-notification" class="notification"></div>
     
     <!-- Подключение скриптов -->
     <script src="api.js"></script>

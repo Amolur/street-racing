@@ -37,20 +37,9 @@ function checkConnection() {
 
 // Показать уведомление об ошибке
 function showError(message) {
-    let notification = document.getElementById('error-notification');
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'error-notification';
-        notification.className = 'error-notification';
-        document.body.appendChild(notification);
+    if (window.notify) {
+        window.notify(message, 'error');
     }
-    
-    notification.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 5000);
 }
 
 // Базовая функция для API запросов
